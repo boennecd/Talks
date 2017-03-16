@@ -1,0 +1,98 @@
+.reveal h1, .reveal h2, .reveal h3, .reveal h4, .reveal h5, .reveal h6{
+  font-weight: bold;
+}
+
+.reveal h1 {
+    font-size: 160%;
+    line-height: 1.1em;
+}
+
+.reveal h2 {
+    font-size: 150%;
+}
+
+.reveal h3 {
+    font-size: 110%;
+}
+
+.reveal{
+  font-size: 45px;
+}
+
+.reveal pre {
+  font-size: 30%;
+}
+
+.reveal p {
+    font-size: 100%;
+    margin-bottom: .5em;
+    line-height: 1.1em;
+}
+
+
+div.MathJax_Display {
+  text-align: left !important;
+  font-size: 50%;
+}
+
+.reveal section img{
+  box-shadow: none;
+}
+
+.reveal small {
+    font-size: 50%;
+    vertical-align: middle;
+}
+
+.reveal .slides section .mediaOnly {
+  max-height: 800px
+}
+
+.reveal .slides section .mediaInline img, .reveal .slides section .mediaOnly img{
+  display: block;
+  max-height: 600px;
+  width: auto;
+}
+
+.fixed_height {
+  height: 475px;
+  width: auto;
+}
+
+.scrollable {
+  max-height: 500px;
+  overflow-y:auto;
+}
+
+table.WIT {
+  border-collapse: separate; 
+  border-spacing: 0;
+  border: 0;
+}
+
+table.WIT td {
+    vertical-align: top;
+    line-height: 1.2em;
+    word-wrap: break-word;
+    
+    padding-top: 1em;
+    padding-bottom: .5em;
+    padding-left: 0;
+    padding-right: 2em;
+    
+    border-top: 1px solid black;
+    border-bottom: 0;
+    border-left: 0;
+    border-right: 0;
+}
+
+table.WIT td:first-child { 
+    width: 25%;
+    text-align: right;
+    font-weight: bold;
+}
+
+table.WIT tr:first-child td { 
+    border-top: 0;  
+}
+

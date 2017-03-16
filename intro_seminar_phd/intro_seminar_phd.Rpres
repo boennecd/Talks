@@ -1,0 +1,161 @@
+Forecasting corporate distress
+========================================================
+author: Benjamin Christoffersen
+date: 27/02/2017
+autosize: true
+css: custom.css
+
+```{r, include=FALSE, echo=FALSE}
+library(knitcitations)
+bib <- read.bibtex("references.bib")
+```
+
+
+Content
+========================================================
+
+- Main cited papers
+- Generalizing
+- Non-static coefficients
+- Future work
+
+Multi-period logit model
+========================================================
+
+
+ - `r citet(bib["shumway01"])`
+ - `r citet(bib["chava04"])`
+ - `r citet(bib["campbell08"])`
+
+
+Shumway (2001)
+========================================================
+incremental: true
+
+AMEX or NYSE
+
+- Total liabilities to total assets
+- Net income to total assets
+- Excess stock returns
+- Log relative size
+- Standard deviation of stock return regressed against market return 
+
+Change denominator
+========================================================
+
+>  That is, we add 10% of the difference between market and book equity to
+the book value of total assets, thereby increasing book values that are extremely
+small and probably mismeasured
+
+<small>Source: `r citet(bib["campbell08"])`</small>
+
+Change denominator
+========================================================
+
+![alt text](figures/unnamed-chunk-162-1.png)
+
+Use splines
+========================================================
+
+![alt text](figures/shumway_adj_spline_fit_plots-1.png)
+
+Use splines
+========================================================
+
+![alt text](figures/shumway_adj_spline_fit_plots-5.png)
+
+Use splines
+========================================================
+
+![alt text](figures/shumway_adj_spline_mono_plot-1.png)
+
+Performance
+========================================================
+transition: none
+
+<img class="fixed_height", src="figures/AUC_fig_1.jpg">
+
+Performance
+========================================================
+transition: none
+
+<img class="fixed_height", src="figures/AUC_fig_2.jpg">
+
+Performance
+========================================================
+transition: none
+
+<img class="fixed_height", src="figures/AUC_fig_3.jpg">
+
+Performance
+========================================================
+transition: none
+
+<img class="fixed_height", src="figures/AUC_fig_4.jpg">
+
+Performance
+========================================================
+transition: none
+
+<img class="fixed_height", src="figures/AUC_fig_5.jpg">
+
+<small> `mgcv` package described in `r citet(bib["wood06"])` </small>
+
+Time-varying
+========================================================
+
+<img class="fixed_height", src="figures/m1_residuals_by_time-1.png">
+
+<!-- From Agresti: 
+  When the model holds, Pearson and deviance residuals are less variable than standard normal because they compare y¡ to   the fitted mean, rather than the true mean ... 
+  As explained in Section 4.5.6,  these and the [Pearson] resdiauls are  less  variable  than  N(0,1) 
+  
+  I guess there is some caveat though when logistic regression with n = 1 ...
+-->
+ 
+Time-varying
+========================================================
+
+<img class="fixed_height", src="figures/m1_residuals_by_time-2.png">
+
+<small> `r citet(bib["chava04"])` </small>
+
+Time-varying
+========================================================
+
+Additive Hazards Models
+<small> `r citet(bib["lando13"])` using `timereg` package described in `r citet(bib["martinussen07"])`</small> 
+
+Semiparametric Cox Model
+<small> `r citet(bib["grambsch94"])` scaled schoenfeld residuals</small> 
+
+
+ddhazard demo
+========================================================
+incremental: true
+
+Dynamic discrete logistic regression: 
+
+- Discrete random walk 
+- State space model 
+- `C++` & Parallel
+- On CRAN*: `dynamichazard`
+
+<small> * The Comprehensive R Archive Network </small>
+
+Future work
+========================================================
+incremental: true
+
+- Dynamic regression models
+- Ensamble methods <br> <small style="margin-top: -10px;">E.g. `r citet(bib["zikeba16"])`</small>
+- English data set 
+
+References
+========================================================
+<div class="scrollable"><small> 
+```{r, echo=FALSE, results="asis"}
+bibliography()
+```
+
+</div></small>
