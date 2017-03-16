@@ -1,0 +1,612 @@
+dynamichazard Dynamic Hazard Models using State Space Models
+========================================================
+author: Benjamin Christoffersen
+date: 16/03/2017
+autosize: true
+css: custom.css
+
+<script>
+var h1s = document.getElementsByTagName("h1");
+h1s[0].outerHTML = "<h1 style='margin-bottom: 0;'>dynamichazard</h1><h2 style='margin-top: 0;'>Dynamic Hazard Models <br /> using State Space Models</h2>";
+//(function($){ 
+//  $( "h1" ).html( "Dynamic Hazard Models <br /> using State Space Models: dynamichazard" ); 
+// })(jQuery); 
+</script>  
+
+
+```{r setup, include=FALSE, echo=FALSE}
+library(knitcitations)
+bib <- read.bibtex("references.bib")
+
+knitr::knit_hooks$set(default_par = function(before, options, envir) {
+    if (before) 
+      par(mar = c(4, 4, .1, .1), cex = 1.8, lwd = 2)
+})
+
+options(digits = 3, width = 200)
+
+knitr::opts_chunk$set(dpi=150, fig.width = 14, default_par = TRUE)
+```
+
+$$\newcommand{\mat}[1]{\mathbf{#1}}
+%
+\newcommand{\Lparen}[1]{\left( #1\right)} 
+\newcommand{\Lbrack}[1]{\left[ #1\right]} 
+\newcommand{\Lbrace}[1]{\left \{ #1\right \}} 
+\newcommand{\Lceil}[1]{\left \lceil #1\right \rceil}
+\newcommand{\Lfloor}[1]{\left \lfloor #1\right \rfloor}
+%
+\newcommand{\propp}[1]{P\Lparen{#1}}
+\newcommand{\proppCond}[2]{P\Lparen{\left. #1 \right\vert  #2}}
+%
+\newcommand{\expecp}[1]{E\Lparen{#1}}
+\newcommand{\expecpCond}[2]{E\Lparen{\left. #1  \right\vert  #2}}
+%
+\newcommand{\varp}[1]{\textrm{Var}\Lparen{#1}}
+\newcommand{\varpCond}[2]{\textrm{Var} \Lparen{\left. #1 \right\vert  #2}}
+%
+\newcommand{\corpCond}[2]{\textrm{Cor} \Lparen{\left. #1 \right\vert  #2}}
+%
+\newcommand{\covp}[1]{\textrm{Cov} \Lparen{#1}}
+\newcommand{\covpCond}[2]{\textrm{Cov} \Lparen{\left. #1 \right\vert  #2}}
+%
+\newcommand{\emNotee}[3]{#1_{\left. #2 \right\vert #3}}
+\newcommand{\emNote}[4]{#1_{\left. #2 \right\vert #3}^{(#4)}} 
+%
+\newcommand{\ukfNote}[2]{\mat{P}_{\vec{#1}, \vec{#2}}}
+\newcommand{\ukfNotee}[3]{\mat{P}_{\vec{#1}_{#3}, \vec{#2}_{#3}}}
+%
+\newcommand{\diag}[1]{\text{diag}{\Lparen{#1}}}
+\newcommand{\wvec}[1]{\widehat{\vec{#1}}}
+\newcommand{\wmat}[1]{\widehat{\mat{#1}}}
+\newcommand{\wtvec}[1]{\widetilde{\vec{#1}}}
+\newcommand{\bvec}[1]{\bar{\vec{#1}}}
+%
+\newcommand{\deter}[1]{\left| #1 \right|}
+%
+\newcommand{\MyInd}[2]{\Lparen{#1}_{#2}}
+% 
+\newcommand{\xyzp}[2]{#1\Lparen{#2}}
+\newcommand{\xyzpCond}[3]{#1\Lparen{\left. #2  \right\vert  #3}}
+%
+\newcommand{\argmax}[1]{\underset{#1}{\text{argmax}\,}}$$
+
+Content
+========================================================
+
+- Why and when to use
+- Extended Kalman Filter
+- Unscented Kalman filter
+- Continuous time model
+- Constant effects
+- Future work
+
+The problem
+========================================================
+
+$$\begin{aligned} 
+  &y_{it} =\left\{ \begin{matrix} 1 & \text{Firm }i\text{ defaults at time }t \\ 0 & \text{otherwise} \end{matrix} \right. \\
+  &\vec{x}_{it}: \text{Firm }i\text{'s covariate vector at time }t \\ 
+  &\pi_{it}: \text{Likelihood that firm }i\text{ defaults at time }t
+\end{aligned}$$
+
+Multi-period logit model
+========================================================
+
+$$\begin{aligned}
+  &R_t:~\text{Indices of indvididuals at risk in interval }t\\
+  &\mathcal{L}(\vec{\alpha}) = \sum_{t = 1}^d \sum_{i \in R_t} l_{it}({\vec{\alpha}}) \\
+  &l_{it}(\vec{\alpha}) = y_{it} \log h(\vec{x}_{it}^T \vec{\alpha}) + (1 - y_{it}) 
+	\log \Lparen{1 - h(\vec{x}_{it}^T \vec{\alpha})} \\
+  &h(x) = 1/(1 + \exp(-x))
+\end{aligned}$$
+
+<small>`r citet(bib["shumway01"])`, `r citet(bib["chava04"])`, `r citet(bib["campbell08"])`</small>
+
+Time-varying
+========================================================
+
+<img class="fixed_height", src="figures/m1_residuals_by_time-1.png">
+
+Time-varying
+========================================================
+
+<img class="fixed_height", src="figures/m1_residuals_by_time-2.png">
+  
+<small>Similar industry definitions as `r citet(bib["chava04"])` </small>
+
+Time-varying
+========================================================
+
+Additive Hazards Models
+<small> `r citet(bib["lando13"])` using `timereg` package described in `r citet(bib["martinussen07"])`</small> 
+
+Semiparametric Cox Model
+<small> `r citet(bib["grambsch94"])` scaled schoenfeld residuals</small> 
+
+Dynamic binary regression models
+========================================================
+
+$$\begin{aligned}
+  &\vec{\alpha}_t = \mat{F}\vec{\alpha}_{t-1} + \mat{R}\vec{\epsilon}_t, \qquad \vec{\epsilon}_t \sim N(\vec{0}, \mat{Q}) \\
+  &\mat{F} = \mat{R} = \mat{I}
+\end{aligned}$$
+
+$$\begin{aligned}
+  &\expecpCond{\vec{y}_t}{\vec{\alpha}_t} = \vec{z}_t(\vec{\alpha}_t) \\
+  &\varpCond{\vec{y}_t}{\vec{\alpha}_t} = \mat{H}_t(\vec{\alpha}_t)
+\end{aligned}$$
+
+$$\begin{aligned}
+  &z_{it}(\vec{\alpha}_t)  =\expecpCond{Y_{it}}{\vec{\alpha}_t} = h(\vec{\alpha}_t^T \vec{x}_{it}) \\
+  &H_{ijt}(\vec{\alpha}_t) =\left\{\begin{matrix}
+    z_{it}(\vec{\alpha}_t)(1 - z_{it}(\vec{\alpha}_t)) & i = j \\ 0 & \textrm{otherwise}
+  \end{matrix}\right.
+\end{aligned}$$
+
+Dynamic binary regression models
+========================================================
+
+$$\begin{aligned}
+	\mathcal{L}\Lparen{\vec{\alpha}_0, \dots, \vec{\alpha}_{d}} =&    
+		\log L \Lparen{\vec{\alpha}_0, \dots, \vec{\alpha}_{d}} \\
+ =&  -\frac{1}{2} \Lparen{\vec{\alpha}_0 - \vec{a}_0}^T \mat{Q}^{-1}_0\Lparen{\vec{\alpha}_0 - \vec{a}_0} \\
+	&  - \frac{1}{2} \sum_{t = 1}^d \Lparen{\vec{\alpha}_t - \mat{F}\vec{\alpha}_{t - 1}}^T\mat{R}\mat{Q}^{-1}\mat{R}^\top \Lparen{\vec{\alpha}_t - \mat{F}\vec{\alpha}_{t - 1}} \\ 
+	&  - \frac{1}{2} \log \deter{\mat{Q}_0} - \frac{1}{2d} \log \deter{\mat{Q}} \\
+	&  + \sum_{t = 1}^d \sum_{i \in R_t} l_{it}({\vec{\alpha}_t})
+\end{aligned}$$
+
+$$l_{it}(\vec{\alpha}_t) = y_{it} \log h(\vec{x}_{it}^T \vec{\alpha}_t) + (1 - y_{it}) 
+	\log \Lparen{1 - h(\vec{x}_{it}^T \vec{\alpha}_t)}$$
+
+Extended Kalman Filter
+========================================================
+
+$$\emNotee{\vec{a}}{t}{s} = \expecpCond{\vec{\alpha}_t}{\vec{y}_1,\dots,\vec{y}_s},  \qquad
+\emNotee{\mat{V}}{t}{s} = \expecpCond{\mat{V}_t}{\vec{y}_1,\dots,\vec{y}_s}$$
+
+<p> Prediction step </p> 
+$$\emNotee{\vec{a}}{t}{t - 1} = \mat{F} \emNotee{\vec{a}}{t - 1}{t - 1}, \qquad
+  \emNotee{\mat{V}}{t}{t - 1} = \mat{F}\emNotee{\mat{V}}{t - 1}{t - 1}\mat{F}^T + \mat{R}\mat{Q}\mat{R}^T$$
+
+<p> Correction step </p>
+$$\emNotee{\mat{V}}{t}{t} = \left( \emNotee{\mat{V}}{t}{t - 1}^{-1} + \mat{U}_t (\emNotee{\vec{a}}{t}{t - 1})\right)^{-1}, \qquad
+  \emNotee{\vec{a}}{t}{t} = \emNotee{\vec{a}}{t}{t - 1} + \emNotee{\mat{V}}{t}{t}\vec{u}_t (\emNotee{\vec{a}}{t}{t - 1})$$
+
+$$\begin{aligned}
+  & \vec{u}_t (\vec{\alpha}_t) = \sum_{i \in R_t} \vec{u}_{it} (\vec{\alpha}_t), \quad\vec{u}_{it} (\vec{\alpha}_t)= \left. \vec{x}_{it} \frac{\partial h(\eta)/ \partial \eta}{H_{iit}(\vec{\alpha}_t)} \Lparen{y_{it} - h(\eta)} \right\vert_{\eta = \vec{x}_{it}^T \vec{\alpha}_t} \\
+	& \mat{U}_t (\vec{\alpha}_t) = \sum_{i \in R_t} \mat{U}_{it} (\vec{\alpha}_t), \quad \mat{U}_{it} (\vec{\alpha}_t) = \left. \vec{x}_{it} \vec{x}_{it}^T 
+		 \frac{\left( \partial h(\eta)/ \partial \eta \right)^2}{H_{iit}(\vec{\alpha}_t)} \right\vert_{\eta = \vec{x}_{it}^T \vec{\alpha}_t}
+\end{aligned}$$
+
+Smoother and M-step
+========================================================
+
+Smoother
+
+$$\begin{aligned}
+  & \mat{B}_t^{(k)} = \emNotee{\mat{V}}{t - 1}{t - 1} \mat{F} \emNotee{\mat{V}}{t}{t - 1}^{-1} \\
+  & \emNote{\vec{a}}{t - 1}{d}{k} = \emNotee{\vec{a}}{t - 1}{t - 1} + \mat{B}_t (
+    \emNote{\vec{a}}{t}{d}{k} - \emNotee{\vec{a}}{t}{t - 1}) \\
+  & \emNote{\mat{V}}{t - 1}{d}{k} = \emNotee{\mat{V}}{t - 1}{t - 1} + \mat{B}_t (
+    \emNote{\mat{V}}{t}{d}{k} - \emNotee{\mat{V}}{t}{t - 1}) \mat{B}_t^T
+\end{aligned} \qquad t = d,d-1,\dots, 1$$
+
+M-step
+
+$$\begin{aligned}
+\widehat{\vec{\alpha}}_0^{(k)} &= \emNote{\vec{a}}{0}{d}{k} \\
+  \widehat{\mat{Q}}^{(k)} &= \frac{1}{d}	\sum_{t = 1}^d \mat{R}^T\left( 
+      \left( \emNote{\vec{a}}{t}{d}{k} - \mat{F}\emNote{\vec{a}}{t - 1}{d}{k} \right)
+      \left( \emNote{\vec{a}}{t}{d}{k} - \mat{F}\emNote{\vec{a}}{t - 1}{d}{k} \right)^T \right. \\
+    &\hspace{57pt} + \emNote{\mat{V}}{t}{d}{k} - \mat{F}\mat{B}_t^{(k)}\emNote{\mat{V}}{t}{d}{k} - 
+      \left( \mat{F}\mat{B}_t^{(k)}\emNote{\mat{V}}{t}{d}{k} \right) ^T + 
+      \mat{F}\emNote{\mat{V}}{t - 1}{d}{k}\mat{F}^T
+      \left. \vphantom{\left( \emNote{\vec{a}}{t}{d}{k} - \mat{F}\emNote{\vec{a}}{t - 1}{d}{k} \right)^T} \right)\mat{R}
+\end{aligned}$$
+
+<small>`r citet(bib["fahrmeir92"])` and `r citet(bib["fahrmeir94"])` </small>
+
+Example: PBC
+========================================================
+
+- Mayo Clinic trial in primary biliary cirrhosis (PBC) of the liver
+- Randomized placebo controlled trial
+- Both time-varying and time-invariant covariates
+
+Example: PBC
+========================================================
+
+```{r, echo=FALSE}
+# PBC data set from survival with time variying covariates
+# Details of tmerge are not important in this scope. The code is included
+# to make you able to reproduce the results
+# See: https://cran.r-project.org/web/packages/survival/vignettes/timedep.pdf
+library(survival)
+temp <- subset(pbc, id <= 312, select=c(id, sex, time, status, edema, age, trt))
+pbc2 <- tmerge(temp, temp, id=id, death = event(time, status))
+pbc2 <- tmerge(pbc2, pbcseq, id=id, albumin = tdc(day, albumin),
+               protime = tdc(day, protime), bili = tdc(day, bili))
+pbc2 <- pbc2[, c("id", "tstart", "tstop", "death", "sex", "edema", 
+                 "age", "albumin", "protime", "bili", "trt")]
+pbc2$trt <- 2 - pbc2$trt
+```
+
+<small>
+```{r, echo=FALSE}
+knitr::kable(head(pbc2[
+  , c("id", "tstart", "tstop", "death", "trt", "sex", "protime", "bili")], 15))
+```
+</small>
+
+
+Example: PBC
+========================================================
+     
+```{r}
+library(dynamichazard)
+dd_fit <- ddhazard(
+  Surv(tstart, tstop, death == 2) ~ age + edema + trt +
+       log(albumin) + log(protime) + log(bili), pbc2,
+  id = pbc2$id, by = 100, max_T = 3600, 
+  Q_0 = diag(rep(100000, 7)), Q = diag(rep(0.1, 7)))
+
+head(dd_fit$state_vecs)
+```
+ 
+Example: PBC
+========================================================
+ 
+```{r}
+indx <- c("(Intercept)", "age",  "log(bili)" )
+dd_fit$state_vars[indx, indx, 1:3]
+```
+
+Example: PBC
+========================================================
+        
+```{r, eval = FALSE}
+plot(dd_fit, cov_index = c(4, 7))
+```
+
+```{r, echo = FALSE}
+par(mfcol = c(1, 2), cex = 1.5, mar = c(5, 4, 1, 4) + 0.1)
+
+plot(dd_fit, cov_index = 4)
+plot(dd_fit, cov_index = 7)
+```
+
+Advantages
+========================================================
+incremental: true
+
+- Linear complexity in time and observations
+- Extrapolation
+- `C++`, `Armadillo` and in parallel
+
+Unscented Kalman filter
+========================================================
+incremental: true
+    
+- Deterministically select *sigma points*
+- Derivative free
+- Nonlinearities
+
+<small> `r citet(bib["julier97"])`, `r citet(bib["wan00"])`, `r citet(bib["julier04"])` and `r citet(bib["menegaz16"])` </small>  
+ 
+Unscented Kalman filter
+========================================================
+
+<p> Prediction step </p>
+
+$$\begin{aligned}
+  &\emNotee{\vec{a}}{t}{t - 1} = \mat{F} \emNotee{\vec{a}}{t - 1}{t - 1}, \quad \\
+  &\emNotee{\mat{V}}{t}{t - 1} = \mat{F}\emNotee{\mat{V}}{t - 1}{t - 1}\mat{F}^T + \mat{R}\mat{Q}\mat{R}^T
+\end{aligned}$$
+
+Sigma points and weights
+
+$$q=\text{dim}(\vec{a}), \qquad i = 1,\dots, 2q$$
+
+$$\begin{aligned}
+  \wvec{a}_0 &= \emNotee{\vec{a}}{t}{t-1} \\
+  \wvec{a}_{i} &= \emNotee{\vec{a}}{t}{t-1} + \Lparen{1 - 2 \cdot 1_{\{i > q\}}}\sqrt{q + \lambda} \left(\sqrt{\emNotee{\mat{V}}{t}{t - 1}}\right)_i
+\end{aligned} \qquad 
+  \lambda = \alpha^2 (q + \kappa) - q$$
+
+$$\begin{aligned}
+  &W_0^{(m)} = \frac{\lambda}{q + \lambda}, \qquad
+  W_0^{(c)} = \frac{\lambda}{q + \lambda} + 1 - \alpha^2 + \beta, \qquad
+  W_0^{(cc)} = \frac{\lambda}{q + \lambda} + 1 - \alpha \\
+  &W_i^{(m)} = W_i^{(c)} = \frac{1}{2(q+\lambda)}
+\end{aligned}$$
+
+Unscented Kalman filter
+========================================================
+
+```{r, echo = FALSE, cache = TRUE}
+source("sigma_pts_ilu.R")   
+```
+
+
+Unscented Kalman filter
+========================================================
+
+Correction step
+
+$$\begin{aligned}
+  \emNotee{\vec{a}}{t}{t} &= \emNotee{\vec{a}}{t}{t - 1} + \ukfNotee{x}{y}{t}\ukfNotee{y}{y}{t}^{-1}(\vec{y}_t - \overline{\vec{y}}) \\
+  \emNotee{\mat{V}}{t}{t} &= \emNotee{\mat{V}}{t}{t-1} - \ukfNotee{x}{y}{t}\ukfNotee{y}{y}{t}^{-1}\ukfNotee{x}{y}{t}^T
+\end{aligned}$$
+
+$$\begin{aligned}
+  \wvec{y}_i &= \vec{z}_t \left(\wvec{a}_i \right), \qquad 
+    \wmat{Y} = (\wvec{y}_0, \dots, \wvec{y}_{2q}) \\
+  \overline{\vec{y}} &= \sum_{i = 0}^{2q} W_i^{(m)} \vec{y}_i, \qquad
+  \Delta\wmat{Y} = \wmat{Y} - \overline{\vec{y}} \vec{1}^T, \qquad 
+  \wmat{H} = \sum_{i=0}^q W_i^{(c)}\mat{H}_t(\wmat{a}_i) \\
+%
+  \Delta\wmat{A} &= (\wvec{a}_0, \dots, \wvec{a}_{2q}) - \emNotee{\vec{a}}{t}{t-1}\vec{1}^T \\
+%
+  \ukfNotee{y}{y}{t} &= \sum_{i=0}^{2q} W_i^{(c)} \left(
+    (\wvec{y}_i - \overline{\vec{y}})(\wvec{y}_i - \overline{\vec{y}})^T + \wmat{H}\right)
+  = \Delta\wmat{Y}\diag{\vec{W}^{(c)}}\Delta\wmat{Y}^T + \wmat{H} \\
+  \ukfNotee{x}{y}{t} &= \sum_{i=0}^{2q} W_i^{(cc)} 
+    (\wvec{a}_i - \emNotee{\vec{a}}{t}{t-1})(\wvec{y}_i - \overline{\vec{y}})^T
+  = \Delta\wmat{A}\diag{\vec{W}^{(cc)}}\Delta\wmat{Y}^T
+\end{aligned}$$
+
+Unscented Kalman filter — Alternative
+========================================================
+
+<p> Correction step </p>
+$$\begin{aligned}
+  \tilde{\vec{y}} &= \Delta \wmat{Y}^T \widehat{\mat{H}}^{-1}(\vec{y}_t - \overline{\vec{y}}) \\ 
+    \mat{G} &= \Delta\wmat{Y}^T\widehat{\mat{H}}^{-1}\Delta\wmat{Y} \\
+  \vec{c} &= \tilde{\vec{y}} - \mat{G}\left( \diag{\vec{W}^{(m)}}^{-1} + \mat{G}\right)^{-1} \tilde{\vec{y}} \\ 
+    \mat{L} &= \mat{G} - \mat{G}\left( \diag{\vec{W}^{(c)}}^{-1} + \mat{G}\right)^{-1} \mat{G} \\
+  \emNotee{\vec{a}}{t}{t} &= \emNotee{\vec{a}}{t}{t - 1} + \Delta\wmat{A}\diag{\vec{W}^{(cc)}}\vec{c} \\
+  \emNotee{\mat{V}}{t}{t} &= \emNotee{\mat{V}}{t}{t - 1} - 
+    \Delta\wmat{A}\diag{\vec{W}^{(cc)}}\mat{L}\diag{\vec{W}^{(cc)}}\Delta\wmat{A}^T
+\end{aligned}$$
+
+Unscented Kalman filter — Cons
+========================================================
+
+- Hyperparameters $\alpha, \beta, \kappa$
+- Sensitive to $\mat{Q}_0$
+- Sensitive to starting value of $\mat{Q}$
+
+
+Demo
+========================================================
+
+```{r, eval = FALSE}
+dynamichazard::ddhazard_app()
+```
+
+Binning
+========================================================
+
+```{r binning_fig, echo=FALSE, results="hide", cache = TRUE}
+par(mar = c(1, 4, 1, 2), cex = 1.2)
+plot(c(0, 4), c(0, 1), type="n", xlab="", ylab="", axes = F)
+
+abline(v = c(0.5, 1.5, 2.5), lty = 2)
+
+text(1, 0.01, "1st interval", adj = .5)
+text(2, 0.01, "2nd interval", adj = .5)
+
+n_series = 7
+y_pos = seq(0, 1, length.out = n_series + 2)[-c(1, n_series +2)]
+
+set.seed(1992)
+x_vals_and_point_codes = list(
+  cbind(c(0, .8, 2.2, 3, 3.7) + c(.1, rep(0, 4)),
+        c(rep(4, 4), 1)),
+  cbind(c(0.1, 1, 1.5 + runif(1)),
+        c(4, 4, 16)),
+  cbind(c(0.1, .8, 1.9, 2 + runif(1, min = 0, max = .25)),
+        c(4, 4, 4, 16)),
+  cbind(c(0.1, runif(1) + .33), c(4, 16)),
+  cbind(c(0.1, .6, 2.1, 3.1 + runif(1)),
+        c(4, 4, 4, 16)),
+  cbind(c(2, 2.33),
+        c(4, 16)), 
+  cbind(c(0.1, 1.3),
+        c(4, 1)))
+
+x_vals_and_point_codes = x_vals_and_point_codes[
+  c(n_series, sample(n_series - 1, n_series - 1, replace = F))]
+
+for(i in seq_along(x_vals_and_point_codes)){
+  vals = x_vals_and_point_codes[[i]]
+  y = y_pos[i]
+  
+  xs = vals[, 1]
+  n_xs = length(xs)
+  
+  # add lines
+  segments(xs[-n_xs], rep(y, n_xs - 1),
+           xs[-1], rep(y, n_xs - 1))
+  
+  # Add point
+  points(xs, rep(y, n_xs), pch = vals[, 2], 
+         cex = ifelse(vals[, 2] == 1, par()$cex * 2.5, par()$cex))
+  
+  # Add numbers
+  text(xs, rep(y + .05, n_xs), as.character(0:(n_xs -1)))
+}
+
+# add letters
+text(rep(0, n_series), rev(y_pos), letters[1:n_series], cex = par()$cex * 1.5)
+
+legend("bottomright", bty = "n", 
+       legend = c("New covariates", "Censored","Defaulted"), 
+       pch = c(4, 1, 16), 
+       cex = par()$cex * 1.2)
+```
+
+Continuous time model 
+========================================================
+
+1. Coefficients change discreetly
+2. Covariates change discreetly
+3. Piecewise constant instantaneous hazards $\exp(\vec{x}^\top\vec{\alpha})$
+
+Continuous time model 
+========================================================
+
+$$\begin{aligned}
+  &&T_i: &~\text{Event time of individual }i \\
+  &&\vec{x}_{ij}: &~j\text{'th covariate vector for individual }i\text{ valid in period }(t_{i,j-1},t_{i,j}] \\
+  &&l_i \in \{1, 2, \dots\}: &~\text{Number of destinct observed covariate vector for individual }i \\
+  &&y_{ij} = 1_{\{T_i \in (t_{i,j-1}, t_{ij}]\}} :&~  \text{Individual }i\text{ has an event with the }j\text{'th covariate vector}\\
+  &&\bar y_{ijs} = y_{ij} 1_{\{s-1 < t_{ij} \leq s\}} :&~\text{Individual }i\text{ has an event in interval }s
+\end{aligned}$$
+
+Continuous time model 
+========================================================
+
+$$\begin{aligned}
+\mathcal{L}\Lparen{\vec{\alpha}_0, \dots, \vec{\alpha}_{d}} =&
+  - \frac{1}{2} \Lparen{\vec{\alpha}_0 - \vec{a}_0}^T \mat{Q}^{-1}_0\Lparen{\vec{\alpha}_0 - \vec{a}_0} \\
+	&  - \frac{1}{2} \sum_{t = 1}^d \Lparen{\vec{\alpha}_t - \mat{F}\vec{\alpha}_{t - 1}}^T \mat{Q}^{-1} \Lparen{\vec{\alpha}_t - \mat{F}\vec{\alpha}_{t - 1}} \\ 
+	&  - \frac{1}{2} \log\deter{\mat{Q}_0} - \log\frac{1}{2d} \deter{\mat{Q}} \\
+  &+ \sum_{s=1}^d\sum_{(i,j) \in \Lbrace{(i,j) \left\vert\begin{smallmatrix} t_{i,j-1} < s \\ t_{i,j} > s-1 \end{smallmatrix} \right.}}
+  l_{i,j,s}(\vec{\alpha}_s) \\
+%
+  l_{i,j,s}(\vec{\alpha}_s) =& (\vec{x}_{i,j}^T\vec{\alpha}_s)^{y_{i,j,s}} -\exp\Lparen{\vec{x}_{i,j}^T\vec{\alpha}_s}
+  \Lparen{\min\{ s, t_{i,j} \} - \max\{ s - 1, t_{i,j-1} \}}
+\end{aligned}$$
+
+Right clipped with jump
+========================================================
+
+$$\begin{aligned}
+\delta_{i,j} &= t_{i,j} - t_{i,j-1} \\
+%
+\Lambda_{ij} &= \delta_{i,j}1_{\{T_i > t_{i,j}\}} + (T_i - t_{i,j-1} - \delta_{i,j})1_{\{T_i \leq t_{i,j}\}} \\
+  &= \delta_{i,j}1_{\{T_i > t_{i,j}\}} + (T_i - t_{i,j}) 1_{\{T_i \leq t_{i,j}\}}
+  = \left\{\begin{matrix}T_i - t_{i,j} & T_i \leq t_{i,j} \\ \delta_{i,j} & T_i > t_{i,j}\end{matrix} \right.
+\end{aligned}$$  
+
+$$\Rightarrow \Lambda_{i,j}\in [-\delta_{i,j},0]\cup\{\delta_{i,j}\}$$
+
+Right clipped with jump
+========================================================
+
+$$\begin{aligned}
+\propp{T_i = t} &= \propp{T_i > 1} \proppCond{T_i > 2}{T_i > 1} \cdots \proppCond{T_i = t}{T_i > \lceil t \rceil - 1} \\
+%
+               &= \propp{\Lambda_{i,1} = 1} \proppCond{\Lambda_{i,2} = 1}{\Lambda_{i,2} = 1} \cdots  \proppCond{
+	\Lambda_{i,\lceil t \rceil} =  (\lceil t \rceil - 1) - t}{\Lambda_{i,\lceil t \rceil - 1} = 1)} \\
+%
+\propp{T_i > t} &= \propp{T_i > 1} \proppCond{T_i > 2}{T_i > 1} \cdots \proppCond{T_i > t}{T_i > \lceil t \rceil - 1} \\
+%
+               &= \propp{\Lambda_{i,1} = 1} \proppCond{\Lambda_{i,2} = 1}{\Lambda_{i,2} = 1} \cdots  \proppCond{
+	\Lambda_{i,\lceil t \rceil} > 0}{\Lambda_{i,\lceil t \rceil - 1} = 1)} \\
+\end{aligned}$$
+
+Example: PBC
+========================================================
+
+```{r}
+dd_fit_exp <- 
+  ddhazard(Surv(tstart, tstop, death == 2) ~ age + edema + trt +
+                        log(albumin) + log(protime) + log(bili), pbc2,
+           id = pbc2$id, by = 100, max_T = 3600,
+           
+           model = "exp_clip_time_w_jump",        # <-- added
+           
+           Q_0 = diag(rep(100000, 7)), 
+           Q = diag(rep(0.1, 7)))
+```
+
+Example: PBC
+========================================================
+
+```{r, eval=FALSE}
+plot(dd_fit, cov_index = 7)
+plot(dd_fit_exp, cov_index = 7)
+```
+
+
+```{r, echo = FALSE}
+par(mfcol = c(1, 2), mar = c(4, 4, 2, 2), cex = 1.8, lwd = 2)
+plot(dd_fit, cov_index = 7)
+plot(dd_fit_exp, cov_index = 7)
+``` 
+
+
+Constant effects: E-step
+========================================================
+
+- Include in state vector
+- 0 entries in $\mat{Q}$
+- Large diagonal entry in $\mat{Q}_0$
+- Recursive Least Squares
+
+<small> `r citet(bib["harvey79"])` </small>
+
+Constant effects: M-step
+========================================================
+
+$$\vec{\alpha}_t= \begin{pmatrix}
+  {\wtvec{\alpha}}_t \\ 
+  \vec{\gamma}
+\end{pmatrix}$$
+
+Offsets in M-step:
+$$\expecpCond{\mathcal{L}\Lparen{\wtvec{\alpha}_0, \dots, \wtvec{\alpha}_{d}}}
+    {\mat{Q}_0,\mat{Q}^{(k-1)},\wtvec{a}_0^{(k-1)},\vec{\gamma}^{(k-1)}}$$
+    
+Taylor expand in E-step:
+$$\argmax{\vec{\gamma}} \expecpCond{ \sum_{t = 1}^d \sum_{i \in R_t} l_{it}({\vec{\gamma},\wtvec{\alpha}_t})}{
+    \emNote{\wtvec{a}}{0}{d}{k}, \emNote{\mat{V}}{0}{d}{k}, \dots, \emNote{\mat{V}}{d}{d}{k}}
+  \approx \argmax{\vec{\gamma}} \sum_{t = 1}^d \sum_{i \in R_t} l_{it}(\vec{\gamma},\emNote{\wtvec{a}}{t}{d}{k})$$
+
+Demo
+========================================================
+
+```{r, eval = FALSE}
+dynamichazard::ddhazard_app()
+```
+
+
+Future work
+========================================================
+
+<table class="WIT">
+<tbody>
+<tr>
+<td>Influential observation</td>
+<td>Cumulating hat values, Pearson residuals or squared deviance residuals?</td>
+</tr>
+<tr>
+<td>Posterior</td>
+<td>Taylor expand at the posterior</td>
+</tr>
+<tr>
+<td>Other processes</td>
+<td>Replace Random walk with e.g. ARMA and parameters estimated as in `MARSS` library</td>
+</tr>
+<tr>
+<td>Ensamble methods</td>
+<td>Promising results (E.g. `r citet(bib["zikeba16"])`</td>
+</tr>
+<tr>
+<td>Data sets</td>
+<td>US, English and Danish data sets</td>
+</tr>
+</tbody>
+</table>  
+
+
+References
+========================================================
+<small><div class="scrollable">
+```{r, echo=FALSE, results="asis"}
+bibliography()
+```
+</div></small>

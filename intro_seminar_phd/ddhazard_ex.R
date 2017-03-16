@@ -1,0 +1,1 @@
+dynamichazard::ddhazard_app()
