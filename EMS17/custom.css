@@ -1,0 +1,49 @@
+div.reveal {
+  font-size: 42px;
+}
+
+.reveal h1 {
+    font-size: 160%;
+    line-height: 1.1em;
+}
+
+.reveal h2 {
+    font-size: 140%;
+}
+
+.reveal h3 {
+    font-size: 125%;
+}
+
+.reveal small {
+    font-size: 75%;
+}
+
+.reveal p {
+    font-size: 100%;
+    margin-bottom: .5em;
+    line-height: 1.1em;
+}
+
+div.MathJax_Display {
+  font-size: 85%;
+}
+
+.MathJax nobr {
+  font-size: 85%;
+}
+
+.reveal section img.icon {
+	box-shadow: none;
+	margin: none;
+}
+
+.reveal pre code {
+	font-size: 100%;
+}
+
+div.scrollable {
+  max-height: 500px;
+  /* See https://stackoverflow.com/a/18716885/5861244 */
+  overflow-y: auto;
+}
