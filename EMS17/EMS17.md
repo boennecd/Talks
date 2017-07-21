@@ -113,7 +113,7 @@ $$\begin{array}{ll}
   & \vec{\alpha}_{0} \sim N(\vec{a}_0, \mat{Q}_0)
 \end{array} , \qquad t = 1,\dots, d$$
 
-1. and 2. order random walk.
+1. and 2. order random walk
 <div>
 
 Hard disk failures
@@ -128,7 +128,7 @@ left: 50%
 
 <p class="fragment">More than 65000 hard disks Today</p>
 
-<p class="fragment">3 years of data</p>
+<p class="fragment">3 years of data <small class="inline">(2013Q2‒2016Q3)</small></p>
 
 <p class="fragment">84366 observations and 623268 data rows</p>
 
@@ -167,7 +167,7 @@ Hard disk failures
 
 
 <!-- html table generated in R 3.4.1 by xtable 1.8-2 package -->
-<!-- Fri Jul 21 11:03:44 2017 -->
+<!-- Fri Jul 21 14:45:37 2017 -->
 <table border=1>
 <tr> <th>  </th> <th> Number of hard disks </th> <th> Number of failures </th>  </tr>
   <tr> <td align="right"> ST4000DM000 </td> <td align="right"> 36286 </td> <td align="right"> 1556 </td> </tr>
@@ -178,7 +178,7 @@ Hard disk failures
   <tr> <td align="right"> ST3000DM001 </td> <td align="right"> 4698 </td> <td align="right"> 1701 </td> </tr>
    </table>
 
-<small>6 hard disk versions with the most disks </small>
+<small>Top 6 hard disk versions by number of disks</small>
 
 
 Estimation methods: Log likelihood
@@ -263,7 +263,7 @@ Compute $\emNotee{\vec{a}}{t}{t - 1}$ &  $\emNotee{\mat{V}}{t}{t - 1}$ with $\em
 
 <div class="fragment">
 <h2>Correction step</h2>
-Compute $\emNotee{\vec{a}}{t}{t}$ &  $\emNotee{\mat{V}}{t}{t}$ with $\emNotee{\vec{a}}{t}{t-1}$ and $\emNotee{\mat{V}}{t}{t - 1}$
+Compute $\emNotee{\vec{a}}{t}{t}$ &  $\emNotee{\mat{V}}{t}{t}$ with $\emNotee{\vec{a}}{t}{t-1}$,  $\emNotee{\mat{V}}{t}{t - 1}$ and $\vec{y}_t$
 </div>
 
 Estimation methods: Extended Kalman Filter
@@ -294,7 +294,7 @@ incremental: true
 
 *Mode approximation:* Minimize directly using Newton Raphson 
 
-*EKF with extra iteration:* More iteration using working responses as `glm`
+*EKF with extra iteration:* More iterations using working responses as `glm`
 
 Example: Only factors
 ========================================================
@@ -319,7 +319,7 @@ system.time(
 
 ```
    user  system elapsed 
-   16.3     1.0    10.4 
+   17.0     1.2    10.9 
 ```
 
 
@@ -397,16 +397,27 @@ Example: Slope
 
 
 
-
-Example: Slope
-========================================================
-
-![plot of chunk est_w_slope_manual_check_n_xtra_plot](EMS17-figure/est_w_slope_manual_check_n_xtra_plot-1.png)
-
 Example: Slope
 ========================================================
 
 <img class="dl-web" alt="Failure status" src="dl-figure/blog_seagate_3tb_2012_failures_cut.jpg"/>
+
+Example: Slope
+========================================================
+incremental: true
+
+* First failure: Replace and *rebuilt*
+* Extra test if another fails doing rebuilt
+* Removal due to extra tests are not recorded!
+
+Example: Slope
+========================================================
+
+
+
+
+![plot of chunk est_w_slope_manual_check_n_xtra_plot](EMS17-figure/est_w_slope_manual_check_n_xtra_plot-1.png)
+
 
 Other options
 ========================================================

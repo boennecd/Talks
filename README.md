@@ -5,4 +5,4 @@
 [Code](https://github.com/boennecd/Talks/tree/master/sfs_17) and [Presentation](https://htmlpreview.github.io/?https://github.com/boennecd/Talks/blob/master/sfs_17/sfs_17.html#/) (download direcoty for MathJax)
 
 # EMS talk on dynamichazard
-[Code](https://github.com/boennecd/Talks/tree/master/EMS17) and [Presentation](https://htmlpreview.github.io/?https://github.com/boennecd/Talks/blob/master/EMS17/EMS17.html#/) (download direcoty for MathJax)
+[Code](https://github.com/boennecd/Talks/tree/master/EMS17) and [Presentation](https://htmlpreview.github.io/?https://github.com/boennecd/Talks/blob/master/EMS17/EMS17.html#/) (download direcoty for MathJax). Also on [Rpubs](http://rpubs.com/boennecd/EMS17)
