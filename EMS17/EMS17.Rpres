@@ -208,7 +208,7 @@ $$\begin{array}{ll}
   & \vec{\alpha}_{0} \sim N(\vec{a}_0, \mat{Q}_0)
 \end{array} , \qquad t = 1,\dots, d$$
 
-1. and 2. order random walk.
+1. and 2. order random walk
 <div>
 
 Hard disk failures
@@ -285,7 +285,7 @@ hd_dat$smart_12 <- pmin(hd_dat$smart_12, quantile(
 
 <p class="fragment">More than 65000 hard disks Today</p>
 
-<p class="fragment">3 years of data</p>
+<p class="fragment">3 years of data <small class="inline">(2013Q2‒2016Q3)</small></p>
 
 <p class="fragment">`r length(unique(hd_dat$serial_number))` observations and `r nrow(hd_dat)` data rows</p>
 
@@ -350,7 +350,7 @@ x_tbl <- xtable(tbl_dat[1:6, ])
 print(x_tbl, type = "html")
 ```
 
-<small>6 hard disk versions with the most disks </small>
+<small>Top 6 hard disk versions by number of disks</small>
 
 
 Estimation methods: Log likelihood
@@ -435,7 +435,7 @@ Compute $\emNotee{\vec{a}}{t}{t - 1}$ &  $\emNotee{\mat{V}}{t}{t - 1}$ with $\em
 
 <div class="fragment">
 <h2>Correction step</h2>
-Compute $\emNotee{\vec{a}}{t}{t}$ &  $\emNotee{\mat{V}}{t}{t}$ with $\emNotee{\vec{a}}{t}{t-1}$ and $\emNotee{\mat{V}}{t}{t - 1}$
+Compute $\emNotee{\vec{a}}{t}{t}$ &  $\emNotee{\mat{V}}{t}{t}$ with $\emNotee{\vec{a}}{t}{t-1}$,  $\emNotee{\mat{V}}{t}{t - 1}$ and $\vec{y}_t$
 </div>
 
 Estimation methods: Extended Kalman Filter
@@ -466,7 +466,7 @@ incremental: true
 
 *Mode approximation:* Minimize directly using Newton Raphson 
 
-*EKF with extra iteration:* More iteration using working responses as `glm`
+*EKF with extra iteration:* More iterations using working responses as `glm`
 
 Example: Only factors
 ========================================================
@@ -672,9 +672,44 @@ tmp_span <-
 hist(tmp_span, breaks = 50)
 ```
 
+Example: Slope
+========================================================
+
+<img class="dl-web" alt="Failure status" src="dl-figure/blog_seagate_3tb_2012_failures_cut.jpg"/>
 
 Example: Slope
 ========================================================
+incremental: true
+
+* First failure: Replace and *rebuilt*
+* Extra test if another fails doing rebuilt
+* Removal due to extra tests are not recorded!
+
+Example: Slope
+========================================================
+
+```{r est_w_fixed_effect, echo = FALSE, eval = FALSE}
+#####
+# Estimate fixed effect
+ddfit_w_fixed_slope <- ddhazard(
+    formula = Surv(tstart, tstop, fails) ~ -1 + model + ddFixed(smart_12 * (model == hd_version)), 
+    data = hd_dat,
+    id = hd_dat$serial_number,
+    Q_0 = diag(1, 17), Q = diag(.01, 17),
+    by = 1,max_T = 60, 
+    control = list(
+      method = "EKF",
+      eps = .001,
+      NR_eps = .0000001, 
+      LR = .5, 
+      fixed_terms_method = "M_step"))
+
+plot(ddfit_w_fixed_slope, cov_index = 6)
+add_hist(6)
+
+ddfit_w_fixed_slope$fixed_effects
+```
+
 
 ```{r est_w_slope_manual_check_n_xtra_plot, echo = FALSE, par_2x1 = TRUE}
 # #####
@@ -710,7 +745,7 @@ abline(h = 0, lty = 3)
 add_hist(6)
 
 plot(c(1, 60), range(quants_through_time), type = "n", 
-     xlab = "Time", ylab = "Quantiles of SMART 12")
+     xlab = "Time", ylab = "Quantiles of on/off times")
 x <- 1:nrow(quants_through_time)
 lb <- rep(0, nrow(quants_through_time))
 for(i in 1:ncol(quants_through_time)){
@@ -728,10 +763,6 @@ for(i in 1:ncol(quants_through_time)){
 rm(tmp_dat)
 ```
 
-Example: Slope
-========================================================
-
-<img class="dl-web" alt="Failure status" src="dl-figure/blog_seagate_3tb_2012_failures_cut.jpg"/>
 
 Other options
 ========================================================
