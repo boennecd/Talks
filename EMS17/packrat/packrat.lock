@@ -23,6 +23,12 @@ Source: CRAN
 Version: 0.12.11
 Hash: 2ee22f3b5e75dec80b1d8eca61cd96d8
 
+Package: RcppArmadillo
+Source: CRAN
+Version: 0.7.900.2.0
+Hash: f574482c4f9ba4abd7bfe068d6739b99
+Requires: Rcpp
+
 Package: RefManageR
 Source: CRAN
 Version: 0.14.12
@@ -61,10 +67,21 @@ Source: CRAN
 Version: 2.7
 Hash: 1d97b529645be4e502fad3db22415e66
 
+Package: data.table
+Source: CRAN
+Version: 1.10.4
+Hash: 2c7c47ccb40d01c7b214c8eff818108d
+
 Package: digest
 Source: CRAN
 Version: 0.6.12
 Hash: e53fb8c58673df868183697e39a6a4d6
+
+Package: dynamichazard
+Source: CRAN
+Version: 0.3.4
+Hash: 053d04f4becbf866619d3f544d86ecac
+Requires: Rcpp, RcppArmadillo, data.table, stringr
 
 Package: evaluate
 Source: CRAN
@@ -178,6 +195,11 @@ Source: CRAN
 Version: 1.1.1
 Hash: 35dbee121bb8d76347677290ba1c6a06
 Requires: BH, Rcpp
+
+Package: xtable
+Source: CRAN
+Version: 1.8-2
+Hash: 7293235cfcc14cdff1ce7fd1a0212031
 
 Package: yaml
 Source: CRAN

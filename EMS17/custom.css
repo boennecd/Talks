@@ -1,4 +1,5 @@
 div.reveal {
+   /* font-size in slides */
   font-size: 42px;
 }
 
@@ -9,39 +10,54 @@ div.reveal {
 
 .reveal h2 {
     font-size: 140%;
+    line-height: 1.1em;
 }
 
 .reveal h3 {
     font-size: 125%;
+    line-height: 1.1em;
 }
 
 .reveal small {
     font-size: 75%;
 }
 
+.reveal small.inline {
+    font-size: 75%;
+    vertical-align: middle;
+}
+
 .reveal p {
     font-size: 100%;
-    margin-bottom: .5em;
     line-height: 1.1em;
 }
 
-div.MathJax_Display {
-  font-size: 85%;
-}
-
-.MathJax nobr {
-  font-size: 85%;
-}
-
-.reveal section img.icon {
-	box-shadow: none;
-	margin: none;
+div.fragment, .reveal p{
+      margin-bottom: .5em;  
 }
 
 .reveal pre code {
 	font-size: 100%;
 }
 
+/* Remove box from plots */
+.reveal section img:not(dl-web) {
+    box-shadow: none;
+}
+
+/* Mathjax */ 
+div.MathJax_Display {
+  padding-top: .6em;
+  padding-bottom: .3em;
+}
+
+/* icon on slides */
+.reveal section img.icon {
+	box-shadow: none;
+	margin: none;
+}
+
+/* For the reference section */
 div.scrollable {
   max-height: 500px;
   /* See https://stackoverflow.com/a/18716885/5861244 */
