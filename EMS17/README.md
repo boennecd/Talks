@@ -1,0 +1,1 @@
+`data/HDs.RDS` is created with the code here: https://github.com/boennecd/dynamichazard/tree/0e8164c55228a3104b5f010950460b2a83893e87/vignettes/.jss/HDs
