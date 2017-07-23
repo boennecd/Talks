@@ -73,6 +73,8 @@ Survival analysis with time-varying coefficients
 
 Continuous time model
 
+Fast and scalable
+
 
 Model
 ========================================================
@@ -399,16 +401,16 @@ Example: Slope
 
 Example: Slope
 ========================================================
-
-<img class="dl-web" alt="Failure status" src="dl-figure/blog_seagate_3tb_2012_failures_cut.jpg"/>
-
-Example: Slope
-========================================================
 incremental: true
 
 * First failure: Replace and *rebuilt*
 * Extra test if another fails doing rebuilt
 * Removal due to extra tests are not recorded!
+
+Example: Slope
+========================================================
+
+<img class="dl-web" alt="Failure status" src="dl-figure/blog_seagate_3tb_2012_failures_cut.jpg"/>
 
 Example: Slope
 ========================================================
@@ -429,7 +431,7 @@ incremental: true
 * Fixed effects
 * Continuous time observational model
 
-<small>Slide and code at <a href="https://github.com/boennecd/Talks">github/boennecd/Talks</a></small>
+<small>Slides at <a href="https://rpubs.com/boennecd/EMS17">rpubs.com/boennecd/EMS17</a> and code at <a href="https://github.com/boennecd/Talks">github/boennecd/Talks</a></small>
 
 Demo
 ========================================================
