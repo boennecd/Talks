@@ -7,13 +7,18 @@ autosize: false
 width:1200
 height:800
 
-<!-- Two line header -->
+<!-- Two line header + add affiliation -->
 <script>
 var h1s = document.getElementsByTagName("h1");
 h1s[0].outerHTML = "<h1 style='margin-bottom: 0;'>dynamichazard</h1><h2 style='margin-top: 0;'>Dynamic Hazard Models <br /> using State Space Models</h2>";
-//(function($){ 
-//  $( "h1" ).html( "Dynamic Hazard Models <br /> using State Space Models: dynamichazard" ); 
-// })(jQuery); 
+
+// IE11 does not support xpath
+//var ptag = document.evaluate("//p[contains(text(),'Benjamin Christoffersen')]", 
+//  document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+var ptag = document.getElementsByTagName("p")[0];
+ptag.innerHTML = ptag.innerHTML.replace(
+  "Christoffersen",
+  "Christoffersen<br/>Copenhagen Business School<br/>Center for Statistics");
 </script>  
 
 <!-- See this link for macros with mathjax: http://docs.mathjax.org/en/latest/tex.html#tex-macros -->
