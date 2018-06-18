@@ -1,0 +1,28 @@
+%%% To compile the abstract of your presentation, use the current file.
+%%% Be sure to change the name in the input command
+\documentclass[a4paper]{article}
+
+\textheight 20cm\textwidth 12.7cm\topmargin 0cm \hoffset=-0.35cm
+\setlength\oddsidemargin   {2cm}
+\setlength\evensidemargin  {2cm}
+
+\def\title#1{{\Large\bf  \begin{center} #1 \vspace{3pt} \end{center}  } }
+\def\authors#1{{\large\bf \begin{center} #1 \vspace{1pt} \end{center} } }
+\def\university#1{{\sl \begin{center} #1 \vspace{5pt} \end{center} } }
+\def\inst#1{\vspace{1pt} \unskip$^{#1}$}
+\usepackage{amsthm,mathrsfs,amsfonts,dsfont}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{makeidx}
+\usepackage{enumerate}
+\usepackage{verbatim}
+
+\let\stdthebibliography\thebibliography
+\renewcommand{\thebibliography}{%
+\let\section\subsection
+\stdthebibliography}
+
+\begin{document}
+%  Before the compilation, change "myname" to the appropriate name of your file.
+\input{christoffersen}
+\end{document}

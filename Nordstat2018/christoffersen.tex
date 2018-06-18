@@ -1,0 +1,44 @@
+%% Title of the presentation
+\title{Discrete state space models in survival analysis: a particle filter application}
+%% Authors, their affiliation and email
+\authors{Benjamin Christoffersen\inst{1}}
+ \university{\inst{1} Copenhagen Business School, Denmark, bch.fi@cbs.dk}
+%% Authors' family names for the abstract index
+\index{Christoffersen}
+
+\smallskip
+
+%% keywords
+\noindent {\bf Keywords}: Discrete hazard models, particle filtering, survival analysis, computational complexity, EM algorithm 
+
+\bigskip
+%% Abstract of the presentation
+
+I cover discrete hazard models with $i=1,\dots,n_t$ individuals at risk at time $t=1,\dots,d$ and latent state variables $\vec{\alpha}_1,\dots,\vec{\alpha}_d$. The dynamics are %
+%
+\begin{align*}
+  \vec{\alpha}_t &= \mathbf{F}(\vec{\theta}) \vec{\alpha}_{t-1} + \mathbf{R}\vec{\epsilon}_t
+      & \vec{\epsilon}_t &\sim N(\vec{0}, \mathbf{Q}(\vec{\theta})) \\
+%
+  & & \vec{\alpha}_0 &\sim N(\vec{0}, \mathbf{Q}_0) \\
+%
+  \eta_{it} &= \vec{\beta}^\top\vec{x}_{it} + \vec{\alpha}_t^\top\mathbf{C}\vec{z}_{it} + o_{it} 
+      & y_{it} &\sim g(\eta_{it})
+\end{align*}%
+% 
+where $y_{it}$ is the observed survival or survival length in the period $(t - 1,t]$, $\vec{x}_{it}$ and $\vec{z}_{it}$ are observation specific covariates, $o_{it}$ are offsets, and $\vec{\theta}$ and $\vec{\beta}$ are parameters to be estimated. I illustrate an application of particle filtering for estimating the parameters, $(\vec{\beta}, \vec{\theta})$, in an EM algorithm. The pros and cons of the particle filters are highlighted with an emphasis on the computational complexity. 
+
+
+%% References of the abstract
+%% If you have references, include them as follows.
+%% Do not send your .bib file!
+%% If you don't have any references please delete the next lines.
+
+\begin{thebibliography}{1}
+\bibitem{briers09}
+Briers, M., Doucet, A., Maskell, S. (2009). Smoothing algorithms for state--space models. \textit{Annals of the Institute of Statistical Mathematics} \textbf{62}, no. 1, 61--89.
+%
+\bibitem{fearnhead2010}
+Fearnhead, P., Wyncoll, D., Tawn, J. (2010). A Sequential Smoothing Algorithm with Linear Computational Cost. \textit{Biometrika} \textbf{97}, no. 2, 447--64.
+
+\end{thebibliography}
