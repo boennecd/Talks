@@ -1,0 +1,27 @@
+<script id="pdf-css-extra" type="application/dynamic-css">
+.reveal span.math {
+  font-size: 0.9em !important;
+}
+
+.reveal div.references {
+    display: inline-block;
+    text-align: left;
+    overflow: visible;
+    overflow-x: visible;
+    max-height: none;
+    background-color: transparent;
+}
+</script>
+
+<script id="paper-css-extra" type="application/dynamic-css">
+</script>
+
+
+<script>
+var style = document.createElement('style');
+style.type = 'text/css';
+var style_script_id = window.location.search.match( /print-pdf/gi ) ? 'pdf-css-extra' : 'paper-css-extra';
+var style_script = document.getElementById(style_script_id).text;
+style.innerHTML = style_script;
+document.getElementsByTagName('head')[0].appendChild(style);
+</script>

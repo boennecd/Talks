@@ -1,0 +1,56 @@
+<!-- Add headers and footers. 
+     See https://github.com/hakimel/reveal.js/issues/806#issuecomment-222417787 
+-->
+
+
+<!--
+<div id="hidden" style="display:none;">
+    <div id="header">
+        <div id="footer-left">
+            <img src = "fig/cbs_logo_horizontal.png"> 
+        </div>
+    </div>
+</div>
+
+
+<script>
+var header = document.getElementById("header").innerHTML;
+if (window.location.search.match( /print-pdf/gi ) ) {
+    Reveal.addEventListener( 'ready', function( event ) {
+        document.querySelectorAll(".slide-background")[0].innerHTML += header;
+    });
+}
+else {
+    document.querySelectorAll("div.reveal")[0].innerHTML += header;
+}
+</script>
+-->
+
+<div id="myLogo" class="logo">
+</div>
+
+<!-- See this link for macros with mathjax: http://docs.mathjax.org/en/latest/tex.html#tex-macros -->
+<script type="text/x-mathjax-config">
+(function () {
+  MathJax.Hub.Config({
+    // See http://docs.mathjax.org/en/latest/configuration.html and http://docs.mathjax.org/en/latest/output.html
+  
+    jax: ["input/TeX", "output/SVG"],
+  
+    TeX: {
+      Macros: {
+        alf: ["{\\it\\bf\\unicode{x3b1}}", 0],
+        thet:  ["{\\it\\bf\\unicode{x3b8}}", 0],
+        Thet:  ["{\\bf\\unicode{x3f4}}", 0],
+        bea:  ["{\\it\\bf\\unicode{x3B2}}", 0],
+        epslon:  ["{\\it\\bf\\unicode{x3b5}}", 0],
+        vxi: ["{\\it\\bf\\unicode{x3be}}", 0],
+        vec: ["\\mathbf{#1}",1], 
+        mat: ["\\mathbf{#1}",1],
+        bigO: ["\\mathcal{O}\\left(#1\\right)", 1]
+      }
+    }
+  });
+})();
+</script>
+
