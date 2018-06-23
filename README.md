@@ -1,5 +1,5 @@
 # Nordstat 2018 on dynamichazard
-[Code](Nordstat2018/nordstat18/) and [Presentation](https://htmlpreview.github.io/?https://github.com/boennecd/Talks/blob/master/Nordstat2018/nordstat18//presentation.html) ([download directory](Nordstat2018/nordstat18/) for formatting).
+[Code](Nordstat2018/nordstat18/) and [Presentation](https://htmlpreview.github.io/?https://github.com/boennecd/Talks/blob/master/Nordstat2018/nordstat18//presentation.html) ([download directory](Nordstat2018/nordstat18/) for formatting). Also on [Rpubs](http://rpubs.com/boennecd/Nordstat2018).
 
 # Yearly Ph.D. talk at CBS
 [Code](cbs_phd_day_18/cbs_presentation.zip) and [Presentation](https://htmlpreview.github.io/?https://github.com/boennecd/Talks/blob/master/cbs_phd_day_18/presentation.html).
