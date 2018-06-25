@@ -26,13 +26,23 @@ knitr::opts_chunk$set(
 
 ## dummy slide
 
-<!--javascript to remove dummy slide-->
-<script>
-document.getElementById("dummy-slide").remove();
-</script>
-
 <!--end dummy slide-->
 </section>
+
+<!--javascript to remove dummy slide and change first slide -->
+<script>
+(function() {
+  var first_h1 = document.getElementsByTagName("h1")[0];
+  first_h1.innerHTML = "Discrete state space models in survival analysis:<br>a particle filter application"
+  
+  document.getElementById("dummy-slide").remove();
+  
+  var credit_div = document.createElement('div');
+  credit_div.innerHTML = "<p>Benjamin Christoffersen<br>Copenhagen Business School<br>Department of Finance, Center for Statistics</p>";
+  credit_div.className += "left";
+  document.getElementsByTagName("section")[0].appendChild(credit_div); 
+})();
+</script>
 
 
 
@@ -468,7 +478,7 @@ fit_Fearn$n_iter
 <section>
 <h1>Two random effects</h1>
 
-```{r Fearnhead_O_N_two, cache = 1, message = FALSE, eval = FALSE}
+```{r Fearnhead_O_N_two, cache = 1, message = FALSE, warning = FALSE}
 set.seed(33706242)
 system.time(
   fit_Fearn_two <- PF_EM(
@@ -485,7 +495,7 @@ system.time(
 <section>
 <h1>Intercept</h1>
 
-```{r Fearnhead_O_N_two_plot_inter, echo = FALSE, eval = FALSE}
+```{r Fearnhead_O_N_two_plot_inter, echo = FALSE}
 plot(fit_Fearn_two$clouds, cov_index = 1)
 ```
 
@@ -493,13 +503,13 @@ plot(fit_Fearn_two$clouds, cov_index = 1)
 <section>
 <h1>`Drug` dummy</h1>
 
-```{r Fearnhead_O_N_two_plot_slope, echo = FALSE, eval = FALSE}
+```{r Fearnhead_O_N_two_plot_slope, echo = FALSE}
 plot(fit_Fearn_two$clouds, cov_index = 2)
 abline(h = -coef(sur_fit)["drugddI"], lty = 2)
 ```
 
 <small>
-Dashed line is the log of the baseline hazard in  the exponential distributed 
+Dashed line is the coefficient in the exponential distributed 
 model.
 </small>
 
@@ -507,7 +517,7 @@ model.
 <section>
 <h1>Co-variance matrix</h1>
 
-```{r Fearnhead_O_N_two_covar, eval = FALSE}
+```{r Fearnhead_O_N_two_covar}
 fit_Fearn_two$Q
 cov2cor(fit_Fearn_two$Q)
 mean(fit_Fearn_two$effective_sample_size$smoothed_clouds)
@@ -526,6 +536,9 @@ Ignored re-sampling, choice of proposal distribution and more. Different
 options are available in `dynamichazard` packages. 
 
 Only supports a random walk. More general models is available soon.
+
+Code on [github.com/boennecd/Talks](https://github.com/boennecd/Talks/tree/master/Nordstat2018/nordstat18)
+and presentation on [rpubs.com/boennecd/Nordstat2018](http://rpubs.com/boennecd/Nordstat2018).
 
 </div>
 </section>
