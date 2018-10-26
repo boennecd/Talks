@@ -1,3 +1,61 @@
+@article{Dempster77,
+ ISSN = {00359246},
+ URL = {http://www.jstor.org/stable/2984875},
+ abstract = {A broadly applicable algorithm for computing maximum likelihood estimates from incomplete data is presented at various levels of generality. Theory showing the monotone behaviour of the likelihood and convergence of the algorithm is derived. Many examples are sketched, including missing value situations, applications to grouped, censored or truncated data, finite mixture models, variance component estimation, hyperparameter estimation, iteratively reweighted least squares and factor analysis.},
+ author = {A. P. Dempster and N. M. Laird and D. B. Rubin},
+ journal = {Journal of the Royal Statistical Society. Series B (Methodological)},
+ number = {1},
+ pages = {1--38},
+ publisher = {[Royal Statistical Society, Wiley]},
+ title = {Maximum Likelihood from Incomplete Data via the EM Algorithm},
+ volume = {39},
+ year = {1977}
+}
+
+
+@article{Meng93,
+ ISSN = {00063444},
+ URL = {http://www.jstor.org/stable/2337198},
+ abstract = {Two major reasons for the popularity of the EM algorithm are that its maximum step involves only complete-data maximum likelihood estimation, which is often computationally simple, and that its convergence is stable, with each iteration increasing the likelihood. When the associated complete-data maximum likelihood estimation itself is complicated, EM is less attractive because the M-step is computationally unattractive. In many cases, however, complete-data maximum likelihood estimation is relatively simple when conditional on some function of the parameters being estimated. We introduce a class of generalized EM algorithms, which we call the ECM algorithm, for Expectation/Conditional Maximization (CM), that takes advantage of the simplicity of complete-data conditional maximum likelihood estimation by replacing a complicated M-step of EM with several computationally simpler CM-steps. We show that the ECM algorithm shares all the appealing convergence properties of EM, such as always increasing the likelihood, and present several illustrative examples.},
+ author = {Xiao-Li Meng and Donald B. Rubin},
+ journal = {Biometrika},
+ number = {2},
+ pages = {267--278},
+ publisher = {[Oxford University Press, Biometrika Trust]},
+ title = {Maximum Likelihood Estimation via the ECM Algorithm: A General Framework},
+ volume = {80},
+ year = {1993}
+}
+
+
+
+@ARTICLE{Gordon93, 
+author={N. J. Gordon and D. J. Salmond and A. F. M. Smith}, 
+journal={IEE Proceedings F - Radar and Signal Processing}, 
+title={Novel approach to nonlinear/non-Gaussian Bayesian state estimation}, 
+year={1993}, 
+volume={140}, 
+number={2}, 
+pages={107-113}, 
+keywords={Bayes methods;filtering and prediction theory;Kalman filters;state estimation;tracking;State estimation;state transition model;state vector density;nonlinear Bayesian state estimation;nonGaussian Bayesian state estimation;algorithm;bootstrap filter;recursive Bayesian filters;random samples;Gaussian noise;measurement model;simulation;bearings only tracking problem;extended Kalman filter;Bayes procedures;Filtering;Kalman filtering;Tracking;Prediction methods}, 
+doi={10.1049/ip-f-2.1993.0015}, 
+ISSN={0956-375X}, 
+month={April}}
+
+@article{Pitt99,
+ ISSN = {01621459},
+ URL = {http://www.jstor.org/stable/2670179},
+ abstract = {This article analyses the recently suggested particle approach to filtering time series. We suggest that the algorithm is not robust to outliers for two reasons: the design of the simulators and the use of the discrete support to represent the sequentially updating prior distribution. Here we tackle the first of these problems.},
+ author = {Michael K. Pitt and Neil Shephard},
+ journal = {Journal of the American Statistical Association},
+ number = {446},
+ pages = {590--599},
+ publisher = {[American Statistical Association, Taylor & Francis, Ltd.]},
+ title = {Filtering via Simulation: Auxiliary Particle Filters},
+ volume = {94},
+ year = {1999}
+}
+
 @article{Shumway01,
  ISSN = {00219398, 15375374},
  URL = {http://www.jstor.org/stable/10.1086/209665},
@@ -194,6 +252,20 @@ url = {http://dx.doi.org/10.1111/j.1540-6261.2009.01495.x},
 doi = {10.1111/j.1540-6261.2009.01495.x},
 pages = {2089--2123},
 year = {2009},
+}
+
+@article{Fearnhead10,
+ ISSN = {00063444},
+ URL = {http://www.jstor.org/stable/25734097},
+ abstract = {In this paper we propose a new particle smoother that has a computational complexity of O(N), where N is the number of particles. This compares favourably with the O(N²) computational cost of most smoothers. The new method also overcomes some degeneracy problems in existing algorithms. Through simulation studies we show that substantial gains in efficiency are obtained for practical amounts of computational cost. It is shown both through these simulation studies, and by the analysis of an athletics dataset, that our new method also substantially outperforms the simple filter-smoother, the only other smoother with computational cost that is O(N).},
+ author = {Paul Fearnhead and David Wyncoll and Jonathan Tawn},
+ journal = {Biometrika},
+ number = {2},
+ pages = {447--464},
+ publisher = {[Oxford University Press, Biometrika Trust]},
+ title = {A sequential smoothing algorithm with linear computational cost},
+ volume = {97},
+ year = {2010}
 }
 
 

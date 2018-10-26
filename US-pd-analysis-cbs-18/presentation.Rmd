@@ -44,6 +44,57 @@ knitr::knit_hooks$set(inline = function(x) {
 n_firm_months <- 624692L
 n_firms <- 4433L
 n_events <- 721L
+
+aic_tab <- function(n_terms){
+  o <- '
+<table>
+<thead>
+<tr>
+  <th id="tableHTML_header_1"> </th>
+  <th id="tableHTML_header_2">Df</th>
+  <th id="tableHTML_header_3">AIC</th>
+</tr>
+</thead>
+<tbody>\n'
+  
+  trs <- c('
+<tr>
+  <td id="tableHTML_rownames">First model</td>
+  <td id="tableHTML_column_1">12</td>
+  <td id="tableHTML_column_2">7612.93</td>
+</tr>', '
+<tr>
+  <td id="tableHTML_rownames">New denominator</td>
+  <td id="tableHTML_column_1">12</td>
+  <td id="tableHTML_column_2">7559.93</td>
+</tr>', '
+<tr>
+  <td id="tableHTML_rownames">Add distance-to-default</td>
+  <td id="tableHTML_column_1">13</td>
+  <td id="tableHTML_column_2">7469.90</td>
+</tr>', '
+<tr>
+  <td id="tableHTML_rownames">Add macro variables</td>
+  <td id="tableHTML_column_1">15</td>
+  <td id="tableHTML_column_2">7447.24</td>
+</tr>', '
+<tr>
+  <td id="tableHTML_rownames">Simplify model</td>
+  <td id="tableHTML_column_1">11</td>
+  <td id="tableHTML_column_2">7441.04</td>
+</tr>')
+  
+  all_ele <- seq_along(trs)
+  keep <- 1:n_terms
+  p1 <- trs[keep]
+  p2 <- trs[setdiff(all_ele, keep)]
+  if(length(p2) > 0)
+    p2 <- gsub("<tr>", "<tr class=\"invis\">", p2)
+  trs <- c(p1, p2)
+  
+  cat(paste0(o, paste0(trs, collapse = "\n"),  
+             '</tbody></table>\n', collapse = "\n"))
+}
 ```
 
 
@@ -106,7 +157,7 @@ $$
 
 </div>
 
-<p class="fragment">Pioneered in @Duffie09.</p>
+<p class="fragment">Pioneered by @Duffie09.</p>
 
 <small class="fragment">
 E.g., see @Koopman11, @Azizpour16, @Nickerson17, and @kwon18.</small>
@@ -197,7 +248,7 @@ and company names.</p>
 <div class="left">
 Use quatlery data and impute yearly data when missing. 
 
-Data is "leaded" with 3 months and carried forward for up to 1 year.
+Data is lagged with 3 months and carried forward for up to 1 year.
 </div>
 
 ## CRSP
@@ -217,7 +268,7 @@ Used to compute past 1 year excess log return.
 
 Used to compute log relative market size. 
 
-Data is "leaded" with 1 month and carried forward for up to 3 months.
+Data is lagged with 1 month and carried forward for up to 3 months.
 </div>
 
 
@@ -235,7 +286,7 @@ data from Compustat, 1 year T-bill rate, and with a rolling 1 year window.</smal
 </div> 
 <!--/html_preserve-->
 
-Require 1 years initial data and at-least 3 months of data in each window. 
+Require 1 year initial data and at-least 3 months of data in each window. 
 </div>
 
 ## Final sample
@@ -244,7 +295,7 @@ Require 1 years initial data and at-least 3 months of data in each window.
 <!--html_preserve-->
 <div class="no-top-marg-next"> 
 <!--/html_preserve-->
-Exclude firm with first digit SIC code 6 or 9. 
+Exclude firms with first digit SIC code 6 or 9. 
 <small>Use compustat `siccd` if avialable. Otherwise use CRSP `sich`.</small>
 <!--html_preserve-->
 </div> 
@@ -257,6 +308,351 @@ Final samples has `r n_firm_months` firm-months, `r n_firms` firms and
 </section>
 <!-- need extra end tag before next section -->
 </section>
+
+
+
+
+
+<!--html_preserve-->
+<section>
+<section class="titleslide slide level1">
+<h1>Models without frailty</h1>
+<p>Included variables are</p>
+<small>
+<!--/html_preserve-->
+
+ * Working capital / total assets
+ * Retained Earnings / total assets
+ * Operating income / total assets
+ * Market value / total liabilities
+ * Sales / total assets
+ * Net income / total assets
+ * Total liabilities / total assets
+ * Current ratio
+ * Idiosyncratic volatility
+ * Log excess return
+ * Relative log market size
+
+All winsorized at 1% and 99%.
+
+<!--html_preserve--> 
+</small>
+<!-- there is a end tag from the previous slide -->
+<!-- </section> -->
+<!--/html_preserve-->
+
+## First model {data-transition="fade"}
+
+```{r aic_print_first, results='asis', echo=F}
+aic_tab(1)
+```
+
+
+## Change denominators {data-transition="fade"}
+
+```{r aic_print_denom, results='asis', echo=F}
+aic_tab(2)
+```
+
+<div class="left">
+Issue with small denominators as in @Campbell08. Change denominator to 50%. 
+total assets and 50% market value. 
+</div>
+
+## Add distance-to-default {data-transition="fade"}
+
+```{r aic_print_dtd, results='asis', echo=F}
+aic_tab(3)
+```
+
+Added cubic regression spline. Dashed lines are 95% confidence intervals.
+
+## Macro variables {data-transition="fade"}
+
+```{r aic_print_macro, results='asis', echo=F}
+aic_tab(4)
+```
+
+Past 1 year market log market return and 1 year T-bill rate. 
+
+## Remove terms {data-transition="fade"}
+
+```{r aic_print_rm_terms, results='asis', echo=F}
+aic_tab(5)
+```
+
+## Estimates -- Standardized coefficients
+
+
+<table style="border-collapse:collapse;" class=table_8709 border=1>
+<thead>
+<tr>
+  <th id="tableHTML_header_1"> </th>
+  <th id="tableHTML_header_2">Estimate</th>
+  <th id="tableHTML_header_3">Z-stat</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td id="tableHTML_rownames">Intercept</td>
+  <td id="tableHTML_column_1"> -8.448</td>
+  <td id="tableHTML_column_2">-17.985</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">Distance-to-default</td>
+  <td id="tableHTML_column_1"> -1.929</td>
+  <td id="tableHTML_column_2"> -9.034</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">Log excess return</td>
+  <td id="tableHTML_column_1"> -0.713</td>
+  <td id="tableHTML_column_2">-18.711</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">Total liabilities / size</td>
+  <td id="tableHTML_column_1">  0.437</td>
+  <td id="tableHTML_column_2">  8.365</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">T-bill rate</td>
+  <td id="tableHTML_column_1"> -0.281</td>
+  <td id="tableHTML_column_2"> -5.113</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">Net income / size</td>
+  <td id="tableHTML_column_1"> -0.110</td>
+  <td id="tableHTML_column_2"> -5.650</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">Relative log market size</td>
+  <td id="tableHTML_column_1"> -0.107</td>
+  <td id="tableHTML_column_2"> -1.702</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">Current ratio</td>
+  <td id="tableHTML_column_1"> -0.101</td>
+  <td id="tableHTML_column_2"> -1.999</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">Idiosyncratic volatility</td>
+  <td id="tableHTML_column_1">  0.092</td>
+  <td id="tableHTML_column_2">  2.449</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">Log market return</td>
+  <td id="tableHTML_column_1">  0.078</td>
+  <td id="tableHTML_column_2">  2.287</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">Retained Earnings / size</td>
+  <td id="tableHTML_column_1">  0.042</td>
+  <td id="tableHTML_column_2">  1.543</td>
+</tr>
+</tbody>
+</table>
+
+## Non-linear effects -- Net income to size
+
+<img src="fig/spline_plots_001.jpg">
+
+Add cubic regression spline. Dashed lines are 95% confidence intervals of 
+the regression spline.
+
+## Non-linear effects -- Idiosyncratic volatility
+
+<img src="fig/spline_plots_002.jpg">
+
+
+## Significance of terms
+
+
+<small><table>
+<thead>
+<tr>
+  <th id="tableHTML_header_1"> </th>
+  <th id="tableHTML_header_2">AIC</th>
+  <th id="tableHTML_header_3">Df</th>
+  <th id="tableHTML_header_4">LR-stat</th>
+  <th id="tableHTML_header_5">P-value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td id="tableHTML_rownames">Full model</td>
+  <td id="tableHTML_column_1">7377.98</td>
+  <td id="tableHTML_column_2"></td>
+  <td id="tableHTML_column_3"></td>
+  <td id="tableHTML_column_4"></td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">% Relative log market size</td>
+  <td id="tableHTML_column_1">7378.14</td>
+  <td id="tableHTML_column_2">1</td>
+  <td id="tableHTML_column_3">  2.16</td>
+  <td id="tableHTML_column_4">  0.141196</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">% Retained Earnings / size</td>
+  <td id="tableHTML_column_1">7378.98</td>
+  <td id="tableHTML_column_2">1</td>
+  <td id="tableHTML_column_3">  3.00</td>
+  <td id="tableHTML_column_4">  0.083270</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">% Log market return</td>
+  <td id="tableHTML_column_1">7380.39</td>
+  <td id="tableHTML_column_2">1</td>
+  <td id="tableHTML_column_3">  4.41</td>
+  <td id="tableHTML_column_4">  0.035750</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">% Current ratio</td>
+  <td id="tableHTML_column_1">7382.43</td>
+  <td id="tableHTML_column_2">1</td>
+  <td id="tableHTML_column_3">  6.45</td>
+  <td id="tableHTML_column_4">  0.011094</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">% Net income / size (spline term)</td>
+  <td id="tableHTML_column_1">7393.20</td>
+  <td id="tableHTML_column_2">3</td>
+  <td id="tableHTML_column_3"> 21.23</td>
+  <td id="tableHTML_column_4">  0.000094</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">% Idiosyncratic volatility</td>
+  <td id="tableHTML_column_1">7398.73</td>
+  <td id="tableHTML_column_2">1</td>
+  <td id="tableHTML_column_3"> 22.75</td>
+  <td id="tableHTML_column_4">  0.000002</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">% T-bill rate</td>
+  <td id="tableHTML_column_1">7406.89</td>
+  <td id="tableHTML_column_2">1</td>
+  <td id="tableHTML_column_3"> 30.91</td>
+  <td id="tableHTML_column_4">&#60; 0.000001</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">% Idiosyncratic volatility (spline term)</td>
+  <td id="tableHTML_column_1">7413.60</td>
+  <td id="tableHTML_column_2">3</td>
+  <td id="tableHTML_column_3"> 41.62</td>
+  <td id="tableHTML_column_4">&#60; 0.000001</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">% Distance-to-default</td>
+  <td id="tableHTML_column_1">7418.65</td>
+  <td id="tableHTML_column_2">1</td>
+  <td id="tableHTML_column_3"> 42.67</td>
+  <td id="tableHTML_column_4">&#60; 0.000001</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">% Net income / size</td>
+  <td id="tableHTML_column_1">7423.10</td>
+  <td id="tableHTML_column_2">1</td>
+  <td id="tableHTML_column_3"> 47.12</td>
+  <td id="tableHTML_column_4">&#60; 0.000001</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">% Total liabilities / size</td>
+  <td id="tableHTML_column_1">7457.40</td>
+  <td id="tableHTML_column_2">1</td>
+  <td id="tableHTML_column_3"> 81.42</td>
+  <td id="tableHTML_column_4">&#60; 0.000001</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">% Log excess return</td>
+  <td id="tableHTML_column_1">7732.36</td>
+  <td id="tableHTML_column_2">1</td>
+  <td id="tableHTML_column_3">356.38</td>
+  <td id="tableHTML_column_4">&#60; 0.000001</td>
+</tr>
+</tbody>
+</table>
+<p>Rows are models without the given term. The spline terms are orthogonal to 
+the linear term. P-values are based on likelihood ratio test.</p></small>
+
+## In-sample results
+
+<img src="fig/glm-spline-agg-in-sample.jpg">
+
+<small>Gray area is pointwise 95% confidence intervals. The line is the 
+predicted distress rate. Dots are realised distress rates. Black dots are not 
+covered by confidence intervals.</small> 
+
+
+## Out-sample results
+
+<img src="fig/glm-spline-agg-out-sample.jpg">
+
+<small>Model is estimated up to the year prior to the forecasting year.</small> 
+
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+
+
+
+<!--html_preserve-->
+<section>
+<section class="titleslide slide level1">
+<h1>Models with frailty</h1>
+<!--/html_preserve-->
+
+<div class="left">
+
+Starting point is a time-varying intercept as in @Duffie09.
+
+$$
+\begin{align*}
+g(E(y_{it}|\vec x_{it}, \vec z_t, \vec u_t, \vec o_{it})) &= 
+    \vec\beta^\top\vec x_{it}+ \vec \gamma^\top \vec z_t 
+    + u_t \\
+u_t &\sim N(\theta u_{t - 1}, \sigma^2)
+\end{align*}
+$$
+
+where $g$ is the inverse complementary-log-log function. 
+
+<small>It may be that they actually do everything in continous time and have 
+$\Delta t \rightarrow 0$ in equation (2) of the paper but this does not appear 
+to be the case when you look at Appendix B and C. Moreover, it seems 
+that a poisson process with a log-offset (the continuous version) is used 
+instead of the inverse complementary-log-log function (the discrete version).</small>
+
+</div>
+<!-- there is a end tag from the previous slide -->
+<!-- </section> -->
+
+## Frailty model 
+<div class="left">
+<!--html_preserve-->
+<div class="no-top-marg-next fragment"> 
+<!--/html_preserve-->
+Use an auxiliary particle filter and smoother to perform the estimation with 
+a Monte Carlo E(C)M algorithm. 
+<small>See @Gordon93 for early work on particle filters, @Pitt99 for details on 
+auxiliary particle filtering, and @Fearnhead10 for the smoother I use. See 
+@Dempster77 and @Meng93 for respectivly details on the EM and ECM algorithm.</small>
+<!--html_preserve-->
+</div> 
+<!--/html_preserve-->
+
+<p class="fragment">See the R package at [CRAN.R-project.org/package=dynamichazard](https://CRAN.R-project.org/package=dynamichazard)
+for implementation details.</p>
+
+</div>
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+
 
 
 <section class="titleslide slide level1">

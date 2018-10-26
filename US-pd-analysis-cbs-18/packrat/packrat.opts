@@ -11,6 +11,8 @@ ignored.directories:
     data
     inst
     markdown
+    presentation.md
+    presentation_files
 quiet.package.installation: TRUE
 snapshot.recommended.packages: FALSE
 snapshot.fields:
