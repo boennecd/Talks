@@ -1,3 +1,7 @@
+body {
+  background: linear-gradient(20deg, white 5%, rgba(126, 182, 255, .05) 70%, rgba(126, 182, 255, .25));
+}
+
 .reveal h1 {
     font-size: 2.0em;
     font-weight: bold;
@@ -43,11 +47,11 @@
 div.logo {
   background: url(../fig/cbs_logo_horizontal.png);
   position: absolute;
-  background-size:  cover;
   resize: both;
   bottom: 50px;
   left: 50px;
-  width: 460px;
+  background-size: cover;
+  width: 452px; /* 9.05 * height*/
   height: 50px;
 }
 
@@ -107,4 +111,32 @@ div.references > div > p {
   border: none;
   padding-left: 10px;
   padding-right: 10px;
+}
+
+/* right allign all but the first column */
+.reveal table td,
+.reveal table th
+{
+    text-align:left;
+}
+
+.reveal table td + td,
+.reveal table th + th
+{
+    text-align:right;
+}
+
+tr.invis {
+  color: transparent;
+}
+
+.reveal blockquote {
+  background:rgba(255, 255, 255, 1);
+}
+
+.reveal blockquote p {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  margin-left: 20px;
+  margin-right: 20px;
 }
