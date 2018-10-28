@@ -45,6 +45,8 @@ n_firm_months <- 624692L
 n_firms <- 4433L
 n_events <- 721L
 
+rel_size_frailty_slope <- 0.04133
+
 aic_tab <- function(n_terms){
   o <- '
 <table>
@@ -82,6 +84,52 @@ aic_tab <- function(n_terms){
   <td id="tableHTML_rownames">Simplify model</td>
   <td id="tableHTML_column_1">11</td>
   <td id="tableHTML_column_2">7441.04</td>
+</tr>')
+  
+  all_ele <- seq_along(trs)
+  keep <- 1:n_terms
+  p1 <- trs[keep]
+  p2 <- trs[setdiff(all_ele, keep)]
+  if(length(p2) > 0)
+    p2 <- gsub("<tr>", "<tr class=\"invis\">", p2)
+  trs <- c(p1, p2)
+  
+  cat(paste0(o, paste0(trs, collapse = "\n"),  
+             '</tbody></table>\n', collapse = "\n"))
+}
+
+aic_tab_frailty <- function(n_terms){
+  o <- '
+<table>
+<thead>
+<tr>
+  <th id="tableHTML_header_1"> </th>
+  <th id="tableHTML_header_2">Df</th>
+  <th id="tableHTML_header_3">AIC</th>
+</tr>
+</thead>
+<tbody>\n'
+  
+  trs <- c('
+<tr>
+  <td id="tableHTML_rownames">Model without frailty</td>
+  <td id="tableHTML_column_1">17</td>
+  <td id="tableHTML_column_2">7378</td>
+</tr>', '
+<tr>
+  <td id="tableHTML_rownames">Random intercept</td>
+  <td id="tableHTML_column_1">19</td>
+  <td id="tableHTML_column_2">7345</td>
+</tr>', '
+<tr>
+  <td id="tableHTML_rownames">Random intercept and log relative size</td>
+  <td id="tableHTML_column_1">22</td>
+  <td id="tableHTML_column_2">7246</td>
+</tr>', '
+<tr>
+  <td id="tableHTML_rownames">Random intercept, log relative size, and industry dummies</td>
+  <td id="tableHTML_column_1">25</td>
+  <td id="tableHTML_column_2">7241</td>
 </tr>')
   
   all_ele <- seq_along(trs)
@@ -134,9 +182,19 @@ E.g., see @Chava04, @Beaver05, and @Campbell08.</small>
 
 ## Large time variation
 
-<img src="fig/def_w_smooth.jpg">
+<!--html_preserve-->
+<div class="no-top-marg-next"> 
+<!--/html_preserve-->
+<img src="fig/def_w_smooth_redo-gam.jpg">
+<small>Line is a generalized additive model with a spline for the intercept 
+[@Wood17].
+</small>
 
-Cannot be caputured by firm specific covariates, $\vec x_{it}$, and macro 
+<!--html_preserve-->
+</div> 
+<!--/html_preserve-->
+
+Cannot be captured by firm specific covariates, $\vec x_{it}$, and macro 
 covariates, $\vec z_t$. Major issue for portfolio risk.
 
 ## Frailty models
@@ -160,7 +218,8 @@ $$
 <p class="fragment">Pioneered by @Duffie09.</p>
 
 <small class="fragment">
-E.g., see @Koopman11, @Azizpour16, @Nickerson17, and @kwon18.</small>
+E.g., see @Koopman11, @Hwang12, @Qi14, @Nickerson17, @Azizpour18, and 
+@kwon18.</small>
 
 </div>
 
@@ -238,7 +297,7 @@ or 12 months after distress if resolution date is missing.</p>
   cat(paste0(x, collapse = ", "))
 -->
 
-<p class="fragment">Macthing to Compustat is done with CUSIPs, ticker symbols,
+<p class="fragment">Matching to Compustat is done with CUSIPs, ticker symbols,
 and company names.</p>
 
 </div>
@@ -286,7 +345,7 @@ data from Compustat, 1 year T-bill rate, and with a rolling 1 year window.</smal
 </div> 
 <!--/html_preserve-->
 
-Require 1 year initial data and at-least 3 months of data in each window. 
+Require 1 year initial data and at least 3 months of data in each window. 
 </div>
 
 ## Final sample
@@ -296,7 +355,7 @@ Require 1 year initial data and at-least 3 months of data in each window.
 <div class="no-top-marg-next"> 
 <!--/html_preserve-->
 Exclude firms with first digit SIC code 6 or 9. 
-<small>Use compustat `siccd` if avialable. Otherwise use CRSP `sich`.</small>
+<small>Use Compustat `siccd` if available. Otherwise use CRSP `sich`.</small>
 <!--html_preserve-->
 </div> 
 <!--/html_preserve-->
@@ -324,10 +383,10 @@ Final samples has `r n_firm_months` firm-months, `r n_firms` firms and
  * Working capital / total assets
  * Retained Earnings / total assets
  * Operating income / total assets
- * Market value / total liabilities
  * Sales / total assets
  * Net income / total assets
  * Total liabilities / total assets
+ * Market value / total liabilities
  * Current ratio
  * Idiosyncratic volatility
  * Log excess return
@@ -355,7 +414,7 @@ aic_tab(2)
 ```
 
 <div class="left">
-Issue with small denominators as in @Campbell08. Change denominator to 50%. 
+Issue with small denominators as in @Campbell08. Change denominator to 50% 
 total assets and 50% market value. 
 </div>
 
@@ -365,7 +424,6 @@ total assets and 50% market value.
 aic_tab(3)
 ```
 
-Added cubic regression spline. Dashed lines are 95% confidence intervals.
 
 ## Macro variables {data-transition="fade"}
 
@@ -373,7 +431,8 @@ Added cubic regression spline. Dashed lines are 95% confidence intervals.
 aic_tab(4)
 ```
 
-Past 1 year market log market return and 1 year T-bill rate. 
+Past 1 year market log return and 1 year T-bill rate as in @Duffie09 and other 
+papers  . 
 
 ## Remove terms {data-transition="fade"}
 
@@ -451,12 +510,24 @@ aic_tab(5)
 </tbody>
 </table>
 
+<small>Terms that are included in @Duffie09 [table III] have similar sign.
+</small>
+
 ## Non-linear effects -- Net income to size
 
+<!--html_preserve-->
+<div class="no-top-marg-next"> 
+<!--/html_preserve-->
 <img src="fig/spline_plots_001.jpg">
+<div class = "left"><small>A cubic regression spline is added to the model. Term on the linear 
+predictor scale is on the y-axis. Dashed lines are 95% confidence intervals of 
+the regression spline. A histogram of net income / size is shown in the 
+background.</small></div>
+<!--html_preserve-->
+</div> 
+<!--/html_preserve-->
 
-Add cubic regression spline. Dashed lines are 95% confidence intervals of 
-the regression spline.
+
 
 ## Non-linear effects -- Idiosyncratic volatility
 
@@ -582,11 +653,22 @@ predicted distress rate. Dots are realised distress rates. Black dots are not
 covered by confidence intervals.</small> 
 
 
-## Out-sample results
+## Out-of-sample results
 
 <img src="fig/glm-spline-agg-out-sample.jpg">
 
 <small>Model is estimated up to the year prior to the forecasting year.</small> 
+
+
+## Out-of-sample results
+
+<img src="fig/glm-auc-out-sample.jpg">
+
+<div class="left"><small>Out-of-sample AUC. Black markers are from the model without non-linear effects and 
+the blue markers are from the model with the covariates in @Duffie09 except excess 
+return is used instead of the return and the 1 year T-bill rate is used instead of 
+the 3 month. The last markers are from 
+the full model with splines.</small></div>
 
 </section>
 <!-- need extra end tag before next section -->
@@ -609,7 +691,7 @@ Starting point is a time-varying intercept as in @Duffie09.
 
 $$
 \begin{align*}
-g(E(y_{it}|\vec x_{it}, \vec z_t, \vec u_t, \vec o_{it})) &= 
+g(E(y_{it}|\vec x_{it}, \vec z_t, u_t)) &= 
     \vec\beta^\top\vec x_{it}+ \vec \gamma^\top \vec z_t 
     + u_t \\
 u_t &\sim N(\theta u_{t - 1}, \sigma^2)
@@ -618,11 +700,11 @@ $$
 
 where $g$ is the inverse complementary-log-log function. 
 
-<small>It may be that they actually do everything in continous time and have 
-$\Delta t \rightarrow 0$ in equation (2) of the paper but this does not appear 
-to be the case when you look at Appendix B and C. Moreover, it seems 
-that a poisson process with a log-offset (the continuous version) is used 
-instead of the inverse complementary-log-log function (the discrete version).</small>
+<small>It may be that they actually do everything in continuous time but it 
+does not appear to be the case when you look at Appendix B and C. Moreover, it seems 
+that a Poisson process with a log-offset (the continuous version) is used 
+instead of the inverse complementary-log-log function (the discrete version)
+in their approximation. It presumably does not matter.</small>
 
 </div>
 <!-- there is a end tag from the previous slide -->
@@ -634,10 +716,10 @@ instead of the inverse complementary-log-log function (the discrete version).</s
 <div class="no-top-marg-next fragment"> 
 <!--/html_preserve-->
 Use an auxiliary particle filter and smoother to perform the estimation with 
-a Monte Carlo E(C)M algorithm. 
+a Monte Carlo EM or ECM algorithm. 
 <small>See @Gordon93 for early work on particle filters, @Pitt99 for details on 
 auxiliary particle filtering, and @Fearnhead10 for the smoother I use. See 
-@Dempster77 and @Meng93 for respectivly details on the EM and ECM algorithm.</small>
+@Dempster77 and @Meng93 for respectively details on the EM and ECM algorithm.</small>
 <!--html_preserve-->
 </div> 
 <!--/html_preserve-->
@@ -646,10 +728,300 @@ auxiliary particle filtering, and @Fearnhead10 for the smoother I use. See
 for implementation details.</p>
 
 </div>
+
+
+## Random intercept -- Estimates
+```{r aic_tab_frailty_inter, echo = FALSE, results='asis'}
+aic_tab_frailty(2)
+```
+
+Estimates are $(\hat\theta, \hat\sigma) = (0.8912, 0.1484)$.
+
+## Random intercept -- Smoothed Estimates
+
+<img src ="fig/rng-inter-smooth-state.jpg">
+
+<!--html_preserve-->
+<small>Dashed lines are 68.27% confidence intervals.</small>
+<!--/html_preserve-->
+
+
+## Random relative size -- Motivation
+<div class="left">
+
+Investigate reduced capital requirements of SMBs in Basel II/III as in 
+@Jensen17.
+
+<!--html_preserve-->
+<small>
+<!--/html_preserve-->
+
+> Under the IRB approach for corporate credits, banks will be permitted to separately distinguish exposures to SME borrowers (defined as corporate exposures where the reported sales for the consolidated group of which the firm is a part is less than €50 million) from those to large firms. A firm-size adjustment ... is made to the corporate risk weight formula for exposures to SME borrowers. 
+>
+> Article 273 in @Basel06.
+
+<!--html_preserve-->
+</small>
+</div>
+<!--/html_preserve-->
+
+## Random relative size -- Model
+
+$$
+\begin{align*}
+g(E(y_{it}|\vec x_{it}, \vec z_t, \vec u_t, o_{it})) &= 
+    \vec\beta^\top\vec x_{it}+ \vec \gamma^\top \vec z_t 
+    + u_{I,t} +u_{R,t} o_{it} \\
+\begin{pmatrix} u_{I,t} \\ u_{R,t} \end{pmatrix} 
+    &\sim N\left(
+\begin{pmatrix} \theta_Iu_{I,t-1} \\ \theta_Ru_{R,t-1} \end{pmatrix}, Q\right)
+\end{align*}
+$$
+
+## Random relative size -- Estimates
+```{r aic_tab_frailty_slope, echo = FALSE, results='asis'}
+aic_tab_frailty(3)
+```
+
+<!--html_preserve-->
+<div class="left fragment"><small>
+<!--/html_preserve-->
+
+Estimates are 
+
+$$
+\begin{align*} 
+\begin{pmatrix} \hat\theta_I \\ \hat\theta_R \end{pmatrix} &=
+    \begin{pmatrix} 0.9433 \\ 0.9759 \end{pmatrix} &
+\hat Q&= \hat V\hat C\hat V\\ 
+\hat V&=\begin{pmatrix} 0.2706 & \cdot \\ \cdot & 0.0562 \end{pmatrix} &
+\hat C&=\begin{pmatrix} 1 & 0.9004 \\ 0.9004 & 1 \end{pmatrix}
+\end{align*}
+$$
+
+<!--html_preserve-->
+</small>
+</div>
+<!--/html_preserve-->
+
+
+## Random relative size -- Smoothed estimates
+
+<!--html_preserve-->
+<div class="img-two-container">
+<!--/html_preserve-->
+  <img src="fig/rng-inter-smooth-state-w-size_001.jpg">
+  <img src="fig/rng-inter-smooth-state-w-size_002.jpg">
+
+<!--html_preserve-->
+</div>
+<!--/html_preserve-->
+
+The fixed slope estimate `r rel_size_frailty_slope`.
+
+## Different from marginal effect 
+
+<img src="fig/size-means_def_n_not.jpg">
+<!--html_preserve-->
+<small>Points are means for distressed firms and crosses are the means of the 
+whole sample. The two lines are smoothing splines.</small>
+<!--/html_preserve-->
+
+
+## Comparisson to other papers
+<div class="left">
+@David13 finds a time-varying log pledgeable assets effects in a non-parametric 
+Aalen model.  
+
+@Azizpour18 uses exponentially weighted log past defaulted debt in aggregate 
+distress prediction. 
+</div>
+
+
+## Random industry -- Motivation
+<div class="left">
+Advocated by @Chava04 and @Chava11.
+
+No evidence of industry effects in the model without frailty.
+
+
+<!--html_preserve-->
+<div class="no-top-marg-next fragment"> 
+
+<!--/html_preserve-->
+<p>Use dummies from @Chava04:</p>
+
+<!--html_preserve-->
+<small><ul>
+<li>Manufacturing and mineral industries: SIC code in the ranges 1000–1499, 
+2000–3999.</li>
+<li>Miscellaneous industries: SIC code in the ranges 1–999, 1500–1799, 
+5000–5999, 7000–8999.</li>
+<li>Transportation, communications and utilities: SIC code in the range 
+4000–4999</li>
+</small>
+
+<!--/html_preserve-->
+
+
+<!--html_preserve-->
+</div></div>
+<!--/html_preserve-->
+
+## Random industry -- Model 
+<!--html_preserve-->
+<small>
+<!--/html_preserve-->
+
+$$
+\begin{align*}
+g(E(y_{it}|\vec x_{it}, \vec z_t, \vec u_t, \vec o_{it})) &= 
+    \vec\beta^\top\vec x_{it}+ \vec \gamma^\top \vec z_t 
+    + \vec u_{t}^\top\vec o_{it} \\
+\begin{pmatrix} u_{I_1,t} \\u_{I_2,t} \\u_{I_3,t} \\ u_{R,t} \end{pmatrix} 
+    &\sim N\left(
+\begin{pmatrix} \theta_Iu_{I_1,t-1} \\ \theta_Iu_{I_2,t-1} \\ \theta_Iu_{I_3,t-1} \\ \theta_Ru_{R,t-1} \end{pmatrix}, Q\right) 
+\end{align*}, \qquad Q=VCV
+$$
+
+$$
+V=\begin{pmatrix} 
+    \sigma_{I_1} & \cdot & \cdot & \cdot \\
+    \cdot & \sigma_{I_2} & \cdot & \cdot \\
+    \cdot & \cdot & \sigma_{I_3} & \cdot \\
+    \cdot & \cdot & \cdot & \sigma_R \end{pmatrix}, \qquad
+C = \begin{pmatrix} 
+    1 & \rho_I & \rho_I & \rho_{IR} \\
+    \rho_I & 1 & \rho_I & \rho_{IR} \\
+    \rho_I & \rho_I & 1 & \rho_{IR} \\
+    \rho_{IR} & \rho_{IR} & \rho_{IR} & 1 \end{pmatrix}
+$$
+
+<!--html_preserve-->
+</small>
+<!--/html_preserve-->
+
+## Random industry -- Estimates
+
+```{r aic_tab_frailty_indu, echo = FALSE, results='asis'}
+aic_tab_frailty(4)
+```
+
+<!--html_preserve-->
+<small>
+<!--/html_preserve-->
+
+$$
+\begin{align*}
+(\hat\theta_I, \hat\theta_R) &= (0.9062, 0.9616) \\ 
+(\hat\sigma_{I_1}, \hat\sigma_{I_2}, \hat\sigma_{I_3},\hat\sigma_R)  &= 
+    (0.30961, 0.34511, 0.31397, 0.06506) \\ 
+(\hat\rho_I, \hat\rho_{IR}) &=  (0.8574, 0.9024)
+\end{align*}
+$$
+
+<!--html_preserve-->
+</small>
+<!--/html_preserve-->
+
+
+## Random industry -- Smoothed estimates
+
+<!--html_preserve-->
+<div class="img-four-container">
+<!--/html_preserve-->
+  <img src="fig/rng-inter-smooth-state-w-size-n-indu_001.jpg" class="top">
+  <img src="fig/rng-inter-smooth-state-w-size-n-indu_002.jpg" class="top">
+  <img src="fig/rng-inter-smooth-state-w-size-n-indu_003.jpg" class="bottom">
+  <img src="fig/rng-inter-smooth-state-w-size-n-indu_004.jpg" class="bottom">
+
+<!--html_preserve-->
+</div>
+<!--/html_preserve-->
+
+
+## Comparisson to other papers
+<div class="left">
+Could compare with @kwon18. 
+
+* No correlation of industry random effects and no random log relative size.  
+* Different sample and questionable estimation method. 
+
+</div>
 </section>
 <!-- need extra end tag before next section -->
 </section>
 
+
+
+<!--html_preserve-->
+<section>
+<section class="titleslide slide level1">
+<h1>Conclusion</h1>
+<!--/html_preserve-->
+<div class = "left">
+
+<!--html_preserve-->
+<div class="no-top-marg-next fragment"> 
+<!--/html_preserve-->
+Document non-linear effects.
+
+<small>Rarely focused on. One example is @Daniel07.</small>
+<!--html_preserve-->
+</div> 
+<!--/html_preserve-->
+
+<p class="fragment">
+(Partial) Association between size of the firm and distress is non-constant through time.</p> 
+
+<p class="fragment">
+Weak evidence for partial industry effects.</p>
+
+</div>
+
+<!-- there is a end tag from the previous slide -->
+<!-- </section> -->
+
+
+## Next step
+<!--html_preserve-->
+<div class = "left">
+<!--/html_preserve-->
+
+<p class="fragment">
+Document importance. Could make model for $(\vec x_{it}, \vec z_t, \vec o_{it})$ 
+as in @Duffie07 and @Duffie09. This may lead to poor performance as documented 
+in @Duan12.</p>
+
+<p class="fragment">
+Alternatively, forgo the the covariate prediction problem and make a 1 year 
+distress model.</p>
+
+<p class="fragment">
+Explore other time-varying coefficients.</p>
+
+<p class="fragment">
+Potential issue with Moody's data.</p>
+
+<!--html_preserve-->
+</div>
+<!--/html_preserve-->
+
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<!--html_preserve-->
+<section>
+<section class="end">
+<h1>Thank you!</h1>
+
+Slides are on <a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.
+
+</section>
+</section>
+<!--/html_preserve-->
 
 
 
