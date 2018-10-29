@@ -23,6 +23,13 @@ output:
 <script>
 (function() {
   document.getElementById("dummy-slide").remove(); 
+  
+  var credit_div = document.createElement('div');
+  credit_div.innerHTML = "<p>Benjamin Christoffersen<br>Copenhagen Business School<br>Department of Finance, Center for Statistics</p>";
+  credit_div.className += "left";
+  document.getElementsByTagName("section")[0].appendChild(credit_div);
+  
+  document.getElementsByTagName("section")[0].classList.add("front");
 })();
 </script>
 <!--/html_preserve-->
@@ -45,7 +52,7 @@ n_firm_months <- 624692L
 n_firms <- 4433L
 n_events <- 721L
 
-rel_size_frailty_slope <- 0.04133
+rel_size_frailty_slope <- 0.03975
 
 aic_tab <- function(n_terms){
   o <- '
@@ -124,12 +131,12 @@ aic_tab_frailty <- function(n_terms){
 <tr>
   <td id="tableHTML_rownames">Random intercept and log relative size</td>
   <td id="tableHTML_column_1">22</td>
-  <td id="tableHTML_column_2">7246</td>
+  <td id="tableHTML_column_2">7229</td>
 </tr>', '
 <tr>
   <td id="tableHTML_rownames">Random intercept, log relative size, and industry dummies</td>
   <td id="tableHTML_column_1">25</td>
-  <td id="tableHTML_column_2">7241</td>
+  <td id="tableHTML_column_2">7238</td>
 </tr>')
   
   all_ele <- seq_along(trs)
@@ -217,9 +224,18 @@ $$
 
 <p class="fragment">Pioneered by @Duffie09.</p>
 
-<small class="fragment">
-E.g., see @Koopman11, @Hwang12, @Qi14, @Nickerson17, @Azizpour18, and 
-@kwon18.</small>
+<div class="fragment">
+<small>
+E.g., see @Koopman11, @Hwang12, @Chen14, @Qi14, @Nickerson17, @Azizpour18, and 
+@kwon18 for other papers on time-varying effects.</small>
+
+<small class="has-math">
+Only a frailty model as in @Vaupel1979 for certain link functions where 
+$\vec u_t^\top \vec o_{it}$ is a multiplicative factor on the 
+instantaneous hazard. This is not the case for e.g., the logit link function 
+where $\vec u_t^\top \vec o_{it}$ is a multiplicative factor on the 
+odds.</small> 
+</div>
 
 </div>
 
@@ -277,7 +293,7 @@ E.g., see @Koopman11, @Hwang12, @Qi14, @Nickerson17, @Azizpour18, and
 ## Distress events
 
 <div class = "left">
-<p class="fragment">At risk: have not had a distress, is after resolution date, 
+<p class="fragment">At risk: has not had a distress, is after resolution date, 
 or 12 months after distress if resolution date is missing.</p> 
 
 <small class="fragment">Events are alternative dispute resolution, conservatorship, cross default, loan forgiven, chapter 7, placed under administration, seized by regulators, deposit freeze, suspension of payments, grace period default, payment moratorium, prepackaged chapter 11, indenture modified, bankruptcy, receivership, missed principal payment, missed principal and interest payments, distressed exchange, chapter 11, and missed interest payment.</small>
@@ -340,7 +356,7 @@ Very good predictor [@Shumway08].
 <!--/html_preserve-->
 Computed with the so-called KMV method [@Vassalou04]. 
 <small>Computed with daily stock data, debt 
-data from Compustat, 1 year T-bill rate, and with a rolling 1 year window.</small>
+data from Compustat, the 1 year T-bill rate, and with a rolling 1 year window.</small>
 <!--html_preserve-->
 </div> 
 <!--/html_preserve-->
@@ -386,8 +402,8 @@ Final samples has `r n_firm_months` firm-months, `r n_firms` firms and
  * Sales / total assets
  * Net income / total assets
  * Total liabilities / total assets
- * Market value / total liabilities
  * Current ratio
+ * Market value / total liabilities
  * Idiosyncratic volatility
  * Log excess return
  * Relative log market size
@@ -665,7 +681,7 @@ covered by confidence intervals.</small>
 <img src="fig/glm-auc-out-sample.jpg">
 
 <div class="left"><small>Out-of-sample AUC. Black markers are from the model without non-linear effects and 
-the blue markers are from the model with the covariates in @Duffie09 except excess 
+the blue markers are from the model with the covariates in @Duffie09 except log excess 
 return is used instead of the return and the 1 year T-bill rate is used instead of 
 the 3 month. The last markers are from 
 the full model with splines.</small></div>
@@ -700,11 +716,12 @@ $$
 
 where $g$ is the inverse complementary-log-log function. 
 
-<small>It may be that they actually do everything in continuous time but it 
-does not appear to be the case when you look at Appendix B and C. Moreover, it seems 
-that a Poisson process with a log-offset (the continuous version) is used 
-instead of the inverse complementary-log-log function (the discrete version)
-in their approximation. It presumably does not matter.</small>
+<small>It may be that do use  $\Delta t$ close to zero in their discrete 
+approximation but it appears that they use $\Delta t = 1$ month when 
+you look at Appendix B and C. In that case, one could argue
+that a log-likelihood of Poisson process with a log-offset (the continuous 
+version) should not be used but rather the inverse complementary-log-log 
+function (the discrete version). It presumably does not matter.</small>
 
 </div>
 <!-- there is a end tag from the previous slide -->
@@ -792,10 +809,10 @@ Estimates are
 $$
 \begin{align*} 
 \begin{pmatrix} \hat\theta_I \\ \hat\theta_R \end{pmatrix} &=
-    \begin{pmatrix} 0.9433 \\ 0.9759 \end{pmatrix} &
+    \begin{pmatrix} 0.9480 \\ 0.9793 \end{pmatrix} &
 \hat Q&= \hat V\hat C\hat V\\ 
-\hat V&=\begin{pmatrix} 0.2706 & \cdot \\ \cdot & 0.0562 \end{pmatrix} &
-\hat C&=\begin{pmatrix} 1 & 0.9004 \\ 0.9004 & 1 \end{pmatrix}
+\hat V&=\begin{pmatrix} 0.2446 & \cdot \\ \cdot & 0.0500 \end{pmatrix} &
+\hat C&=\begin{pmatrix} 1 & 0.9003 \\ 0.9003 & 1 \end{pmatrix}
 \end{align*}
 $$
 
@@ -817,7 +834,10 @@ $$
 </div>
 <!--/html_preserve-->
 
-The fixed slope estimate `r rel_size_frailty_slope`.
+<div class = "left">
+The fixed slope estimate `r rel_size_frailty_slope`. The overall mean is 
+subtracted from the relative log market size (and also from other firm specific 
+covariates, $\vec x_{it}$).</div>
 
 ## Different from marginal effect 
 
@@ -828,13 +848,94 @@ whole sample. The two lines are smoothing splines.</small>
 <!--/html_preserve-->
 
 
-## Comparisson to other papers
-<div class="left">
-@David13 finds a time-varying log pledgeable assets effects in a non-parametric 
-Aalen model.  
+## Slope changes on T-bill rate
 
+<small><table>
+<thead>
+<tr>
+  <th id="tableHTML_header_1"> </th>
+  <th id="tableHTML_header_2">Model without frailty</th>
+  <th id="tableHTML_header_3">Model with frailty</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td id="tableHTML_rownames">Intercept</td>
+  <td id="tableHTML_column_1">-9.8216</td>
+  <td id="tableHTML_column_2">-10.1538</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">Retained Earnings / size</td>
+  <td id="tableHTML_column_1"> 0.0923</td>
+  <td id="tableHTML_column_2"> 0.0850</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">Net income / size</td>
+  <td id="tableHTML_column_1"></td>
+  <td id="tableHTML_column_2"></td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">Total liabilities / size</td>
+  <td id="tableHTML_column_1"> 1.1879</td>
+  <td id="tableHTML_column_2"> 1.1457</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">Current ratio</td>
+  <td id="tableHTML_column_1">-0.0979</td>
+  <td id="tableHTML_column_2">-0.1366</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">Idiosyncratic volatility</td>
+  <td id="tableHTML_column_1"></td>
+  <td id="tableHTML_column_2"></td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">Log excess return</td>
+  <td id="tableHTML_column_1">-1.3661</td>
+  <td id="tableHTML_column_2">-1.3241</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">Relative log market size</td>
+  <td id="tableHTML_column_1">-0.0467</td>
+  <td id="tableHTML_column_2"> 0.0397</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">Distance-to-default</td>
+  <td id="tableHTML_column_1">-0.3909</td>
+  <td id="tableHTML_column_2">-0.3711</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">Log market return</td>
+  <td id="tableHTML_column_1"> 0.4106</td>
+  <td id="tableHTML_column_2"> 0.5064</td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames"><b>T-bill rate</b></td>
+  <td id="tableHTML_column_1"><b>-8.3157</b></td>
+  <td id="tableHTML_column_2"><b>-4.2765</b></td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">Spline Net income / size</td>
+  <td id="tableHTML_column_1"></td>
+  <td id="tableHTML_column_2"></td>
+</tr>
+<tr>
+  <td id="tableHTML_rownames">Spline Idiosyncratic volatility</td>
+  <td id="tableHTML_column_1"></td>
+  <td id="tableHTML_column_2"></td>
+</tr>
+</tbody>
+</table></small>
+
+## Comparisson with other papers
+<div class="left">
+<p class = "fragment">
+@David13 find a time-varying log pledgeable assets effects in a non-parametric 
+Aalen model.</p>
+
+<p class = "fragment">
 @Azizpour18 uses exponentially weighted log past defaulted debt in aggregate 
-distress prediction. 
+distress prediction.</p>
 </div>
 
 
@@ -857,7 +958,7 @@ No evidence of industry effects in the model without frailty.
 2000–3999.</li>
 <li>Miscellaneous industries: SIC code in the ranges 1–999, 1500–1799, 
 5000–5999, 7000–8999.</li>
-<li>Transportation, communications and utilities: SIC code in the range 
+<li>Transportation, communications, and utilities: SIC code in the range 
 4000–4999</li>
 </small>
 
@@ -915,10 +1016,14 @@ $$
 \begin{align*}
 (\hat\theta_I, \hat\theta_R) &= (0.9062, 0.9616) \\ 
 (\hat\sigma_{I_1}, \hat\sigma_{I_2}, \hat\sigma_{I_3},\hat\sigma_R)  &= 
-    (0.30961, 0.34511, 0.31397, 0.06506) \\ 
-(\hat\rho_I, \hat\rho_{IR}) &=  (0.8574, 0.9024)
+    (0.2998, 0.3484, 0.3049, 0.0607) \\ 
+(\hat\rho_I, \hat\rho_{IR}) &=  (0.9029, 0.9065)
 \end{align*}
 $$
+
+The log-likelihood in the last model is actually smaller as is evident by the 
+AIC. Though, it does seem like the EM is close to 
+having converged in the latter model. 
 
 <!--html_preserve-->
 </small>
@@ -940,12 +1045,23 @@ $$
 <!--/html_preserve-->
 
 
-## Comparisson to other papers
+## Comparisson with other papers
 <div class="left">
-Could compare with @kwon18. 
+<div class="fragment">
+Compare with @kwon18. 
 
 * No correlation of industry random effects and no random log relative size.  
 * Different sample and questionable estimation method. 
+</div>
+
+<div class="fragment">
+Compare with @Chen14. 
+
+* Only bankruptcies. 
+* Japanese firms.
+* No random log relative size.
+</div>
+
 
 </div>
 </section>
@@ -972,7 +1088,7 @@ Document non-linear effects.
 <!--/html_preserve-->
 
 <p class="fragment">
-(Partial) Association between size of the firm and distress is non-constant through time.</p> 
+Partial association between size of the firm and distress is non-constant through time.</p> 
 
 <p class="fragment">
 Weak evidence for partial industry effects.</p>
@@ -983,22 +1099,36 @@ Weak evidence for partial industry effects.</p>
 <!-- </section> -->
 
 
-## Next step
+## Next steps
 <!--html_preserve-->
 <div class = "left">
 <!--/html_preserve-->
 
 <p class="fragment">
 Document importance. Could make model for $(\vec x_{it}, \vec z_t, \vec o_{it})$ 
-as in @Duffie07 and @Duffie09. This may lead to poor performance as documented 
-in @Duan12.</p>
+as in @Duffie07, @Duffie09, @Chen14, and @Qi14. This may lead to poor 
+performance as documented in @Duan12. 
 
-<p class="fragment">
-Alternatively, forgo the the covariate prediction problem and make a 1 year 
+<p class="fragment">Alternatively, forgo the the covariate prediction problem and make a 1 year 
 distress model.</p>
+
+<!--html_preserve-->
+</div>
+<!--/html_preserve-->
+
+
+## Next steps
+<!--html_preserve-->
+<div class = "left">
+<!--/html_preserve-->
 
 <p class="fragment">
 Explore other time-varying coefficients.</p>
+
+<p class="fragment">
+Have no standard errors for effects. Compute observed information matrix
+with numerical differentiation or the methods in e.g., @cappe05 
+or @Poyiadjis11.</p> 
 
 <p class="fragment">
 Potential issue with Moody's data.</p>

@@ -1,5 +1,21 @@
+.reveal section.front {
+  padding-top: 15vh;
+  padding-right: 0px;
+  padding-bottom: 0px;
+  padding-left: 0px;
+  text-align: left;
+}
+
+.reveal small.has-math > span {
+  vertical-align: middle; /* had issue w/ span in small */
+}
+
+.reveal section.front > h1 {
+   margin-bottom: 0px;
+}
+
 body {
-  background: linear-gradient(20deg, white 5%, rgba(126, 182, 255, .05) 70%, rgba(126, 182, 255, .25));
+  background: linear-gradient(20deg, white 15%, rgba(73, 103, 170, .1) 70%, rgba(73, 103, 170, .25));
 }
 
 .reveal h1 {
@@ -167,7 +183,7 @@ tr.invis {
 }
 
 .reveal p > img, .reveal div.no-top-marg-next > img  {
-  max-height: 40vh;
+  max-height: 35vh;
   height: auto;
 	width: auto\9; /* ie8 */
   width: auto;
