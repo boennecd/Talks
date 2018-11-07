@@ -1,0 +1,792 @@
+---
+title: "Particle Smoothing"
+bibliography: refs.bib
+output: 
+  revealjs::revealjs_presentation: 
+    theme: simple
+    keep_mdK: true
+    center: false
+    transition: slide
+    css: css/styles.css
+    self_contained: true
+    reveal_options:
+      slideNumber: true
+    includes:
+      in_header: header.html
+      after_body: doc_suffix.html
+---
+
+```{r setup, include=FALSE}
+options(width = 100, digits = 4, scipen = 8)
+knitr::opts_chunk$set(
+  error = FALSE, cache = FALSE, warnings = TRUE, message = TRUE, dpi = 128, 
+  eval = TRUE, fig.height = 4, fig.width = 6)
+
+knitr::knit_hooks$set(inline = function(x) {
+  prettyNum(x, big.mark = ",")
+})
+```
+
+## dummy slide
+
+<!--javascript to remove dummy slide-->
+<!--html_preserve-->
+<script>
+(function() {
+  document.getElementById("dummy-slide").remove(); 
+  
+  var credit_div = document.createElement('div');
+  credit_div.innerHTML = "<p>Benjamin Christoffersen<br>Copenhagen Business School<br>Department of Finance, Center for Statistics</p>";
+  credit_div.className += "left";
+  document.getElementsByTagName("section")[0].appendChild(credit_div);
+  
+  document.getElementsByTagName("section")[0].classList.add("front");
+})();
+</script>
+<!--/html_preserve-->
+
+<!--end dummy slide-->
+</section>
+
+<!--html_preserve-->
+<section>
+
+$$
+\def\mat#1{{\mathbf{#1}}}
+\def\vect#1{{\boldsymbol{#1}}}
+\def\diff{{\mathop{}\!\mathrm{d}}}
+\def\LP#1{{\left(#1\right)}}
+\def\LB#1{{\left\{#1\right\}}}
+\def\LPV #1#2{{\left(\left.#1\vphantom{#2} \right\vert #2\right)}}
+\def\PF#1#2#3{\overrightarrow{#1}_{#2}^{(#3)}}
+\def\PB#1#2#3{\overleftarrow{#1}_{#2}^{(#3)}}
+\def\PS#1#2#3{\overleftrightarrow{#1}_{#2}^{(#3)}}
+\def\bigO#1{\mathcal{O}\LP{#1}}
+$$
+
+<section class="titleslide slide level1">
+<h1>Introduction</h1>
+<div class ="left">
+
+<!--/html_preserve-->
+
+$$
+\begin{align*}
+y_{it} &\in\{0,1\} \\
+l\LP{E\LPV{y_{it}}{\vect z_t, o_{it}}} &= \vect\beta^\top\vect z_{it} + o_{it}
+\end{align*}
+$$
+<small>$l$ is a link function, $\vect x_{it}$ are know covariates, and $o_{it}$
+are known offsets.</small>
+
+<!--html_preserve-->
+</div>
+
+<!-- there is a end tag from the previous slide -->
+<!-- </section> -->
+<!--/html_preserve-->
+
+## Hidden Markov model
+
+$$
+\begin{align*}
+P\LPV{\vect Y_t}{\vect X_t, \mat Z_t} &= g_t\LPV{\vect Y_t}{\vect X_t} & 
+P\LPV{\vect X_t}{\vect X_{t-1}} &= f\LPV{\vect X_t}{\vect X_{t-1}} \\
+P\LP{\vect X_1} &=f\LP{\vect X_1}
+\end{align*}
+$$
+
+$$
+P\LP{\vect y_{1:d}} = \int P\LP{\vect x_1} g_1\LPV{\vect y_1}{\vect x_1}
+    \prod_{t = 2}^d g_t\LPV{\vect y_t}{\vect x_t}f\LPV{\vect x_t}{\vect x_{t - 1}} 
+    \diff \vect x_{1:d}
+$$
+All implicitly depend on the parameters in the model.
+
+## Model
+
+$$
+\begin{align*}
+l\LP{E\LPV{y_{it}}{\vect z_t, o_{it}, \vect x_t, \vect u_{it}}} &= 
+  \vect\beta^\top\vect z_{it} + o_{it} + \vect x_t^\top\vect u_{it} \\
+\vect x_t &\sim \mathcal N\LP{\mat F\vect x_{t-1}, \mat \Sigma}
+\end{align*}
+$$
+<small>$\vect u_{it}$ are known firm covariates.</small>
+
+
+## EM algorithm
+
+$$
+\begin{align*}
+Q\LPV{\vect\theta}{\vect\theta^{(i)}} &= 
+    E\LPV{\log P\LP{\vect y_{1:d}}}{\vect\theta^{(i)}} \\
+\log P\LP{\vect y_{1:d}} &= 
+    \log f\LP{\vect X_1} + 
+    \sum_{t = 2}^d \log \varphi\LP{\vect X_t;\mat F\vect X_{t-1},\mat \Sigma} \\
+    &\quad +
+    \sum_{t = 1}^d\sum_{i \in R_t}
+    \LP{h\LP{\eta_{it}\LP{\vect X_t}}T\LP{y_{it}} - A\LP{\eta_{it}(\vect X_t))}
+        + B(y_{it})} \\
+\eta_{it}\LP{\vect x_t} &= 
+    \vect\beta^\top\vect z_{it} + o_{it} + \vect x_t^\top\vect u_{it}
+\end{align*}
+$$
+<small>where $\varphi$ is a multivariate normal density function, $R_t$ is the 
+risk set at time $t$, and $h$, $T$, $A$, and $B$ are known functions.</small>
+
+## EM algorithm
+
+Need to evaluate
+
+$$
+E\LPV{\phi\LP{\vect X_{t-1:t}}}{\vect\theta^{(i)}}, \qquad 
+  E\LPV{\psi\LP{\vect X_t}}{\vect\theta^{(i)}}
+$$
+
+
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+
+
+<!--html_preserve-->
+<section>
+<section class="titleslide slide level1">
+<h1>Talk overview</h1>
+
+
+<p class="fragment">Data set.</p>
+<p class="fragment">Models without frailty.</p> 
+<p class="fragment">Models with frailty.</p> 
+
+</section>
+<!-- need extra end tag before next section -->
+</section>
+<!--/html_preserve-->
+
+
+
+<!--html_preserve-->
+<section>
+<section class="titleslide slide level1">
+<h1>Importance sampling</h1>
+<!--/html_preserve-->
+<div class="left">
+
+Want to approximate **target density** 
+$\tilde d(x) = \alpha d(x)$. Only know $d$. 
+
+<div class = "fragment">
+
+1. Sample $x^{(1)},x^{(2)},\dots,x^{(N)}$ from **proposal distribution** $q$. 
+2. Compute unnormalised weights $\tilde W^{(i)} = d(x^{(i)})/q(x^{(i)})$.
+3. Normalize weights $W_i \propto \tilde W^{(i)}$.
+
+</div>
+
+
+<div class = "fragment">
+
+Use **effetive sample size** to judge 
+
+$$ESS = \LP{\sum_{i = 1}^N W_i^2}^{-1}$$
+
+</div></div>
+
+<!-- there is a end tag from the previous slide -->
+<!-- </section> -->
+
+## Importance sampling
+<div class = "left">
+Yields a discrete approximation of distribution 
+
+$$\widehat P(X) = \sum_{i=1}^N W^{(i)} \delta_{x^{(i)}}(X)$$
+$\delta$ is the dirac delta function.
+
+<div class="fragment">
+$$
+E\LP{\phi(X)} = \int \phi(x)\diff x \approx 
+    \sum_{i = 1}^N W^{(i)} \phi\LP{x^{(i)}}
+$$
+</div>
+</div>
+
+
+
+## Example: target
+
+```{r target, echo = FALSE, warning=FALSE, message=FALSE}
+y <- x <- seq(-25, 25, length = 80)
+g1 <- function(x, y) {
+  r <- sqrt(x^2+y^2)
+  o <- 10 * (sin(r)/r - (sin(4.49341) /  4.49341) + .001)
+  o[is.na(o)] <- 1
+  o
+}
+z <- outer(x, y, g1)
+# persp(x, y, z, theta = 30, phi = 30, expand = 0.5, col = "lightblue")
+
+
+# optim(-6, function(x) -sin(x) / x)
+g2 <- function(x, y){
+  r <- sqrt(x^2+y^2)
+  o <- 10 * (sin(r)/r - (sin(4.49341) /  4.49341) + .001)
+  o[is.na(o)] <- 1
+  
+  is_local_max <- 7.725293
+  is_big <- abs(r) >= is_local_max
+  o[is_big] <- exp(-(r[is_big] - is_local_max) / 2) * o[is_big]
+  
+  o
+}
+
+cn <-  list(c(0.0, "rgb(192,192,192)"), list(1, "rgb(0, 0, 0)"))
+con <- list(
+  x = list(highlight = FALSE), 
+  y = list(highlight = FALSE), 
+  z = list(highlight = FALSE))
+z <- outer(x, y, g2)
+library(plotly)
+plot_ly(showscale = FALSE, color = I("black")) %>% 
+  add_surface(
+    colorscale = cn, opacity = .9,
+    z = matrix(z, length(x), length(y)), x = x, y = y, 
+    hoverinfo = "none", contours = con) %>%
+  layout(
+    scene=list(
+      xaxis=list(title = "x1", range = c(-12, 12)),
+      yaxis=list(title = "x2", range = c(-12, 12)),
+      zaxis=list(title = "d")), 
+    plot_bgcolor = 'rgb(0, 0, 0, 0)', paper_bgcolor = 'rgba(0,0,0,0)') %>% 
+  config(displayModeBar = FALSE)
+# persp(x, y, z, theta = 30, phi = 30, expand = 0.5)
+```
+
+## Example: proposal
+
+```{r proposal, echo = FALSE, warning=FALSE, message=FALSE}
+library(mvtnorm)
+sig <- diag(7^2, 2)
+dens <- matrix(
+  dmvnorm(expand.grid(x, y), sigma = sig), ncol = length(x))
+plot_ly(showscale = FALSE, color = I("black")) %>% 
+  add_surface(z = dens, x = x, y = y, colorscale = cn, hoverinfo = "none",
+              opacity = .9, contours = con) %>%
+  layout(
+    scene = list(
+      xaxis=list(title = "x1", range = c(-10, 10)),
+      yaxis=list(title = "x2", range = c(-10, 10)),
+      zaxis=list(title = "density")), 
+    plot_bgcolor = 'rgb(0, 0, 0, 0)', paper_bgcolor = 'rgba(0,0,0,0)')  %>% 
+  config(displayModeBar = FALSE)
+```
+
+## Example: importance sampling
+
+```{r first_sample, echo = FALSE, warning=FALSE, message=FALSE}
+get_smp <- function(si, n){
+  smp <- rmvnorm(n, sigma = si)
+  wt <- apply(smp, 1, function(x) log(g2(x[1], x[2]))) -
+    apply(smp, 1, dmvnorm, sigma = si, log = TRUE)
+  co <- max(wt)
+  co <- co + log(sum(exp(wt - co)))
+  wt <- exp(wt - co)
+  
+  list(smp = smp, wt = wt)
+}
+
+. <- function(si, n){
+  list2env(get_smp(si, n), environment())
+  
+  smp2 <- rbind(smp, smp, smp)
+  smp2[(2L * n + 1L):(3L * n), ] <- NA
+  wt2 <- c(wt, rep(0, n), rep(NA_real_, n))
+  idx <- c(sapply(1:n, function(i) c(i, i + n, i + 2L * n)))
+  smp2 <- smp2[idx, ]
+  wt2 <- wt2[idx]
+    
+  zn <- .8 * max(wt) * (z - min(z)) / (max(z) - min(z))
+  
+  rg <- max(abs(smp), 10)
+  rg <- c(-rg, rg)
+  
+  p <- plot_ly(showlegend = F, color = I("black")) %>%
+    add_surface(
+      z = matrix(zn, length(x), length(y)), 
+      colorscale = cn,
+      x = x, y = y, showscale = FALSE, hoverinfo = "none", opacity = .5, 
+      contours = con) %>% 
+    add_markers(x = smp[, 1], y = smp[, 2], z = wt, hoverinfo = "none") %>%
+    add_paths(x = smp2[, 1], y = smp2[, 2], z = wt2, hoverinfo = "none") %>%
+    layout(
+      scene = list(
+        xaxis=list(title = "x1", range = rg),
+        yaxis=list(title = "x2", range = rg),
+        zaxis=list(title = "Importance weight")), 
+      plot_bgcolor = 'rgb(0, 0, 0, 0)', paper_bgcolor = 'rgba(0,0,0,0)')  %>% 
+  config(displayModeBar = FALSE)
+  
+  list(p = p, ess = sum(wt^2)^-1)
+}
+
+set.seed(37219838)
+n <- 50L
+o <- .(sig, n)
+o$p
+```
+
+Effective sample size is `r o$ess`.
+
+## Example: Propsal 
+
+```{r 2_proposal, echo = FALSE, warning=FALSE, message=FALSE}
+sig2 <- diag(2^2, 2)
+dens <- matrix(
+  dmvnorm(expand.grid(x, y), sigma = sig2), ncol = length(x))
+plot_ly(showscale = FALSE, color = I("black")) %>% 
+  add_surface(z = dens, x = x, y = y, colorscale = cn, hoverinfo = "none",
+              opacity = .9, contours = con) %>%
+  layout(
+    scene = list(
+      xaxis=list(title = "x1", range = c(-10, 10)),
+      yaxis=list(title = "x2", range = c(-10, 10)),
+      zaxis=list(title = "density")), 
+    plot_bgcolor = 'rgb(0, 0, 0, 0)', paper_bgcolor = 'rgba(0,0,0,0)') %>% 
+  config(displayModeBar = FALSE)
+```
+
+## Example: Importance sampling
+
+```{r second_sample, echo = FALSE, warning=FALSE, message=FALSE}
+set.seed(37219840)
+o <- .(sig2, n)
+o$p
+```
+
+Effective sample size is `r o$ess`.
+
+```{r check_sampling, echo = FALSE, eval = FALSE}
+#####
+# double check result
+sm <- replicate(
+  10, {
+    tmp <- get_smp(sig, 100000)
+    with(tmp, weighted.mean(smp[, 1]^2, w = wt))    
+  })
+mean(sm)
+sm
+
+library(cubature)
+norm_const <- adaptIntegrate(
+  function(z) g2(z[1], z[2]), lowerLimit = c(-25, -25), upperLimit = c(25, 25), 
+  tol = 1e-7)
+v <- adaptIntegrate(
+  function(z) z[1]^2 * g2(z[1], z[2]), tol = 1e-7,
+  lowerLimit = c(-25, -25), upperLimit = c(25, 25))
+v$integral / norm_const$integral
+```
+
+## Requirements 
+
+$$
+d(x) > 0 \Rightarrow q(x) > 0
+$$
+
+$$
+\frac{d(x)}{q(x)} < C < \infty
+$$
+
+## Relating to Hiden Markov models
+
+<div class = "left">
+
+Need
+
+$$
+P\LPV{\vect X_1}{\vect y_1} = 
+    \frac{g\LPV{\vect y_1}{\vect x_1}f\LP{\vect x_1}}{P\LP{\vect y_1}}
+$$
+
+<div class = "fragment">
+
+Use importance sampling to get 
+
+$$
+\widehat P\LPV{\vect X_1}{\vect y_1} = 
+    \sum_{i = 1}^N \PF{W}{1}{i}\delta_{\PF{\vect x}{1}{i}}\LP{\vect X_1}
+$$
+
+</div></div>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+<!--/html_preserve-->
+
+
+
+
+<!--html_preserve-->
+<section>
+<section class="titleslide slide level1">
+<h1>Particle filtering</h1>
+<!--/html_preserve-->
+<div class="left">
+
+Also known as sequential monte Carlo.
+
+<p class="fragment">Use $\widehat P\LPV{\vect X_{1:t-1}}{\vect y_{1:t-1}}$ in</p>
+
+<div class="fragment">
+
+$$
+\begin{align*}
+P\LPV{\vect x_{1:t}}{\vect y_{1:t}} &= 
+  P\LPV{\vect x_{1:t-1}}{\vect y_{1:t-1}} \frac{
+  g_t\LPV{\vect y_t}{\vect x_t}f\LPV{\vect x_t}{\vect x_{t-1}}
+  }{P\LPV{\vect y_t}{\vect y_{1:t -1}}} \\
+&\approx \sum_{i = 1}^N \PF{W}{t-1}{i}
+  \delta_{\PF{\vect x}{1:t}{i}}\LP{\vect x_{1:t-1}}
+  \frac{
+  g_t\LPV{\vect y_t}{\vect x_t}f\LPV{\vect x_t}{\PF{\vect x}{t-1}{i}}
+  }{P\LPV{\vect y_t}{\vect y_{1:t -1}}}
+\end{align*}
+$$
+</div></div>
+<!-- there is a end tag from the previous slide -->
+<!-- </section> -->
+
+## Sequential Importance Sampling
+
+<!--html_preserve-->
+<small><ol type = "1">
+<li> Sample
+<!--/html_preserve-->
+
+$$
+\PF{\vect x}{t}{i} \sim 
+q_t\LPV{\cdot}{\PF{\vect x}{t-1}{i},\vec y_t}
+$$
+<!--html_preserve-->
+</li><li class = "fragment">Compute and normalize weights
+<!--/html_preserve-->
+
+$$
+\PF{\tilde W}{t}{i} = \PF{W}{t-1}{i}
+  \frac{
+  g_t\LPV{\vect y_t}{\PF{\vect x}{t}{i}}f\LPV{\PF{\vect x}{t}{i}}{\PF{\vect x}{t-1}{i}}
+  }{q_t\LPV{\PF{\vect x}{t}{i}}{\PF{\vect x}{t-1}{i},\vec y_t}}, 
+\qquad \PF{W}{t}{i} \propto \PF{\tilde W}{t}{i}
+$$
+
+<!--html_preserve-->
+</li></ol></small>
+<!--/html_preserve-->
+
+
+## Weight degeneracy
+
+<div class="left">
+
+Weights, $\PF{W}{t}{i}$, can become concentrated.
+
+<div class="fragment">
+
+Use auxiliary particle filter [@Pitt99] and resample with weights that are 
+ideally
+
+$$
+\PF{\beta}{t}{i}\propto P\LPV{\vec y_t}{\PF{\vect x}{t-1}{i}}\PF{W}{t-1}{i}
+$$
+</div>
+
+<p class="fragment">
+Setting $\PF{\beta}{t}{i} = \PF{W}{t-1}{i}$ yields the sequential importance 
+resampling algorithm.</p>
+
+<small class = "fragment">Different resample approaches can be used. See 
+@Douc05.</small>
+
+</div>
+
+## Auxiliary particle filter
+
+<!--html_preserve-->
+<small><ol type = "1">
+<li> 
+<!--/html_preserve-->
+
+Sample $j_1,\dots,j_N$ indices using $\{\PF{\beta}{t}{i}\}_{i=1,\dots,n}$.
+
+<!--html_preserve-->
+</li><li class="fragment">Sample
+<!--/html_preserve-->
+
+$$
+\PF{\vect x}{t}{i} \sim 
+q_t\LPV{\cdot}{\PF{\vect x}{t-1}{j_i},\vec y_t}
+$$
+<!--html_preserve-->
+</li><li class = "fragment">Compute and normalize weights
+<!--/html_preserve-->
+
+$$
+\PF{\tilde W}{t}{i} = 
+  \frac{\PF{W}{t-1}{j_i}}{\PF{\beta}{t}{j_i}}
+  \frac{
+  g_t\LPV{\vect y_t}{\vect x_t}f
+  \LPV{\PF{\vect x}{t}{i}}{\PF{\vect x}{t-1}{j_i}}
+  }{q_t\LPV{\PF{\vect x}{t}{i}}{\PF{\vect x}{t-1}{j_i},\vec y_t}}, 
+\qquad \PF{W}{t}{i} \propto \PF{\tilde W}{t}{i}
+$$
+
+<!--html_preserve-->
+</li></ol></small>
+<!--/html_preserve-->
+
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+<!--/html_preserve-->
+
+
+
+
+
+
+<!--html_preserve-->
+<section>
+<section>
+<h1>Smoothing</h1>
+<!--/html_preserve-->
+<div class = "left">
+Need $P\LPV{\vect X_t}{\vect y_{1:d}}$ and 
+$P\LPV{\vect X_{t-1:t}}{\vect y_{1:d}}$.
+
+Use generalised two filter smoothing formula from @Briers09 and smoother from 
+@Fearnhead10.
+
+
+</div>
+<!-- there is a end tag from the previous slide -->
+<!-- </section> -->
+
+## Smoother from Briers et al. (2009)
+<div class = "left">
+
+Use the identity 
+
+$$
+\begin{align*}
+P\LPV{\vect x_t}{\vect y_{1:d}} &= \frac{
+  P\LPV{\vect x_t}{\vect y_{1:t -1}}
+  P\LPV{\vect y_{t:d}}{\vect x_t}}{
+  P\LPV{\vect y_{t:d}}{\vect y_{1:t-1}}} \\
+&\propto \int f\LPV{\vect x_t}{\vect x_{t-1}}
+  P\LPV{\vect x_{t-1}}{\vect y_{1:t -1}}\diff \vect x_{t-1}
+  P\LPV{\vect y_{t:d}}{\vect x_t}
+\end{align*}
+$$
+
+<div class = "fragment">
+Need to approximate 
+$$
+P\LPV{\vect y_{t:d}}{\vect x_t} = \
+  \int \prod_{k = t + 1}^d f\LPV{\vect x_k}{\vect x_{k-1}}
+  \prod_{k =t}^d g\LPV{\vect y_k}{\vect x_k}\diff \vect x_{t + 1:d}
+$$
+</div></div>
+
+## Backward filter
+<div class="left">
+
+Let
+
+$$
+\gamma_1\LP{\vect x} = f\LP{\vect x}, \quad 
+  \gamma_t(\vect x) = \int f\LPV{\vect x}{\vect x_{t-1}}
+  \gamma_{t-1}\LP{\vect x_{t-1}}\diff\vect x_{t-1}
+$$
+<div class="fragment">
+Then we introduce artificial probability densities 
+
+$$
+\tilde P\LPV{\vect x_{t:d}}{\vect y_{1:d}} =
+  \frac{
+    \gamma_t\LP{\vect x_t}
+    \prod_{k = t + 1}^d f\LPV{\vect x_k}{\vect x_{k-1}}
+    \prod_{k =t}^d g\LPV{\vect y_k}{\vect x_k}
+  }{\tilde P\LP{\vect y_{t:d}}}
+$$
+</div>
+
+<p class = "fragment">We can make a backward filter to sample 
+$\{\PB{\vect x}{t}{i}, \PB{W}{t}{i} \}_{i = 1, \dots, N}$ from 
+$\tilde P\LPV{\vect x_{t}}{\vect y_{1:d}}$.</p>
+
+</div>
+
+## Combining filters
+
+<div class = "left">
+
+We can show that 
+
+$$
+\begin{align*}
+P\LPV{\vect y_{t:d}}{\vect x_t} &= 
+  \tilde P\LP{\vect y_{t:d}} 
+  \frac{\tilde P\LPV{\vect x_t}{\vect y_{t:d}}}{
+  \gamma_t\LP{\vect x_t}} \\
+&\propto \frac{\tilde P\LPV{\vect x_t}{\vect y_{t:d}}}{
+  \gamma_t\LP{\vect x_t}}
+  \approx \sum_{i = 1}^N \frac{\PB{W}{t}{i}}{\gamma_t(\vect x_t)}
+  \delta_{\PB{\vect x}{t}{i}}(\vect x_t)
+\end{align*}
+$$
+</div>
+
+## Combining filters
+<div class="left">
+
+Thus, 
+
+$$
+\begin{align*}
+P\LPV{\vect x_t}{\vect y_{1:d}} &\approx 
+  \sum_{j=1}^N \PS{W}{t}{j}\delta_{\PB{\vect x}{t}{j}}\LP{\vect x_t} \\
+\PS{W}{t}{j} &\propto 
+  \frac{\PB{W}{t}{j}}{\gamma_t\LP{\PB{\vect x}{t}{j}}} \sum_{i = 1}^N
+  \PF{W}{t-1}{i}f\LPV{\PB{\vect x}{t}{j}}{\PF{\vect x}{t-1}{i}} 
+\end{align*}
+$$
+</div>
+
+## Comments
+
+<div class = "left">
+
+Smoothing step is $\bigO{N^2}$ but independent of $n_t = \lvert R_t \rvert$.
+
+<p class="fragment">
+Can be reduced with approximate methods in @Klaas06. Yields $\bigO{N\log N}$ run times. 
+Alternatively, use rejection sampling if 
+$f\LPV{\vect x_t}{\vect x_{t-1}} / \gamma_t\LP{\vect x_t}$ is bounded.</p>
+
+<p class="fragment">
+Cannot handle singular components.</p>
+</div>
+
+## Smoother from Fearnhead et al. (2010)
+<div class = "left">
+Use the identity 
+
+$$
+\begin{align*}
+P\LPV{\vect x_t}{\vect y_{1:d}} 
+&= \frac{
+  P\LPV{\vect x_t}{\vect y_{1:t -1}}
+  P\LPV{\vect y_{t:d}}{\vect x_t}}{
+  P\LPV{\vect y_{t:d}}{\vect y_{1:t-1}}}  \\
+&= \frac{
+  P\LPV{\vect x_t}{\vect y_{1:t -1}}
+  g_t\LPV{\vect y_t}{\vect x_t}
+  P\LPV{\vect y_{t+1:d}}{\vect x_t}}{
+  P\LPV{\vect y_{t:d}}{\vect y_{1:t-1}}} \\
+&\propto
+  \int f\LPV{\vect x_t}{\vect x_{t-1}}
+  P\LPV{\vect x_{t-1}}{\vect y_{1:t -1}}\diff \vect x_{t-1}
+  g_t\LPV{\vect y_t}{\vect x_t} \cdot \\
+&\qquad\int P\LPV{\vect y_{t+1}}{\vect x_{t+1}}
+  f\LPV{\vect x_{t + 1}}{\vect x_t}\diff \vect x_{t+1}
+\end{align*}
+$$
+
+</div>
+
+## Smoother from Fearnhead et al. (2010)
+<!--html_preserve-->
+<small><div class = "left">
+<!--/html_preserve-->
+
+1. Sample $(i_k,j_k)_{k=1,\dots,N}$ with weights $\PF{\beta}{t-1}{i}$ and
+$\PB{\beta}{t+1}{k}$.
+2. Sample $\PS{\vect x}{t}{k} \sim q_t\LPV{\cdot}{\PF{\vect x}{t-1}{i_k}, \PB{\vect x}{t+1}{j_k}, \vect y_t}$. 
+3. Compute and normalize weights
+
+$$
+\begin{align*}
+\PS{\tilde W}{t}{k} & =\frac{
+  f\LPV{\PS{\vect x}{t}{k}}{\PF{\vect x}{t-1}{i_k}}
+  g_t\LPV{\vect y}{\PS{\vect x}{t}{k}}
+  f\LPV{\PB{\vect x}{t+1}{j_k}}{\PS{\vect x}{t}{k}}
+}{
+  q_t\LPV{\PS{\vect x}{t}{k}}{\PF{\vect x}{t-1}{i_k}, \PB{\vect x}{t+1}{j_k}, \vect y_t}
+  \gamma_{t+1}\LP{\PB{\vect x}{t+1}{j_k}}
+}\frac{
+  \PB{W}{t+1}{j_k}\PF{W}{t-1}{i_k}
+}{
+  \PB{\beta}{t+1}{j_k}\PF{\beta}{t-1}{i_k}
+} \\
+\PS{W}{t}{k} &\propto \PS{\tilde W}{t}{k}
+\end{align*}
+$$
+</div></small>
+
+
+## Comments
+
+<div class = "left">
+
+Smoothing step is $\bigO{N}$ but $\bigO{n_tp}$ where $n_t = \lvert R_t \rvert$
+and $p$ is the dimension of $\vect X_t$.
+
+<p class="fragment">
+Can generalize to handle singular components.</p>
+
+</div>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+<!--/html_preserve-->
+
+
+
+
+
+
+
+
+
+
+<!--html_preserve-->
+<section>
+<section class="end">
+<h1>Thank you!</h1>
+
+Slides are on <a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.
+<!--/html_preserve-->
+
+@Doucet11 and @Givens12 [chapter 6] has been used in prepreation of the slides.
+
+<!--html_preserve-->
+</section>
+</section>
+<!--/html_preserve-->
+
+
+
+<!--html_preserve-->
+<section class="titleslide slide level1">
+<h1>References</h1>
+<!--/html_preserve-->
+

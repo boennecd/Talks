@@ -1,0 +1,209 @@
+.reveal section.front {
+  padding-top: 15vh;
+  padding-right: 0px;
+  padding-bottom: 0px;
+  padding-left: 0px;
+  text-align: left;
+}
+
+.reveal small.has-math > span {
+  vertical-align: middle; /* had issue w/ span in small */
+}
+
+.reveal section.front > h1 {
+   margin-bottom: 0px;
+}
+
+body {
+  background: 
+    linear-gradient(20deg, white 15%, rgba(73, 103, 170, .1) 70%, rgba(73, 103, 170, .25)),
+    linear-gradient(-20deg, transparent 80%, rgba(144, 26, 30, .10));
+}
+
+.reveal h1 {
+    font-size: 2.0em;
+    font-weight: bold;
+}
+
+.reveal h2 {
+	border-bottom: 1px solid;
+    text-align: left;
+}
+
+.reveal h3 {
+  margin: 20px 0 20px 0;
+  font-size: 1.25em;
+}
+
+.reveal small {
+    margin: 0;
+    line-height: 1.3;
+}
+
+
+.no-top-marg-next + p {
+    margin: 0 0 20px 0;
+}
+
+.no-top-marg-next > p {
+    margin: 0;
+}
+
+.reveal p > small {
+    margin: 0;
+    line-height: 1;
+}
+
+div.logo {
+  background: url(../fig/cbs_logo_horizontal.png);
+  position: absolute;
+  resize: both;
+  bottom: 50px;
+  left: 50px;
+  background-size: cover;
+  width: 45.25vh; /* 9.05 * height*/
+  height: 5vh;
+}
+
+.reveal div.plotly {
+    display: inline-block;
+}
+
+.reveal div.left {
+    display: inline-block;
+    text-align: left;
+}
+
+.reveal div.credit {
+  margin-top: 5%;
+}
+
+.reveal div.center {
+    display: table;
+    margin: 0 auto;
+}
+
+.reveal p > img.small {
+  max-height: 100px;
+  box-shadow: none;
+  border: none;
+  padding-right: 30px;
+  padding-left: 30px;
+}
+
+.reveal div.references{
+  display: inline-block;
+  text-align: left;
+  overflow: auto;
+  overflow-x: hidden;
+  max-height: 400px;
+  background-color: #d3d3d338;
+}
+
+
+div.references > div > p {
+  font-size: 12px;
+  margin: 5px;
+}
+
+.reveal table th {
+  border-top: 1.5px solid #000000;
+  border-bottom: 1.5px solid #000000;
+  border-style: solid;
+  border-left: none;
+  border-right: none;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.reveal table {
+  border: none;
+  border-bottom: 1.5px solid #000000;
+}
+
+.reveal table td {
+  border: none;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+/* right allign all but the first column */
+.reveal table td,
+.reveal table th
+{
+    text-align:left;
+}
+
+.reveal table td + td,
+.reveal table th + th
+{
+    text-align:right;
+}
+
+tr.invis {
+  color: transparent;
+}
+
+.reveal blockquote {
+  background:rgba(255, 255, 255, 1);
+}
+
+.reveal blockquote p {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+.img-two-container, .img-four-container {
+  text-align:center;
+}
+
+.img-two-container > img {
+  max-height: 30vh;
+  max-width: 40vh;
+  height: auto;
+	width: auto\9; /* ie8 */
+  display: inline-block;
+  margin:20px auto;
+  border: none;
+}
+
+.img-four-container > img {
+  max-height: 23vh;
+  max-width: 45vh;
+  height: auto;
+	width: auto\9; /* ie8 */
+  display: inline-block;
+  border: none;
+}
+
+.img-four-container > img.top {
+  margin-top: 20px;
+  margin-bottom: 5px;
+}
+
+.img-four-container > img.bottom {
+  margin-top: 5px;
+  margin-bottom: 20px;
+}
+
+.reveal p > img, .reveal div.no-top-marg-next > img  {
+  max-height: 35vh;
+  height: auto;
+	width: auto\9; /* ie8 */
+  width: auto;
+  border: none;
+}
+
+.reveal section img {
+  border: none;
+}
+
+section.end {
+      text-align: left;
+      display: block;
+}
+section.end > h1 {
+  margin-top: 20vh;
+}
