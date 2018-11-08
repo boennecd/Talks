@@ -1,3 +1,16 @@
+@ARTICLE{Gordon93, 
+author={N. J. Gordon and D. J. Salmond and A. F. M. Smith}, 
+journal={IEE Proceedings F - Radar and Signal Processing}, 
+title={Novel approach to nonlinear/non-Gaussian Bayesian state estimation}, 
+year={1993}, 
+volume={140}, 
+number={2}, 
+pages={107-113}, 
+keywords={Bayes methods;filtering and prediction theory;Kalman filters;state estimation;tracking;State estimation;state transition model;state vector density;nonlinear Bayesian state estimation;nonGaussian Bayesian state estimation;algorithm;bootstrap filter;recursive Bayesian filters;random samples;Gaussian noise;measurement model;simulation;bearings only tracking problem;extended Kalman filter;Bayes procedures;Filtering;Kalman filtering;Tracking;Prediction methods}, 
+doi={10.1049/ip-f-2.1993.0015}, 
+ISSN={0956-375X}, 
+month={April},}
+
 @article{Pitt99,
  ISSN = {01621459},
  URL = {http://www.jstor.org/stable/2670179},
@@ -10,6 +23,42 @@
  title = {Filtering via Simulation: Auxiliary Particle Filters},
  volume = {94},
  year = {1999}
+}
+
+@article{Shumway01,
+ ISSN = {00219398, 15375374},
+ URL = {http://www.jstor.org/stable/10.1086/209665},
+ abstract = {I argue that hazard models are more appropriate than single‐period models for forecasting bankruptcy. Single‐period models are inconsistent, while hazard models produce consistent estimates. I describe a simple technique for estimating a discrete‐time hazard model. I find that about half of the accounting ratios that have been used in previous models are not statistically significant. Moreover, market size, past stock returns, and idiosyncratic returns variability are all strongly related to bankruptcy. I propose a model that uses both accounting ratios and market‐driven variables to produce out‐of‐sample forecasts that are more accurate than those of alternative models.},
+ author = {Tyler Shumway},
+ journal = {The Journal of Business},
+ number = {1},
+ pages = {101--124},
+ publisher = {The University of Chicago Press},
+ title = {Forecasting Bankruptcy More Accurately: A Simple Hazard Model},
+ volume = {74},
+ year = {2001}
+}
+
+
+@article{Ecuyer02,
+ ISSN = {0030364X, 15265463},
+ URL = {http://www.jstor.org/stable/3088626},
+ abstract = {Multiple independent streams of random numbers are often required in simulation studies, for instance, to facilitate synchronization for variance-reduction purposes, and for making independent replications. A portable set of software utilities is described for uniform random-number generation. It provides for multiple generators (streams) running simultaneously, and each generator (stream) has its sequence of numbers partitioned into many long disjoint contiguous substreams. The basic underlying generator for this implementation is a combined multiple-recursive generator with period length of approximately 2<sup>191</sup>, proposed by L'Ecuyer (1999a). A C++ interface is described here. Portable implementations are available in C, C++, and Java via the online companion to this paper on the Operations Research Web site. (http://or.pubs.informs.org/pages/collect.html).},
+ author = {Pierre L'Ecuyer and Richard Simard and E. Jack Chen and W. David Kelton},
+ journal = {Operations Research},
+ number = {6},
+ pages = {1073--1075},
+ publisher = {INFORMS},
+ title = {An Object-Oriented Random-Number Package with Many Long Streams and Substreams},
+ volume = {50},
+ year = {2002}
+}
+
+@unpublished{Chava04,
+author = {Sudheer Chava and Robert A. Jarrow},
+title = {Bankruptcy Prediction With Industry Effects},
+doi={10.2139/ssrn.287474},
+year={2004}
 }
 
 @INPROCEEDINGS{Douc05, 
@@ -25,6 +74,14 @@ doi={10.1109/ISPA.2005.195385},
 ISSN={1845-5921}, 
 month={Sept},}
 
+@book{Cappe05,
+ author = {Capp{\'e}, Olivier and Moulines, Eric and Ryden, Tobias},
+ title = {Inference in Hidden Markov Models},
+ year = {2005},
+ isbn = {978-0-387-40264-2, 978-1-4419-2319-6},
+ publisher = {Springer-Verlag New York},
+} 
+
 @inproceedings{Klaas06,
  author = {Klaas, Mike and Briers, Mark and de Freitas, Nando and Doucet, Arnaud and Maskell, Simon and Lang, Dustin},
  title = {Fast Particle Smoothing: If I Had a Million Particles},
@@ -39,7 +96,21 @@ month={Sept},}
  acmid = {1143905},
  publisher = {ACM},
  address = {New York, NY, USA},
-} 
+}
+
+@article{Campbell08,
+author = {Campbell, John Y. And Hilscher, Jens and Szilagyi, Jan},
+title = {In Search of Distress Risk},
+journal = {The Journal of Finance},
+volume = {63},
+number = {6},
+pages = {2899-2939},
+year = {2008},
+doi = {10.1111/j.1540-6261.2008.01416.x},
+url = {https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1540-6261.2008.01416.x},
+eprint = {https://onlinelibrary.wiley.com/doi/pdf/10.1111/j.1540-6261.2008.01416.x},
+abstract = {ABSTRACT This paper explores the determinants of corporate failure and the pricing of financially distressed stocks whose failure probability, estimated from a dynamic logit model using accounting and market variables, is high. Since 1981, financially distressed stocks have delivered anomalously low returns. They have lower returns but much higher standard deviations, market betas, and loadings on value and small-cap risk factors than stocks with low failure risk. These patterns are more pronounced for stocks with possible informational or arbitrage-related frictions. They are inconsistent with the conjecture that the value and size effects are compensation for the risk of financial distress.}
+}
 
 @Article{Briers09,
 author="Briers, Mark
@@ -85,10 +156,56 @@ url="https://doi.org/10.1007/s10463-009-0236-2"
   chapter={24}
 }
 
+@article{Poyiadjis11,
+ ISSN = {00063444},
+ URL = {http://www.jstor.org/stable/29777165},
+ abstract = {Particle methods are popular computational tools for Bayesian inference in nonlinear non-Gaussian state space models. For this class of models, we present two particle algorithms to compute the score vector and observed information matrix recursively. The first algorithm is implemented with computational complexity ð’ª(N) and the second with complexity ð’ª(NÂ²), where N is the number of particles. Although cheaper, the performance of the ð’ª(N) method degrades quickly, as it relies on the approximation of a sequence of probability distributions whose dimension increases linearly with time. In particular, even under strong mixing assumptions, the variance of the estimates computed with the ð’ª(N) method increases at least quadratically in time. The more expensive ð’ª(NÂ²) method relies on a nonstandard particle implementation and does not suffer from this rapid degradation. It is shown how both methods can be used to perform batch and recursive parameter estimation.},
+ author = {George Poyiadjis and Arnaud Doucet and Sumeetpal S. Singh},
+ journal = {Biometrika},
+ number = {1},
+ pages = {65--80},
+ publisher = {Biometrika Trust},
+ title = {Particle approximations of the score and observed information matrix in state space models with application to parameter estimation},
+ volume = {98},
+ year = {2011}
+}
+
 @BOOK{Givens12,
   TITLE = {Computational Statistics},
   AUTHOR = {Givens, Geof H and Hoeting, Jennifer A},
   YEAR = {2012},
   PUBLISHER = {Wiley},
   edition = {2}
+}
+
+@article{Zhou15,
+   author = {Yan Zhou},
+   title = {vSMC: Parallel Sequential Monte Carlo in C++},
+   journal = {Journal of Statistical Software, Articles},
+   volume = {62},
+   number = {9},
+   year = {2015},
+   keywords = {},
+   abstract = {Sequential Monte Carlo is a family of algorithms for sampling from a sequence of distributions. Some of these algorithms, such as particle filters, are widely used in physics and signal processing research. More recent developments have established their application in more general inference problems such as Bayesian modeling.
+These algorithms have attracted considerable attention in recent years not only be- cause that they have desired statistical properties, but also because they admit natural and scalable parallelization. However, they are perceived to be difficult to implement. In addition, parallel programming is often unfamiliar to many researchers though conceptually appealing.
+A C++ template library is presented for the purpose of implementing generic sequential Monte Carlo algorithms on parallel hardware. Two examples are presented: a simple particle filter and a classic Bayesian modeling problem.},
+   issn = {1548-7660},
+   pages = {1--49},
+   doi = {10.18637/jss.v062.i09},
+   url = {https://www.jstatsoft.org/v062/i09}
+}
+
+@article{Wood15,
+author = {Wood, Simon N. and Goude, Yannig and Shaw, Simon},
+title = {Generalized additive models for large data sets},
+journal = {Journal of the Royal Statistical Society: Series C (Applied Statistics)},
+volume = {64},
+number = {1},
+pages = {139-155},
+year = {2015},
+keywords = {Correlated additive model, Electricity load prediction, Generalized additive model estimation},
+doi = {10.1111/rssc.12068},
+url = {https://rss.onlinelibrary.wiley.com/doi/abs/10.1111/rssc.12068},
+eprint = {https://rss.onlinelibrary.wiley.com/doi/pdf/10.1111/rssc.12068},
+abstract = {Summary We consider an application in electricity grid load prediction, where generalized additive models are appropriate, but where the data set's size can make their use practically intractable with existing methods. We therefore develop practical generalized additive model fitting methods for large data sets in the case in which the smooth terms in the model are represented by using penalized regression splines. The methods use iterative update schemes to obtain factors of the model matrix while requiring only subblocks of the model matrix to be computed at any one time. We show that efficient smoothing parameter estimation can be carried out in a well-justified manner. The grid load prediction problem requires updates of the model fit, as new data become available, and some means for dealing with residual auto-correlation in grid load. Methods are provided for these problems and parallel implementation is covered. The methods allow estimation of generalized additive models for large data sets by using modest computer hardware, and the grid load prediction problem illustrates the utility of reduced rank spline smoothing methods for dealing with complex modelling problems.}
 }

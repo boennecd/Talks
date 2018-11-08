@@ -1,2 +1,5 @@
 packrat/lib*/
 packrat/src/
+data/*
+!data/.Placeholder
+cache/*

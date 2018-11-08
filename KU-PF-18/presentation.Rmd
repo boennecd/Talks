@@ -19,8 +19,10 @@ output:
 ```{r setup, include=FALSE}
 options(width = 100, digits = 4, scipen = 8)
 knitr::opts_chunk$set(
-  error = FALSE, cache = FALSE, warnings = TRUE, message = TRUE, dpi = 128, 
-  eval = TRUE, fig.height = 4, fig.width = 6)
+  error = FALSE, cache = FALSE, warning = FALSE, message = FALSE, dpi = 128, 
+  stop = FALSE, fig.height = 4, fig.width = 6, 
+  cache.path = paste0("cache", .Platform$file.sep), 
+  fig.path = paste0("fig", .Platform$file.sep))
 
 knitr::knit_hooks$set(inline = function(x) {
   prettyNum(x, big.mark = ",")
@@ -34,6 +36,10 @@ knitr::knit_hooks$set(inline = function(x) {
 <script>
 (function() {
   document.getElementById("dummy-slide").remove(); 
+  
+  var header_extra = document.createElement("h2");
+  header_extra.innerHTML = "Hidden Markov Models for Modeling Financial Distress";
+  document.getElementsByTagName("section")[0].appendChild(header_extra);
   
   var credit_div = document.createElement('div');
   credit_div.innerHTML = "<p>Benjamin Christoffersen<br>Copenhagen Business School<br>Department of Finance, Center for Statistics</p>";
@@ -62,13 +68,20 @@ $$
 \def\PB#1#2#3{\overleftarrow{#1}_{#2}^{(#3)}}
 \def\PS#1#2#3{\overleftrightarrow{#1}_{#2}^{(#3)}}
 \def\bigO#1{\mathcal{O}\LP{#1}}
+\def\argmax{\mathop{\mathrm{argmax}}}
 $$
 
 <section class="titleslide slide level1">
 <h1>Introduction</h1>
 <div class ="left">
-
+<div class="no-top-marg-next">
 <!--/html_preserve-->
+
+Discrete hazard models are popular corporate distress models.
+<small>@Shumway01, @Chava04, and @Campbell08 had `r 2395L + 846L + 1635L`
+citations on Google Scholar on 7/11/2018.</small></div>
+
+<div class = "fragment">
 
 $$
 \begin{align*}
@@ -79,12 +92,145 @@ $$
 <small>$l$ is a link function, $\vect x_{it}$ are know covariates, and $o_{it}$
 are known offsets.</small>
 
+</div>
+
 <!--html_preserve-->
 </div>
 
 <!-- there is a end tag from the previous slide -->
 <!-- </section> -->
 <!--/html_preserve-->
+
+## Data set
+
+```{r source_funcs, echo = FALSE}
+source(file.path("R", "regres_funcs.R"))
+# change default to center
+formals(sp_w_c)$do_center <- formals(wz)$do_center <- TRUE 
+```
+
+
+<!-- I am sorry but I cannot share the data set so the data directory will 
+     be empty -->
+     
+```{r load_dat, echo = FALSE}
+tmp <- readRDS(file.path("data", "final.RDS"))
+dat <- tmp$data
+make_ym <- tmp$ym_funcs$make_ym
+make_ym_inv <- tmp$ym_funcs$make_ym_inv
+rm(tmp)
+```
+
+```{r data_prep, echo = FALSE}
+# tstop of last event
+max_is_ev <- with(subset(dat, y == TRUE), max(tstop))
+
+# have to deal with recurrent events which are not directly supported by 
+# `dynamichazard`. Thus, we make a per event unique identifier
+library(data.table)
+dat <- data.table(dat)
+setkey(dat, gvkey, tstart) # sort data
+# assumes that data is sorted
+func <- function(y){
+  y <- cumsum(y)
+  y <- c(0, head(y, -1))
+  c("", paste0(".", letters))[y + 1L]
+}
+# func(c(F, F, F, T, F, F, T)) # example
+dat[, gvkey_unique := paste0(gvkey, func(y)), by = gvkey]
+stopifnot(all(dat[, sum(y) %in% 0:1, by = gvkey_unique]$V1))
+dat <- as.data.frame(dat)
+dat$gvkey_int <- as.integer(as.factor(dat$gvkey_unique))
+
+# define formula for fixed effects. Remove observations with missing variables
+frm_fixed <- Surv(tstart, tstop, y) ~ wz(r_req_nn) + wz(r_niq_nn) + 
+  wz(r_ltq_nn) + wz(r_actq_lctq) + wz(sigma) + wz(excess_ret) + wz(rel_size) + 
+  wz(dtd) + log_market_ret + r1y + sp_w_c(r_niq_nn, 4) + sp_w_c(sigma, 4)
+dat <- dat[complete.cases(dat[, all.vars(frm_fixed)]), ]
+
+library(dynamichazard)
+distress <- get_survival_case_weights_and_data(
+  frm_fixed, dat, by = 1L, max_T = max_is_ev, id = dat$gvkey_int, 
+  use_weights = TRUE, is_for_discrete_model = TRUE)$X
+
+# we assume that a macro avariable is included to all such that each 
+# row represents one month. We can check this by checking the `weights` column. 
+# Otherwise some logic may need to change in the rest of this file...
+stopifnot(all(distress$weights == 1))
+
+base_fit <- glm(update(frm_fixed, y ~ .), binomial(), distress)
+```
+
+<div class = "left">
+Use data set with US public firms. The data set contains at least 
+`r min(tapply(distress$tstop, distress$tstop, length))` firms and at most 
+`r max(tapply(distress$tstop, distress$tstop, length))` firms at each month 
+$t$. There is `r nrow(distress)` monthly observations, 
+`r length(unique(distress$gvkey))` firms, and `r sum(distress$y)` distress 
+events.</div>
+
+## Cannot capture aggregate distress levels
+
+```{r sim_agg_distres_base, echo = FALSE, cache = 1}
+do_sims <- function(phat, tvar, nsim = 10000, spec = 4){
+  library(parallel)
+  cl <- makeCluster(spec)
+  on.exit(stopCluster(cl))
+  clusterSetRNGStream(cl)
+  
+  sims <- parSapply(cl, 1:nsim, function(..., tvar, phat){
+    y <- phat > runif(length(phat))
+    tapply(y, tvar, mean)
+  }, tvar = tvar, phat = phat)
+  
+  lbs <- apply(sims, 1, quantile, probs = .025)
+  ubs <- apply(sims, 1, quantile, probs = .975)
+  
+  list(lbs = lbs, ubs = ubs, mea = tapply(phat, tvar, mean))
+}
+
+set.seed(85664431)
+base_sims <- do_sims(
+  phat = predict(base_fit, type = "response", newdata = distress), 
+  tvar = distress$tstop)
+```
+
+```{r plot_agg_distres_base, echo = FALSE}
+make_sims_plot <- function(sims, data, ylim = NA){
+  require(lubridate)
+  rea <- tapply(data$y, data$tstop, mean)
+  x <- make_ym_inv(as.integer(names(rea)))
+  is_miss <- rea < sims$lbs | rea > sims$ubs
+  plot(rea ~ x, pch = 16, ylim = ylim, 
+       col = ifelse(is_miss, "Black", "DarkGray"), cex = .7, 
+       xlab = "Year", ylab = "Average/realised distress rate", 
+       xaxt = "n")
+  min_d <- as.POSIXlt(min(x))
+  month(min_d) <- 1L
+  max_d <- as.POSIXlt(max(x))
+  ax <- min_d
+  while(tail(ax, 1)$year + 1L <= max_d$year){
+    new_ax <- tail(ax, 1)
+    new_ax$year <- new_ax$year + 1L
+    ax <-  c(ax, new_ax)
+  }
+  labs <- format(ax, "%Y")
+  ix <- seq_along(labs)
+  labs[ix %% 2 == 0] <- ""
+  axis(side = 1, at = as.Date(ax), labels = labs, las = 2)
+  
+  lines(make_ym_inv(as.integer(names(rea))), sims$mea)
+  polygon(c(x, rev(x)), c(sims$lbs, rev(sims$ubs)), 
+          col = rgb(0, 0, 0, .1), border = NA)
+}
+
+par(mar = c(5, 4, 1, 1))
+make_sims_plot(base_sims, distress, c(0, .011))
+```
+
+<div class = "left"><small>Gray area is pointwise 95% prediction intervals. The line is the 
+predicted distress rate. Dots are realized distress rates. Black dots are not 
+covered by prediction intervals.</small></div>
 
 ## Hidden Markov model
 
@@ -119,8 +265,8 @@ $$
 
 $$
 \begin{align*}
-Q\LPV{\vect\theta}{\vect\theta^{(i)}} &= 
-    E\LPV{\log P\LP{\vect y_{1:d}}}{\vect\theta^{(i)}} \\
+Q\LPV{\vect\theta}{\vect\theta^{(k)}} &= 
+    E\LPV{\log P\LP{\vect y_{1:d}}}{\vect\theta^{(k)}} \\
 \log P\LP{\vect y_{1:d}} &= 
     \log f\LP{\vect X_1} + 
     \sum_{t = 2}^d \log \varphi\LP{\vect X_t;\mat F\vect X_{t-1},\mat \Sigma} \\
@@ -140,8 +286,8 @@ risk set at time $t$, and $h$, $T$, $A$, and $B$ are known functions.</small>
 Need to evaluate
 
 $$
-E\LPV{\phi\LP{\vect X_{t-1:t}}}{\vect\theta^{(i)}}, \qquad 
-  E\LPV{\psi\LP{\vect X_t}}{\vect\theta^{(i)}}
+E\LPV{\phi\LP{\vect X_{t-1:t}}}{\vect\theta^{(k)}}, \qquad 
+  E\LPV{\psi\LP{\vect X_t}}{\vect\theta^{(k)}}
 $$
 
 
@@ -157,12 +303,15 @@ $$
 <section>
 <section class="titleslide slide level1">
 <h1>Talk overview</h1>
+<div class = "left">
+Importance sampling.
 
+<p class="fragment">Particle filtering.</p> 
+<p class="fragment">Two Particle smoothers.</p>
+<p class="fragment">The Implementation.</p>
+<p class="fragment">Examples.</p>
 
-<p class="fragment">Data set.</p>
-<p class="fragment">Models without frailty.</p> 
-<p class="fragment">Models with frailty.</p> 
-
+</div>
 </section>
 <!-- need extra end tag before next section -->
 </section>
@@ -182,7 +331,8 @@ $\tilde d(x) = \alpha d(x)$. Only know $d$.
 
 <div class = "fragment">
 
-1. Sample $x^{(1)},x^{(2)},\dots,x^{(N)}$ from **proposal distribution** $q$. 
+1. Sample $x^{(1)},x^{(2)},\dots,x^{(N)}$ from **proposal distribution** with 
+density $q$. 
 2. Compute unnormalised weights $\tilde W^{(i)} = d(x^{(i)})/q(x^{(i)})$.
 3. Normalize weights $W_i \propto \tilde W^{(i)}$.
 
@@ -205,7 +355,7 @@ $$ESS = \LP{\sum_{i = 1}^N W_i^2}^{-1}$$
 Yields a discrete approximation of distribution 
 
 $$\widehat P(X) = \sum_{i=1}^N W^{(i)} \delta_{x^{(i)}}(X)$$
-$\delta$ is the dirac delta function.
+$\delta$ is the Dirac delta function.
 
 <div class="fragment">
 $$
@@ -258,9 +408,9 @@ plot_ly(showscale = FALSE, color = I("black")) %>%
     hoverinfo = "none", contours = con) %>%
   layout(
     scene=list(
-      xaxis=list(title = "x1", range = c(-12, 12)),
-      yaxis=list(title = "x2", range = c(-12, 12)),
-      zaxis=list(title = "d")), 
+      xaxis=list(title = "x1", range = c(-12, 12), showspikes = FALSE),
+      yaxis=list(title = "x2", range = c(-12, 12), showspikes = FALSE),
+      zaxis=list(title = "d", showspikes = FALSE)), 
     plot_bgcolor = 'rgb(0, 0, 0, 0)', paper_bgcolor = 'rgba(0,0,0,0)') %>% 
   config(displayModeBar = FALSE)
 # persp(x, y, z, theta = 30, phi = 30, expand = 0.5)
@@ -271,16 +421,15 @@ plot_ly(showscale = FALSE, color = I("black")) %>%
 ```{r proposal, echo = FALSE, warning=FALSE, message=FALSE}
 library(mvtnorm)
 sig <- diag(7^2, 2)
-dens <- matrix(
-  dmvnorm(expand.grid(x, y), sigma = sig), ncol = length(x))
+dens <- matrix(dmvnorm(expand.grid(x, y), sigma = sig), ncol = length(x))
 plot_ly(showscale = FALSE, color = I("black")) %>% 
   add_surface(z = dens, x = x, y = y, colorscale = cn, hoverinfo = "none",
               opacity = .9, contours = con) %>%
   layout(
     scene = list(
-      xaxis=list(title = "x1", range = c(-10, 10)),
-      yaxis=list(title = "x2", range = c(-10, 10)),
-      zaxis=list(title = "density")), 
+      xaxis=list(title = "x1", range = c(-10, 10), showspikes = FALSE),
+      yaxis=list(title = "x2", range = c(-10, 10), showspikes = FALSE),
+      zaxis=list(title = "density"), showspikes = FALSE), 
     plot_bgcolor = 'rgb(0, 0, 0, 0)', paper_bgcolor = 'rgba(0,0,0,0)')  %>% 
   config(displayModeBar = FALSE)
 ```
@@ -324,9 +473,9 @@ get_smp <- function(si, n){
     add_paths(x = smp2[, 1], y = smp2[, 2], z = wt2, hoverinfo = "none") %>%
     layout(
       scene = list(
-        xaxis=list(title = "x1", range = rg),
-        yaxis=list(title = "x2", range = rg),
-        zaxis=list(title = "Importance weight")), 
+        xaxis=list(title = "x1", range = rg, showspikes = FALSE),
+        yaxis=list(title = "x2", range = rg, showspikes = FALSE),
+        zaxis=list(title = "Importance weight", showspikes = FALSE)), 
       plot_bgcolor = 'rgb(0, 0, 0, 0)', paper_bgcolor = 'rgba(0,0,0,0)')  %>% 
   config(displayModeBar = FALSE)
   
@@ -345,16 +494,15 @@ Effective sample size is `r o$ess`.
 
 ```{r 2_proposal, echo = FALSE, warning=FALSE, message=FALSE}
 sig2 <- diag(2^2, 2)
-dens <- matrix(
-  dmvnorm(expand.grid(x, y), sigma = sig2), ncol = length(x))
+dens <- matrix(dmvnorm(expand.grid(x, y), sigma = sig2), ncol = length(x))
 plot_ly(showscale = FALSE, color = I("black")) %>% 
   add_surface(z = dens, x = x, y = y, colorscale = cn, hoverinfo = "none",
               opacity = .9, contours = con) %>%
   layout(
     scene = list(
-      xaxis=list(title = "x1", range = c(-10, 10)),
-      yaxis=list(title = "x2", range = c(-10, 10)),
-      zaxis=list(title = "density")), 
+      xaxis=list(title = "x1", range = c(-10, 10), showspikes = FALSE),
+      yaxis=list(title = "x2", range = c(-10, 10), showspikes = FALSE),
+      zaxis=list(title = "density", showspikes = FALSE)), 
     plot_bgcolor = 'rgb(0, 0, 0, 0)', paper_bgcolor = 'rgba(0,0,0,0)') %>% 
   config(displayModeBar = FALSE)
 ```
@@ -438,7 +586,7 @@ $$
 <!--/html_preserve-->
 <div class="left">
 
-Also known as sequential monte Carlo.
+Also known as sequential Monte Carlo.
 
 <p class="fragment">Use $\widehat P\LPV{\vect X_{1:t-1}}{\vect y_{1:t-1}}$ in</p>
 
@@ -470,7 +618,7 @@ $$
 
 $$
 \PF{\vect x}{t}{i} \sim 
-q_t\LPV{\cdot}{\PF{\vect x}{t-1}{i},\vec y_t}
+q_t\LPV{\cdot}{\PF{\vect x}{t-1}{i},\vect y_t}
 $$
 <!--html_preserve-->
 </li><li class = "fragment">Compute and normalize weights
@@ -509,7 +657,7 @@ $$
 Setting $\PF{\beta}{t}{i} = \PF{W}{t-1}{i}$ yields the sequential importance 
 resampling algorithm.</p>
 
-<small class = "fragment">Different resample approaches can be used. See 
+<small class = "fragment">Different resampling approaches can be used. See 
 @Douc05.</small>
 
 </div>
@@ -570,7 +718,7 @@ $$
 Need $P\LPV{\vect X_t}{\vect y_{1:d}}$ and 
 $P\LPV{\vect X_{t-1:t}}{\vect y_{1:d}}$.
 
-Use generalised two filter smoothing formula from @Briers09 and smoother from 
+Use generalized two filter smoothing formula from @Briers09 and smoother from 
 @Fearnhead10.
 
 
@@ -763,9 +911,347 @@ Can generalize to handle singular components.</p>
 
 
 
+<!--html_preserve-->
+<section>
+<section>
+<h1>Implementation</h1><div class = "left">
+<!--/html_preserve-->
+
+Implemented in the `dynamichazard` package. 
+
+<p class = "fragment">
+Most parts are done in parallel with OpenMP or the `thread` library in C++.</p>
+
+<!--html_preserve-->
+<div class = "fragment no-top-marg-next"> 
+<!--/html_preserve-->
+Sampling is not done in parallel. Does not matter if $n_t = \lvert R_t \rvert$
+is large. 
+
+<small>
+Can be done in parallel e.g., as in @Zhou15 or using the software from @Ecuyer02.</small>
+</div></div>
+
+<!-- there is a end tag from the previous slide -->
+<!-- </section> -->
+
+## M-step
+<div class = "left">
+Maximizing with respect to $\vect \beta$ is expensive for moderate amount of 
+fixed effects
+
+<!--html_preserve--><small><!--/html_preserve-->
+
+$$
+\begin{align*}
+Q_1\LPV{\vect\beta}{\vect\theta^{(k)}} &= E\LPV{\sum_{t = 1}^d\sum_{i \in R_t}
+    \LP{h\LP{\eta_{it}\LP{\vect X_t}}T\LP{y_{it}} - A\LP{\eta_{it}(\vect X_t))}
+        + B(y_{it})}}{\vect \theta^{(k)}} \\
+\eta_{it}\LP{\vect x_t} &= 
+    \vect\beta^\top\vect z_{it} + o_{it} + \vect x_t^\top\vect u_{it}
+\end{align*}
+$$
+
+<!--html_preserve--></small><!--/html_preserve-->
+
+<p class = "fragment">
+E.g., $(n_t, N, d) = (1000, 250, 400)$ then it amounts to a GLM with 
+`r 1000L * 250L * 400L` observations.
+</p>
+
+</diV>
+
+## M-step
+
+<div class = "left">
+
+Take only one iteratively re-weighted least squares iteration.
+
+<div class = "fragment no-top-marg-next">
+Do as @Wood15 to compute a QR decomposition in parallel with low memory 
+requirements.
+
+<small>Implemented in the `bam` function in the `mgcv` package.</small>
+</div>
+
+<p class = "fragment">May be able to reduce computation time further by using that
+linear predictors only differ by $\vect x_t^\top\vect u_{it}$.</p>
+</div>
+
+
+## Proposal distribution
+<div class = "left">
+<!--html_preserve-->
+<div class = "no-top-marg-next"> 
+<!--/html_preserve-->
+Use $f$ as proposal distribution. 
+
+<small>**Bootstrap filter** from @Gordon93.</small>
+
+<div class = "fragment">
+Estimate the mode 
+
+$$
+\vect \mu_t^{(i)} = \argmax_{\vect x_t}
+  g_t\LPV{\vect y_t}{\vect x_t}f\LPV{\vect x_t}{\PF{\vect x}{t-1}{i}}
+$$
+
+<!--html_preserve-->
+<div class = "no-top-marg-next"> 
+<!--/html_preserve-->
+and make a Taylor expansion around $\vect \mu_t^{(i)}$.
+
+<small>As suggested in @Pitt99 and used in @Fearnhead10.</small></div></div>
+
+</diV>
+
+## Proposal distribution
+<div class="left">
+Previous is $\bigO{Nn_tp^2}$ where $p$ is the dimension of $\vect x_t$. Instead 
+make the expansion once using
+
+$$
+\bar{\vect x}_{t -1} = \sum_{i = 1}^N \PF{W}{t - 1}{i}\PF{\vect x}{t - 1}{i}
+$$
+
+Reduces cost to $\bigO{Nn_tp + n_tp^2}$.
+</div>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+<!--/html_preserve-->
 
 
 
+
+<!--html_preserve-->
+<section>
+<section>
+<h1>Example</h1>
+<!--/html_preserve-->
+
+```{r show_frm}
+frm_fixed
+Fmat <- diag(c(0.948, 0.9793))
+Q. <- matrix(c(0.05979 , 0.011014, 
+               0.011014, 0.002504), byrow = TRUE, 2)
+```
+
+```{r set_fix, echo = FALSE}
+# too long so did not show this
+fix_e <- c(
+  -10.15376, 0.08497, -1.51364, 1.14573, -0.13661, 44.42375, -1.32413, 
+  0.03975, -0.37105, 0.50640, -4.27648, 1.82763, -0.78028, 0.59698, 
+  1.31762, -1.58914, -2.27547)
+```
+
+
+<!-- there is a end tag from the previous slide -->
+<!-- </section> -->
+
+## Bootstrap filter
+
+```{r boot, cache = 1}
+library(dynamichazard)
+set.seed(58201195)
+system.time(
+  f1 <- PF_EM(
+    fixed = frm_fixed, random = ~ 1 + wz(rel_size), 
+    data = distress, model = "logit", type = "VAR", 
+    Fmat = Fmat, Q = Q., fixed_effects = fix_e,
+    control = PF_control(
+      N_fw_n_bw = 1000L, N_smooth = 2500L, N_first = 3000L, 
+      N_smooth_final = 500L, n_threads = 4L, n_max = 1L, nu = 8L,
+      method = "bootstrap_filter", smoother = "Fearnhead_O_N"),
+    by = 1L, max_T = max(distress$tstop), id = distress$gvkey,
+    Q_0 = diag(1, 2)))
+
+logLik(f1)       # from particle filter
+logLik(base_fit) # glm model w/o random effects
+```
+
+## Bootstrap filter: Effective sample size
+
+```{r ess_boot}
+par(mar = c(5, 4, 1, 1))
+plot(head(f1$effective_sample_size$smoothed_clouds, -1), type = "h", 
+     ylab = "Effective sample size", xlab = "t")
+```
+
+## Bootstrap filter: Predicted state variables
+
+```{r plot_boot, fig.width = 9}
+par(mfcol = c(1, 2), mar = c(5, 4, 1, 1))
+plot(f1, cov_index = 1, qlvls = c(.05, .95), qtype = "lines")
+plot(f1, cov_index = 2, qlvls = c(.05, .95), qtype = "lines")
+```
+
+## Auxiliary particle filter with different proposal
+
+<!-- 
+  knitr::opts_knit$set(output.dir = ".")
+  knitr::load_cache(
+      "aux_fearn", path = paste0("cache", .Platform$file.sep))
+-->
+
+```{r aux_fearn, cache = 1}
+set.seed(58201195)
+system.time(
+  f2 <- PF_EM(
+    fixed = frm_fixed, random = ~ 1 + wz(rel_size), 
+    data = distress, model = "logit", type = "VAR", 
+    Fmat = Fmat, Q = Q., fixed_effects = fix_e,
+    control = PF_control(
+      N_fw_n_bw = 1000L, N_smooth = 2500L, N_first = 3000L, 
+      N_smooth_final = 500L, n_threads = 4L, n_max = 1L, nu = 8L,
+      method = "AUX_normal_approx_w_cloud_mean", smoother = "Fearnhead_O_N"),
+    by = 1L, max_T = max(distress$tstop), id = distress$gvkey,
+    Q_0 = diag(1, 2)))
+
+logLik(f2)
+```
+
+## Auxiliary particle filter with different proposal
+
+```{r ess_fearn}
+par(mar = c(5, 4, 1, 1))
+plot(head(f2$effective_sample_size$smoothed_clouds - 
+            f1$effective_sample_size$smoothed_clouds, -1), type = "h", 
+     ylab = "Diff effective sample size", xlab = "t")
+```
+
+## Auxiliary particle filter with different proposal
+
+```{r plot_fearn, fig.width = 9}
+par(mfcol = c(1, 2), mar = c(5, 4, 1, 1))
+plot(f2, cov_index = 1, qlvls = c(.05, .95), qtype = "lines")
+plot(f2, cov_index = 2, qlvls = c(.05, .95), qtype = "lines")
+```
+
+## Different smoother
+
+```{r brier, cache = 1}
+set.seed(58201195)
+system.time(
+  f3 <- PF_EM(
+    fixed = frm_fixed, random = ~ 1 + wz(rel_size), 
+    data = distress, model = "logit", type = "VAR", 
+    Fmat = Fmat, Q = Q., fixed_effects = fix_e,
+    control = PF_control(
+      N_fw_n_bw = 500L, N_smooth = 1L, N_first = 3000L, n_threads = 4L, 
+      n_max = 1L, nu = 8L,
+      method = "AUX_normal_approx_w_cloud_mean", smoother = "Brier_O_N_square"),
+    by = 1L, max_T = max(distress$tstop), id = distress$gvkey,
+    Q_0 = diag(1, 2)))
+
+logLik(f3)
+```
+
+<div class = "left">
+The `PF_forward_filter` function can be used to get more precise log-likelihood
+estimate.</div>
+
+## Different smoother
+
+```{r ess_brier}
+par(mar = c(5, 4, 1, 1))
+plot(head(f3$effective_sample_size$smoothed_clouds - 
+            f2$effective_sample_size$smoothed_clouds, -1), type = "h", 
+     ylab = "Diff effective sample size", xlab = "t")
+```
+
+
+## Auxiliary particle filter with different proposal
+
+<!--
+  knitr::opts_knit$set(output.dir = ".")
+  knitr::load_cache(
+      "pf_taylor_aux_fearn", path = paste0("cache", .Platform$file.sep))
+-->
+
+```{r pf_taylor_aux_fearn, cache = 1}
+set.seed(58201195)
+system.time(
+  f4 <- PF_EM(
+    fixed = frm_fixed, random = ~ 1 + wz(rel_size), 
+    data = distress, model = "logit", type = "VAR", 
+    Fmat = Fmat, Q = Q., fixed_effects = fix_e,
+    control = PF_control(
+      N_fw_n_bw = 1000L, N_smooth = 2500L, N_first = 3000L, 
+      N_smooth_final = 500L, n_threads = 4L, n_max = 1L, nu = 8L,
+      method = "AUX_normal_approx_w_particles", smoother = "Fearnhead_O_N"),
+    by = 1L, max_T = max(distress$tstop), id = distress$gvkey,
+    Q_0 = diag(1, 2)))
+
+logLik(f4)
+```
+
+## Auxiliary particle filter with different proposal
+
+```{r ess_pf_taylor_aux_fearn}
+par(mar = c(5, 4, 1, 1))
+plot(head(f4$effective_sample_size$smoothed_clouds - 
+            f2$effective_sample_size$smoothed_clouds, -1), type = "h", 
+     ylab = "Diff effective sample size", xlab = "t")
+```
+
+## Auxiliary particle filter with different proposal
+
+```{r diff_ess_pf_taylor_aux_fearn}
+sapply(f4$effective_sample_size, mean) - sapply(f2$effective_sample_size, mean)
+```
+
+
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+<!--/html_preserve-->
+
+
+
+
+<section>
+<section>
+<h1>Next steps</h1>
+<div class = "left">
+<!-- there is a end tag from the previous slide -->
+<!-- </section> -->
+
+Different $y_{it}$ and distributions $g_t\LPV{\vect y_t}{\vect x_t}$.
+
+<div class = "fragment no-top-marg-next">
+Other types of state models.
+
+<small>$\text{VAR}(q)$ with $q > 1$, $\text{VARMA}(p,q)$, restricted models,
+etc.</small></div>
+
+<div class = "fragment no-top-marg-next">
+Compute observed information matrix.
+
+<small>E.g., see @Cappe05 [chapter 11] and @Poyiadjis11.</small></div>
+
+<div class = "fragment no-top-marg-next">
+Change particle filter and smoothers.
+
+
+<small>Different proposal distributions (e.g., unscented transformation and 
+adaptive importance sampling), use resample-moves, use block sampling, and 
+more.</small></div>
+
+<p class = "fragment">"Nicer" API.</p>
+
+<p class = "fragment">Better implementation of the smoother from @Briers09.</p>
+<div>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+<!--/html_preserve-->
 
 
 <!--html_preserve-->
@@ -773,13 +1259,17 @@ Can generalize to handle singular components.</p>
 <section class="end">
 <h1>Thank you!</h1>
 
-Slides are on <a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.
+<small><p>Slides are on <a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
+
+<p>More examples at <a href="https://github.com/boennecd/dynamichazard/tree/master/examples">
+github.com/boennecd/dynamichazard/tree/master/examples</a>.</p>
+
 <!--/html_preserve-->
 
-@Doucet11 and @Givens12 [chapter 6] has been used in prepreation of the slides.
+@Doucet11 and @Givens12 [chapter 6] has been used in preparation of the slides.
 
 <!--html_preserve-->
-</section>
+</small></section>
 </section>
 <!--/html_preserve-->
 

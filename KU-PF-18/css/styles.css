@@ -14,10 +14,14 @@
    margin-bottom: 0px;
 }
 
+.reveal section.front > h2 {
+   font-size: 1.25em;
+}
+
 body {
   background: 
-    linear-gradient(20deg, white 15%, rgba(73, 103, 170, .1) 70%, rgba(73, 103, 170, .25)),
-    linear-gradient(-20deg, transparent 80%, rgba(144, 26, 30, .10));
+    linear-gradient(30deg, white 15%, rgba(73, 103, 170, .1) 70%, rgba(73, 103, 170, .25)),
+    linear-gradient(-30deg, transparent 80%, rgba(144, 26, 30, .13));
 }
 
 .reveal h1 {
@@ -40,10 +44,6 @@ body {
     line-height: 1.3;
 }
 
-
-.no-top-marg-next + p {
-    margin: 0 0 20px 0;
-}
 
 .no-top-marg-next > p {
     margin: 0;
@@ -205,5 +205,13 @@ section.end {
       display: block;
 }
 section.end > h1 {
-  margin-top: 20vh;
+  margin-top: 17vh;
+}
+section.end > small > p {
+  margin: 10px auto;
+}
+
+.reveal pre {
+  font-size: .45em;
+  margin: 7px auto;
 }
