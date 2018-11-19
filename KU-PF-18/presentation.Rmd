@@ -20,7 +20,7 @@ output:
 options(width = 100, digits = 4, scipen = 8)
 knitr::opts_chunk$set(
   error = FALSE, cache = FALSE, warning = FALSE, message = FALSE, dpi = 128, 
-  stop = FALSE, fig.height = 4, fig.width = 6, 
+  stop = FALSE, fig.height = 3.75, fig.width = 5, 
   cache.path = paste0("cache", .Platform$file.sep), 
   fig.path = paste0("fig", .Platform$file.sep))
 
@@ -58,6 +58,9 @@ knitr::knit_hooks$set(inline = function(x) {
 <section>
 
 $$
+\definecolor{cora}{RGB}{230,159,0}
+\definecolor{blugre}{RGB}{0,158,115}
+\definecolor{vermilion}{RGB}{213,94,0}
 \def\mat#1{{\mathbf{#1}}}
 \def\vect#1{{\boldsymbol{#1}}}
 \def\diff{{\mathop{}\!\mathrm{d}}}
@@ -71,14 +74,19 @@ $$
 \def\argmax{\mathop{\mathrm{argmax}}}
 $$
 
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({ TeX: { extensions: ["color.js"] }});
+</script>
+
 <section class="titleslide slide level1">
 <h1>Introduction</h1>
 <div class ="left">
 <div class="no-top-marg-next">
 <!--/html_preserve-->
 
-Discrete hazard models are popular corporate distress models.
-<small>@Shumway01, @Chava04, and @Campbell08 had `r 2395L + 846L + 1635L`
+Discrete-time models are popular corporate distress models.
+<small>E.g., the event that a firms miss an interest payment. 
+@Shumway01, @Chava04, and @Campbell08 had `r 2395L + 846L + 1635L`
 citations on Google Scholar on 7/11/2018.</small></div>
 
 <div class = "fragment">
@@ -86,10 +94,11 @@ citations on Google Scholar on 7/11/2018.</small></div>
 $$
 \begin{align*}
 y_{it} &\in\{0,1\} \\
-l\LP{E\LPV{y_{it}}{\vect z_t, o_{it}}} &= \vect\beta^\top\vect z_{it} + o_{it}
+h\LP{E\LPV{y_{it}}{\vect z_t, o_{it}}} &= \vect\beta^\top\vect z_{it} + o_{it}
 \end{align*}
 $$
-<small>$l$ is a link function, $\vect x_{it}$ are know covariates, and $o_{it}$
+
+<small>$h$ is a link function, $\vect x_{it}$ are know covariates, and $o_{it}$
 are known offsets.</small>
 
 </div>
@@ -203,7 +212,7 @@ make_sims_plot <- function(sims, data, ylim = NA){
   is_miss <- rea < sims$lbs | rea > sims$ubs
   plot(rea ~ x, pch = 16, ylim = ylim, 
        col = ifelse(is_miss, "Black", "DarkGray"), cex = .7, 
-       xlab = "Year", ylab = "Average/realised distress rate", 
+       xlab = "Year", ylab = "Predicted/realised distress rate", 
        xaxt = "n")
   min_d <- as.POSIXlt(min(x))
   month(min_d) <- 1L
@@ -232,33 +241,37 @@ make_sims_plot(base_sims, distress, c(0, .011))
 predicted distress rate. Dots are realized distress rates. Black dots are not 
 covered by prediction intervals.</small></div>
 
-## Hidden Markov model
 
-$$
-\begin{align*}
-P\LPV{\vect Y_t}{\vect X_t, \mat Z_t} &= g_t\LPV{\vect Y_t}{\vect X_t} & 
-P\LPV{\vect X_t}{\vect X_{t-1}} &= f\LPV{\vect X_t}{\vect X_{t-1}} \\
-P\LP{\vect X_1} &=f\LP{\vect X_1}
-\end{align*}
-$$
-
-$$
-P\LP{\vect y_{1:d}} = \int P\LP{\vect x_1} g_1\LPV{\vect y_1}{\vect x_1}
-    \prod_{t = 2}^d g_t\LPV{\vect y_t}{\vect x_t}f\LPV{\vect x_t}{\vect x_{t - 1}} 
-    \diff \vect x_{1:d}
-$$
-All implicitly depend on the parameters in the model.
 
 ## Model
 
 $$
 \begin{align*}
-l\LP{E\LPV{y_{it}}{\vect z_t, o_{it}, \vect x_t, \vect u_{it}}} &= 
+h\LP{E\LPV{y_{it}}{\vect z_t, o_{it}, \vect x_t, \vect u_{it}}} &= 
   \vect\beta^\top\vect z_{it} + o_{it} + \vect x_t^\top\vect u_{it} \\
 \vect x_t &\sim \mathcal N\LP{\mat F\vect x_{t-1}, \mat \Sigma}
 \end{align*}
 $$
+
 <small>$\vect u_{it}$ are known firm covariates.</small>
+
+
+## Hidden Markov model
+
+$$
+g_t\LPV{\vect Y_t}{\vect X_t} \qquad f\LPV{\vect X_t}{\vect X_{t-1}}
+  \qquad f\LP{\vect X_1}
+$$
+
+$$
+P\LP{\vect y_{1:d}} = \int f\LP{\vect x_1} g_1\LPV{\vect y_1}{\vect x_1}
+    \prod_{t = 2}^d g_t\LPV{\vect y_t}{\vect x_t}f\LPV{\vect x_t}{\vect x_{t - 1}} 
+    \diff \vect x_{1:d}
+$$
+
+<div class = "left">
+All implicitly depend on the parameters in the model. $g_t$s implicitly depend
+on $\mat Z_t$ and $\mat U_t$.</diV>
 
 
 ## EM algorithm
@@ -272,22 +285,23 @@ Q\LPV{\vect\theta}{\vect\theta^{(k)}} &=
     \sum_{t = 2}^d \log \varphi\LP{\vect X_t;\mat F\vect X_{t-1},\mat \Sigma} \\
     &\quad +
     \sum_{t = 1}^d\sum_{i \in R_t}
-    \LP{h\LP{\eta_{it}\LP{\vect X_t}}T\LP{y_{it}} - A\LP{\eta_{it}(\vect X_t))}
-        + B(y_{it})} \\
+    y_{it}\log\LP{h^{-1}\LP{\eta_{it}}} + 
+    \LP{1 - y_{it}}\log\LP{1 - h^{-1}\LP{\eta_{it}}} \\
 \eta_{it}\LP{\vect x_t} &= 
     \vect\beta^\top\vect z_{it} + o_{it} + \vect x_t^\top\vect u_{it}
 \end{align*}
 $$
+
 <small>where $\varphi$ is a multivariate normal density function, $R_t$ is the 
-risk set at time $t$, and $h$, $T$, $A$, and $B$ are known functions.</small>
+risk set at time $t$, and $h^{-1}$ is the inverse link function.</small>
 
 ## EM algorithm
 
 Need to evaluate
 
 $$
-E\LPV{\phi\LP{\vect X_{t-1:t}}}{\vect\theta^{(k)}}, \qquad 
-  E\LPV{\psi\LP{\vect X_t}}{\vect\theta^{(k)}}
+E\LPV{\phi\LP{\vect X_{t-1:t}}}{\vect\theta^{(k)},\vect y_{1:d}}
+  \qquad E\LPV{\psi\LP{\vect X_t}}{\vect\theta^{(k)},\vect y_{1:d}}
 $$
 
 
@@ -334,16 +348,7 @@ $\tilde d(x) = \alpha d(x)$. Only know $d$.
 1. Sample $x^{(1)},x^{(2)},\dots,x^{(N)}$ from **proposal distribution** with 
 density $q$. 
 2. Compute unnormalised weights $\tilde W^{(i)} = d(x^{(i)})/q(x^{(i)})$.
-3. Normalize weights $W_i \propto \tilde W^{(i)}$.
-
-</div>
-
-
-<div class = "fragment">
-
-Use **effetive sample size** to judge 
-
-$$ESS = \LP{\sum_{i = 1}^N W_i^2}^{-1}$$
+3. Normalize weights $W^{(i)} = \tilde W^{(i)} / \sum_{i=1}^N \tilde W^{(i)}$.
 
 </div></div>
 
@@ -352,6 +357,7 @@ $$ESS = \LP{\sum_{i = 1}^N W_i^2}^{-1}$$
 
 ## Importance sampling
 <div class = "left">
+
 Yields a discrete approximation of distribution 
 
 $$\widehat P(X) = \sum_{i=1}^N W^{(i)} \delta_{x^{(i)}}(X)$$
@@ -362,24 +368,33 @@ $$
 E\LP{\phi(X)} = \int \phi(x)\diff x \approx 
     \sum_{i = 1}^N W^{(i)} \phi\LP{x^{(i)}}
 $$
-</div>
-</div>
+</div><div class = "fragment">
+
+Use **effetive sample size** to judge 
+
+$$ESS = \LP{\sum_{i = 1}^N W^{(i)2}}^{-1}$$
+
+```{r load_plotly_mvtnorm, echo = FALSE}
+library(plotly)
+library(mvtnorm)
+```
+
+</div></div>
 
 
 
-## Example: target
+## Example: Target
 
-```{r target, echo = FALSE, warning=FALSE, message=FALSE}
+```{r target, echo = FALSE, warning=FALSE, message=FALSE, cache = TRUE}
 y <- x <- seq(-25, 25, length = 80)
-g1 <- function(x, y) {
-  r <- sqrt(x^2+y^2)
-  o <- 10 * (sin(r)/r - (sin(4.49341) /  4.49341) + .001)
-  o[is.na(o)] <- 1
-  o
-}
-z <- outer(x, y, g1)
+# g1 <- function(x, y) {
+#   r <- sqrt(x^2+y^2)
+#   o <- 10 * (sin(r)/r - (sin(4.49341) /  4.49341) + .001)
+#   o[is.na(o)] <- 1
+#   o
+# }
+# z <- outer(x, y, g1)
 # persp(x, y, z, theta = 30, phi = 30, expand = 0.5, col = "lightblue")
-
 
 # optim(-6, function(x) -sin(x) / x)
 g2 <- function(x, y){
@@ -393,14 +408,13 @@ g2 <- function(x, y){
   
   o
 }
+z <- outer(x, y, g2)
 
 cn <-  list(c(0.0, "rgb(192,192,192)"), list(1, "rgb(0, 0, 0)"))
 con <- list(
   x = list(highlight = FALSE), 
   y = list(highlight = FALSE), 
   z = list(highlight = FALSE))
-z <- outer(x, y, g2)
-library(plotly)
 plot_ly(showscale = FALSE, color = I("black")) %>% 
   add_surface(
     colorscale = cn, opacity = .9,
@@ -416,12 +430,11 @@ plot_ly(showscale = FALSE, color = I("black")) %>%
 # persp(x, y, z, theta = 30, phi = 30, expand = 0.5)
 ```
 
-## Example: proposal
+## Example: Proposal
 
-```{r proposal, echo = FALSE, warning=FALSE, message=FALSE}
-library(mvtnorm)
-sig <- diag(7^2, 2)
-dens <- matrix(dmvnorm(expand.grid(x, y), sigma = sig), ncol = length(x))
+```{r 1.5_proposal, echo = FALSE, warning=FALSE, message=FALSE, cache = TRUE, dependson="first_sample"}
+sig1 <- diag(7^2, 2)
+dens <- matrix(dmvnorm(expand.grid(x, y), sigma = sig1), ncol = length(x))
 plot_ly(showscale = FALSE, color = I("black")) %>% 
   add_surface(z = dens, x = x, y = y, colorscale = cn, hoverinfo = "none",
               opacity = .9, contours = con) %>%
@@ -429,14 +442,14 @@ plot_ly(showscale = FALSE, color = I("black")) %>%
     scene = list(
       xaxis=list(title = "x1", range = c(-10, 10), showspikes = FALSE),
       yaxis=list(title = "x2", range = c(-10, 10), showspikes = FALSE),
-      zaxis=list(title = "density"), showspikes = FALSE), 
-    plot_bgcolor = 'rgb(0, 0, 0, 0)', paper_bgcolor = 'rgba(0,0,0,0)')  %>% 
+      zaxis=list(title = "density", showspikes = FALSE)), 
+    plot_bgcolor = 'rgb(0, 0, 0, 0)', paper_bgcolor = 'rgba(0,0,0,0)') %>% 
   config(displayModeBar = FALSE)
 ```
 
-## Example: importance sampling
+## Example: Importance sampling
 
-```{r first_sample, echo = FALSE, warning=FALSE, message=FALSE}
+```{r first_sample, echo = FALSE, warning=FALSE, message=FALSE, cache = TRUE, dependson="target"}
 get_smp <- function(si, n){
   smp <- rmvnorm(n, sigma = si)
   wt <- apply(smp, 1, function(x) log(g2(x[1], x[2]))) -
@@ -477,22 +490,22 @@ get_smp <- function(si, n){
         yaxis=list(title = "x2", range = rg, showspikes = FALSE),
         zaxis=list(title = "Importance weight", showspikes = FALSE)), 
       plot_bgcolor = 'rgb(0, 0, 0, 0)', paper_bgcolor = 'rgba(0,0,0,0)')  %>% 
-  config(displayModeBar = FALSE)
+    config(displayModeBar = FALSE)
   
   list(p = p, ess = sum(wt^2)^-1)
 }
 
 set.seed(37219838)
 n <- 50L
-o <- .(sig, n)
+o <- .(sig1, n)
 o$p
 ```
 
-Effective sample size is `r o$ess`.
+Effective sample size is `r o$ess` with `r n` samples.
 
-## Example: Propsal 
+## Example: Proposal 
 
-```{r 2_proposal, echo = FALSE, warning=FALSE, message=FALSE}
+```{r 2_proposal, echo = FALSE, warning=FALSE, message=FALSE, cache = TRUE, dependson="first_sample"}
 sig2 <- diag(2^2, 2)
 dens <- matrix(dmvnorm(expand.grid(x, y), sigma = sig2), ncol = length(x))
 plot_ly(showscale = FALSE, color = I("black")) %>% 
@@ -509,13 +522,13 @@ plot_ly(showscale = FALSE, color = I("black")) %>%
 
 ## Example: Importance sampling
 
-```{r second_sample, echo = FALSE, warning=FALSE, message=FALSE}
+```{r second_sample, echo = FALSE, warning=FALSE, message=FALSE, cache = TRUE, dependson="first_sample"}
 set.seed(37219840)
 o <- .(sig2, n)
 o$p
 ```
 
-Effective sample size is `r o$ess`.
+Effective sample size is `r o$ess` with `r n` samples.
 
 ```{r check_sampling, echo = FALSE, eval = FALSE}
 #####
@@ -570,6 +583,26 @@ $$
 
 </div></div>
 
+
+## Notation and goal
+<div class = "left">
+"Forward" particle clouds 
+$\{\PF{W}{t}{i}, \PF{\vect x}{t}{i}\}_{i=1,\dots,N}$.
+
+<p class = "fragment">"Backward" particle clouds 
+$\{\PB{W}{t}{i}, \PB{\vect x}{t}{i}\}_{i=1,\dots,N}$.</p>
+
+<p class = "fragment">"Smoothed" particle clouds
+$\{\PS{W}{t}{i}, \PS{\vect x}{t}{i}\}_{i=1,\dots,N}$.</p>
+
+<div class = "fragment">End goal is 
+$$
+E\LPV{\phi(\vect X_t)}{\vect y_{1:d}} \approx 
+    \sum_{i = 1}^N \PS{W}{t}{i} \phi\LP{\PS{\vect x}{t}{i}}
+$$
+
+</div></div>
+
 <!--html_preserve-->
 </section>
 <!-- need extra end tag before next section -->
@@ -599,7 +632,7 @@ P\LPV{\vect x_{1:t}}{\vect y_{1:t}} &=
   g_t\LPV{\vect y_t}{\vect x_t}f\LPV{\vect x_t}{\vect x_{t-1}}
   }{P\LPV{\vect y_t}{\vect y_{1:t -1}}} \\
 &\approx \sum_{i = 1}^N \PF{W}{t-1}{i}
-  \delta_{\PF{\vect x}{1:t}{i}}\LP{\vect x_{1:t-1}}
+  \delta_{\PF{\vect x}{1:{t-1}}{i}}\LP{\vect x_{1:t-1}}
   \frac{
   g_t\LPV{\vect y_t}{\vect x_t}f\LPV{\vect x_t}{\PF{\vect x}{t-1}{i}}
   }{P\LPV{\vect y_t}{\vect y_{1:t -1}}}
@@ -618,18 +651,20 @@ $$
 
 $$
 \PF{\vect x}{t}{i} \sim 
-q_t\LPV{\cdot}{\PF{\vect x}{t-1}{i},\vect y_t}
+  \overrightarrow q_t\LPV{\cdot}{\PF{\vect x}{t-1}{i},\vect y_t}
 $$
 <!--html_preserve-->
 </li><li class = "fragment">Compute and normalize weights
 <!--/html_preserve-->
 
 $$
-\PF{\tilde W}{t}{i} = \PF{W}{t-1}{i}
+\begin{align*}
+\PF{\tilde W}{t}{i} &= \PF{W}{t-1}{i}
   \frac{
   g_t\LPV{\vect y_t}{\PF{\vect x}{t}{i}}f\LPV{\PF{\vect x}{t}{i}}{\PF{\vect x}{t-1}{i}}
-  }{q_t\LPV{\PF{\vect x}{t}{i}}{\PF{\vect x}{t-1}{i},\vec y_t}}, 
-\qquad \PF{W}{t}{i} \propto \PF{\tilde W}{t}{i}
+  }{\overrightarrow q_t\LPV{\PF{\vect x}{t}{i}}{\PF{\vect x}{t-1}{i},\vec y_t}}\\
+\PF{W}{t}{i} &= \PF{\tilde W}{t}{i} / \sum_{i = 1}^N\PF{\tilde W}{t}{i}
+\end{align*}
 $$
 
 <!--html_preserve-->
@@ -641,7 +676,7 @@ $$
 
 <div class="left">
 
-Weights, $\PF{W}{t}{i}$, can become concentrated.
+Weights, $\PF{W}{t}{i}$s, can degenerate.
 
 <div class="fragment">
 
@@ -677,20 +712,22 @@ Sample $j_1,\dots,j_N$ indices using $\{\PF{\beta}{t}{i}\}_{i=1,\dots,n}$.
 
 $$
 \PF{\vect x}{t}{i} \sim 
-q_t\LPV{\cdot}{\PF{\vect x}{t-1}{j_i},\vec y_t}
+  \overrightarrow q_t\LPV{\cdot}{\PF{\vect x}{t-1}{j_i},\vec y_t}
 $$
 <!--html_preserve-->
 </li><li class = "fragment">Compute and normalize weights
 <!--/html_preserve-->
 
 $$
-\PF{\tilde W}{t}{i} = 
+\begin{align*}
+\PF{\tilde W}{t}{i} &= 
   \frac{\PF{W}{t-1}{j_i}}{\PF{\beta}{t}{j_i}}
   \frac{
   g_t\LPV{\vect y_t}{\vect x_t}f
   \LPV{\PF{\vect x}{t}{i}}{\PF{\vect x}{t-1}{j_i}}
-  }{q_t\LPV{\PF{\vect x}{t}{i}}{\PF{\vect x}{t-1}{j_i},\vec y_t}}, 
-\qquad \PF{W}{t}{i} \propto \PF{\tilde W}{t}{i}
+  }{\overrightarrow q_t\LPV{\PF{\vect x}{t}{i}}{\PF{\vect x}{t-1}{j_i},\vec y_t}}\\ 
+\PF{W}{t}{i} &= \PF{\tilde W}{t}{i} / \sum_{i = 1}^N\PF{\tilde W}{t}{i}
+\end{align*}
 $$
 
 <!--html_preserve-->
@@ -758,7 +795,7 @@ $$
 Let
 
 $$
-\gamma_1\LP{\vect x} = f\LP{\vect x}, \quad 
+\gamma_1\LP{\vect x}, \quad 
   \gamma_t(\vect x) = \int f\LPV{\vect x}{\vect x_{t-1}}
   \gamma_{t-1}\LP{\vect x_{t-1}}\diff\vect x_{t-1}
 $$
@@ -802,20 +839,27 @@ $$
 </div>
 
 ## Combining filters
-<div class="left">
-
-Thus, 
+<div class = "left">
+Now, we have the approximations we need 
 
 $$
 \begin{align*}
-P\LPV{\vect x_t}{\vect y_{1:d}} &\approx 
+P\LPV{\vect x_t}{\vect y_{1:d}} &\propto 
+  \int f\LPV{\vect x_t}{\vect x_{t-1}}
+  P\LPV{\vect x_{t-1}}{\vect y_{1:t -1}}\diff \vect x_{t-1}
+  P\LPV{\vect y_{t:d}}{\vect x_t} \\
+&\approx 
   \sum_{j=1}^N \PS{W}{t}{j}\delta_{\PB{\vect x}{t}{j}}\LP{\vect x_t} \\
 \PS{W}{t}{j} &\propto 
-  \frac{\PB{W}{t}{j}}{\gamma_t\LP{\PB{\vect x}{t}{j}}} \sum_{i = 1}^N
-  \PF{W}{t-1}{i}f\LPV{\PB{\vect x}{t}{j}}{\PF{\vect x}{t-1}{i}} 
+  \sum_{i = 1}^N
+  f\LPV{\PB{\vect x}{t}{j}}{\PF{\vect x}{t-1}{i}}\PF{W}{t-1}{i}
+  \frac{\PB{W}{t}{j}}{\gamma_t\LP{\PB{\vect x}{t}{j}}}  
 \end{align*}
 $$
+
 </div>
+
+
 
 ## Comments
 
@@ -866,27 +910,49 @@ $$
 
 1. Sample $(i_k,j_k)_{k=1,\dots,N}$ with weights $\PF{\beta}{t-1}{i}$ and
 $\PB{\beta}{t+1}{k}$.
-2. Sample $\PS{\vect x}{t}{k} \sim q_t\LPV{\cdot}{\PF{\vect x}{t-1}{i_k}, \PB{\vect x}{t+1}{j_k}, \vect y_t}$. 
+2. Sample $\PS{\vect x}{t}{k} \sim \overleftrightarrow q_t\LPV{\cdot}{\PF{\vect x}{t-1}{i_k}, \PB{\vect x}{t+1}{j_k}, \vect y_t}$. 
 3. Compute and normalize weights
 
 $$
 \begin{align*}
 \PS{\tilde W}{t}{k} & =\frac{
-  f\LPV{\PS{\vect x}{t}{k}}{\PF{\vect x}{t-1}{i_k}}
-  g_t\LPV{\vect y}{\PS{\vect x}{t}{k}}
-  f\LPV{\PB{\vect x}{t+1}{j_k}}{\PS{\vect x}{t}{k}}
+  f\LPV{\color{vermilion}\PS{\vect x}{t}{k}}{\color{blugre}\PF{\vect x}{t-1}{i_k}}
+  \color{vermilion}g_t\LPV{\vect y}{\PS{\vect x}{t}{k}}
+  \color{black}f\LPV{\color{cora}\PB{\vect x}{t+1}{j_k}}{
+    \color{vermilion}\PS{\vect x}{t}{k}}
 }{
-  q_t\LPV{\PS{\vect x}{t}{k}}{\PF{\vect x}{t-1}{i_k}, \PB{\vect x}{t+1}{j_k}, \vect y_t}
-  \gamma_{t+1}\LP{\PB{\vect x}{t+1}{j_k}}
+  \overleftrightarrow q_t\LPV{\PS{\vect x}{t}{k}}{\PF{\vect x}{t-1}{i_k}, \PB{\vect x}{t+1}{j_k}, \vect y_t}
 }\frac{
-  \PB{W}{t+1}{j_k}\PF{W}{t-1}{i_k}
+  \color{cora}{\PB{W}{t+1}{j_k}}
+  \color{blugre}{\PF{W}{t-1}{i_k}}
 }{
-  \PB{\beta}{t+1}{j_k}\PF{\beta}{t-1}{i_k}
+  \color{cora}\gamma_{t+1}\LP{\PB{\vect x}{t+1}{j_k}}
+  \color{black}\PB{\beta}{t+1}{j_k}\PF{\beta}{t-1}{i_k}
 } \\
-\PS{W}{t}{k} &\propto \PS{\tilde W}{t}{k}
+\PS{W}{t}{k} &= \PS{\tilde W}{t}{k} / \sum_{i = 1}^N\PS{\tilde W}{t}{k}
 \end{align*}
 $$
-</div></small>
+
+
+<div class="fragment">
+Compare with 
+
+$$
+\begin{align*}
+P\LPV{\vect x_t}{\vect y_{1:d}} 
+&= 
+  \color{blugre}\int
+  \color{black}f\LPV{\color{vermilion}\vect x_t}{\color{blugre}\vect x_{t-1}}
+  \color{blugre}P\LPV{\vect x_{t-1}}{\vect y_{1:t -1}}\diff \vect x_{t-1}
+  \color{vermilion}g_t\LPV{\vect y_t}{\vect x_t} \cdot \\
+&\qquad\color{cora}\int P\LPV{\vect y_{t+1}}{\vect x_{t+1}}
+  \color{black}f\LPV{\color{cora}\vect x_{t + 1}}{\color{vermilion}\vect x_t}
+  \color{cora}\diff \vect x_{t+1}
+\end{align*}
+$$
+
+
+</div></div></small>
 
 
 ## Comments
@@ -944,10 +1010,12 @@ fixed effects
 
 $$
 \begin{align*}
-Q_1\LPV{\vect\beta}{\vect\theta^{(k)}} &= E\LPV{\sum_{t = 1}^d\sum_{i \in R_t}
-    \LP{h\LP{\eta_{it}\LP{\vect X_t}}T\LP{y_{it}} - A\LP{\eta_{it}(\vect X_t))}
-        + B(y_{it})}}{\vect \theta^{(k)}} \\
-\eta_{it}\LP{\vect x_t} &= 
+& E\LPV{
+    \sum_{t = 1}^d\sum_{i \in R_t}
+      y_{it}\log\LP{h^{-1}\LP{\eta_{it}}} + 
+      \LP{1 - y_{it}}\log\LP{1 - h^{-1}\LP{\eta_{it}}}
+  }{\vect \theta^{(k)}} \\
+& \eta_{it}\LP{\vect x_t} = 
     \vect\beta^\top\vect z_{it} + o_{it} + \vect x_t^\top\vect u_{it}
 \end{align*}
 $$
@@ -981,12 +1049,32 @@ linear predictors only differ by $\vect x_t^\top\vect u_{it}$.</p>
 
 ## Proposal distribution
 <div class = "left">
+Need up to three proposal distribution: 
+
+$$
+\begin{align*}
+\PF{\vect x}{t}{i} &\sim 
+  \overrightarrow q_t\LPV{\cdot}{\PF{\vect x}{t-1}{i},\vect y_t} \\
+\PB{\vect x}{t}{i} &\sim 
+  \overleftarrow q_t\LPV{\cdot}{\PB{\vect x}{t+1}{i},\vect y_t} \\
+\PS{\vect x}{t}{k} &\sim 
+  \overleftrightarrow q_t\LPV{\cdot}{\PF{\vect x}{t-1}{i_k}, \PB{\vect x}{t+1}{j_k}, \vect y_t}
+\end{align*}
+$$
+
+Focus on $\overrightarrow q_t\LPV{\cdot}{\PF{\vect x}{t-1}{i},\vect y_t}$.
+
+</div>
+
+
+## Proposal distribution
+<div class = "left">
 <!--html_preserve-->
 <div class = "no-top-marg-next"> 
 <!--/html_preserve-->
 Use $f$ as proposal distribution. 
 
-<small>**Bootstrap filter** from @Gordon93.</small>
+<small>**Bootstrap filter** from @Gordon93.</small></div>
 
 <div class = "fragment">
 Estimate the mode 
@@ -1001,14 +1089,19 @@ $$
 <!--/html_preserve-->
 and make a Taylor expansion around $\vect \mu_t^{(i)}$.
 
-<small>As suggested in @Pitt99 and used in @Fearnhead10.</small></div></div>
+<small>Then use a multivariate normal distribution or multivariate 
+t-distribution as suggested in @Pitt99 and used in @Fearnhead10.</small></div>
+
+</div>
+
+<p class = "fragment">
+Is $\bigO{Nn_tp^2}$ where $p$ is the dimension of $\vect x_t$.</p>
 
 </diV>
 
 ## Proposal distribution
 <div class="left">
-Previous is $\bigO{Nn_tp^2}$ where $p$ is the dimension of $\vect x_t$. Instead 
-make the expansion once using
+Instead make the expansion once using
 
 $$
 \bar{\vect x}_{t -1} = \sum_{i = 1}^N \PF{W}{t - 1}{i}\PF{\vect x}{t - 1}{i}
@@ -1047,6 +1140,13 @@ fix_e <- c(
   1.31762, -1.58914, -2.27547)
 ```
 
+$$
+\begin{align*}
+h\LP{E\LPV{y_{it}}{\vect z_t, o_{it}, \vect x_t, \vect u_{it}}} &= 
+  \vect\beta^\top\vect z_{it} + o_{it} + \vect x_t^\top\vect u_{it} \\
+\vect x_t &\sim \mathcal N\LP{\mat F\vect x_{t-1}, \mat \Sigma}
+\end{align*}
+$$
 
 <!-- there is a end tag from the previous slide -->
 <!-- </section> -->
@@ -1077,7 +1177,7 @@ logLik(base_fit) # glm model w/o random effects
 ```{r ess_boot}
 par(mar = c(5, 4, 1, 1))
 plot(head(f1$effective_sample_size$smoothed_clouds, -1), type = "h", 
-     ylab = "Effective sample size", xlab = "t")
+     ylab = "Effective sample size", xlab = "Time")
 ```
 
 ## Bootstrap filter: Predicted state variables
@@ -1119,7 +1219,7 @@ logLik(f2)
 par(mar = c(5, 4, 1, 1))
 plot(head(f2$effective_sample_size$smoothed_clouds - 
             f1$effective_sample_size$smoothed_clouds, -1), type = "h", 
-     ylab = "Diff effective sample size", xlab = "t")
+     ylab = "Diff effective sample size", xlab = "Time")
 ```
 
 ## Auxiliary particle filter with different proposal
@@ -1159,7 +1259,7 @@ estimate.</div>
 par(mar = c(5, 4, 1, 1))
 plot(head(f3$effective_sample_size$smoothed_clouds - 
             f2$effective_sample_size$smoothed_clouds, -1), type = "h", 
-     ylab = "Diff effective sample size", xlab = "t")
+     ylab = "Diff effective sample size", xlab = "Time")
 ```
 
 
@@ -1194,7 +1294,7 @@ logLik(f4)
 par(mar = c(5, 4, 1, 1))
 plot(head(f4$effective_sample_size$smoothed_clouds - 
             f2$effective_sample_size$smoothed_clouds, -1), type = "h", 
-     ylab = "Diff effective sample size", xlab = "t")
+     ylab = "Diff effective sample size", xlab = "Time")
 ```
 
 ## Auxiliary particle filter with different proposal
