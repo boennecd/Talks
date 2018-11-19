@@ -1,3 +1,6 @@
+# Ph.D. probability of default seminar 2018
+[Code](/US-pd-analysis-cbs-18/presentation.Rmd) and [presentation](https://raw.githubusercontent.com/boennecd/Talks/master/US-pd-analysis-cbs-18/presentation.html) (download the latter and open with Chrome).
+
 # Nordstat 2018 on dynamichazard
 [Code](Nordstat2018/nordstat18/) and [Presentation](https://htmlpreview.github.io/?https://github.com/boennecd/Talks/blob/master/Nordstat2018/nordstat18//presentation.html) ([download directory](Nordstat2018/nordstat18/) for formatting). Also on [Rpubs](http://rpubs.com/boennecd/Nordstat2018).
 
