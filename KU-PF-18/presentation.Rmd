@@ -94,12 +94,11 @@ citations on Google Scholar on 7/11/2018.</small></div>
 $$
 \begin{align*}
 y_{it} &\in\{0,1\} \\
-h\LP{E\LPV{y_{it}}{\vect z_t, o_{it}}} &= \vect\beta^\top\vect z_{it} + o_{it}
+h\LP{E\LPV{y_{it}}{\vect z_t}} &= \vect\beta^\top\vect z_{it}
 \end{align*}
 $$
 
-<small>$h$ is a link function, $\vect x_{it}$ are know covariates, and $o_{it}$
-are known offsets.</small>
+<small>$h$ is a link function and $\vect z_{it}$ are know covariates.</small>
 
 </div>
 
@@ -247,8 +246,8 @@ covered by prediction intervals.</small></div>
 
 $$
 \begin{align*}
-h\LP{E\LPV{y_{it}}{\vect z_t, o_{it}, \vect x_t, \vect u_{it}}} &= 
-  \vect\beta^\top\vect z_{it} + o_{it} + \vect x_t^\top\vect u_{it} \\
+h\LP{E\LPV{y_{it}}{\vect z_t, \vect x_t, \vect u_{it}}} &= 
+  \vect\beta^\top\vect z_{it} + \vect x_t^\top\vect u_{it} \\
 \vect x_t &\sim \mathcal N\LP{\mat F\vect x_{t-1}, \mat \Sigma}
 \end{align*}
 $$
@@ -288,7 +287,7 @@ Q\LPV{\vect\theta}{\vect\theta^{(k)}} &=
     y_{it}\log\LP{h^{-1}\LP{\eta_{it}}} + 
     \LP{1 - y_{it}}\log\LP{1 - h^{-1}\LP{\eta_{it}}} \\
 \eta_{it}\LP{\vect x_t} &= 
-    \vect\beta^\top\vect z_{it} + o_{it} + \vect x_t^\top\vect u_{it}
+    \vect\beta^\top\vect z_{it} + \vect x_t^\top\vect u_{it}
 \end{align*}
 $$
 
@@ -569,7 +568,7 @@ Need
 
 $$
 P\LPV{\vect X_1}{\vect y_1} = 
-    \frac{g\LPV{\vect y_1}{\vect x_1}f\LP{\vect x_1}}{P\LP{\vect y_1}}
+    \frac{g_t\LPV{\vect y_1}{\vect x_1}f\LP{\vect x_1}}{P\LP{\vect y_1}}
 $$
 
 <div class = "fragment">
@@ -1016,7 +1015,7 @@ $$
       \LP{1 - y_{it}}\log\LP{1 - h^{-1}\LP{\eta_{it}}}
   }{\vect \theta^{(k)}} \\
 & \eta_{it}\LP{\vect x_t} = 
-    \vect\beta^\top\vect z_{it} + o_{it} + \vect x_t^\top\vect u_{it}
+    \vect\beta^\top\vect z_{it} + \vect x_t^\top\vect u_{it}
 \end{align*}
 $$
 
@@ -1142,8 +1141,8 @@ fix_e <- c(
 
 $$
 \begin{align*}
-h\LP{E\LPV{y_{it}}{\vect z_t, o_{it}, \vect x_t, \vect u_{it}}} &= 
-  \vect\beta^\top\vect z_{it} + o_{it} + \vect x_t^\top\vect u_{it} \\
+h\LP{E\LPV{y_{it}}{\vect z_t, \vect x_t, \vect u_{it}}} &= 
+  \vect\beta^\top\vect z_{it}  + \vect x_t^\top\vect u_{it} \\
 \vect x_t &\sim \mathcal N\LP{\mat F\vect x_{t-1}, \mat \Sigma}
 \end{align*}
 $$
@@ -1359,7 +1358,8 @@ more.</small></div>
 <section class="end">
 <h1>Thank you!</h1>
 
-<small><p>Slides are on <a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
+<small><p>Slides are on <a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a> and
+<a href="http://rpubs.com/boennecd/KU-PF-18">rpubs.com/boennecd/KU-PF-18</a>.</p>
 
 <p>More examples at <a href="https://github.com/boennecd/dynamichazard/tree/master/examples">
 github.com/boennecd/dynamichazard/tree/master/examples</a>.</p>
