@@ -320,8 +320,8 @@ $$
 Importance sampling.
 
 <p class="fragment">Particle filtering.</p> 
-<p class="fragment">Two Particle smoothers.</p>
-<p class="fragment">The Implementation.</p>
+<p class="fragment">Two particle smoothers.</p>
+<p class="fragment">The implementation.</p>
 <p class="fragment">Examples.</p>
 
 </div>
@@ -813,7 +813,7 @@ $$
 
 <p class = "fragment">We can make a backward filter to sample 
 $\{\PB{\vect x}{t}{i}, \PB{W}{t}{i} \}_{i = 1, \dots, N}$ from 
-$\tilde P\LPV{\vect x_{t}}{\vect y_{1:d}}$.</p>
+$\tilde P\LPV{\vect x_{t:d}}{\vect y_{t:d}}$.</p>
 
 </div>
 
@@ -895,7 +895,7 @@ P\LPV{\vect x_t}{\vect y_{1:d}}
   \int f\LPV{\vect x_t}{\vect x_{t-1}}
   P\LPV{\vect x_{t-1}}{\vect y_{1:t -1}}\diff \vect x_{t-1}
   g_t\LPV{\vect y_t}{\vect x_t} \cdot \\
-&\qquad\int P\LPV{\vect y_{t+1}}{\vect x_{t+1}}
+&\qquad\int P\LPV{\vect y_{t+1:d}}{\vect x_{t+1}}
   f\LPV{\vect x_{t + 1}}{\vect x_t}\diff \vect x_{t+1}
 \end{align*}
 $$
@@ -944,7 +944,7 @@ P\LPV{\vect x_t}{\vect y_{1:d}}
   \color{black}f\LPV{\color{vermilion}\vect x_t}{\color{blugre}\vect x_{t-1}}
   \color{blugre}P\LPV{\vect x_{t-1}}{\vect y_{1:t -1}}\diff \vect x_{t-1}
   \color{vermilion}g_t\LPV{\vect y_t}{\vect x_t} \cdot \\
-&\qquad\color{cora}\int P\LPV{\vect y_{t+1}}{\vect x_{t+1}}
+&\qquad\color{cora}\int P\LPV{\vect y_{t+1:d}}{\vect x_{t+1}}
   \color{black}f\LPV{\color{cora}\vect x_{t + 1}}{\color{vermilion}\vect x_t}
   \color{cora}\diff \vect x_{t+1}
 \end{align*}
