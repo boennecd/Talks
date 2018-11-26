@@ -1,3 +1,6 @@
+# Presentation at University of Copenhagen on Particle Smoothers
+[Code](/KU-PF-18/presentation.Rmd) and [presentation](https://raw.githubusercontent.com/boennecd/Talks/master/KU-PF-18/presentation.html) (download the latter and open with Chrome). Also on [Rpubs](http://rpubs.com/boennecd/KU-PF-18).
+
 # PhD probability of default seminar 2018
 [Code](/US-pd-analysis-cbs-18/presentation.Rmd) and [presentation](https://raw.githubusercontent.com/boennecd/Talks/master/US-pd-analysis-cbs-18/presentation.html) (download the latter and open with Chrome).
 
