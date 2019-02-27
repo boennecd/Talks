@@ -1,0 +1,27 @@
+.reveal .slides > section, .reveal .slides > section > section {
+  text-align: left;
+}
+
+.reveal h1 {
+    font-size: 2.0em;
+    font-weight: bold;
+}
+
+.reveal h2 {
+  border-bottom: 1px solid;
+}
+
+div.logo {
+  background: url(fig/cbs_logo_horizontal.png);
+  position: absolute;
+  resize: both;
+  bottom: 50px;
+  left: 50px;
+  background-size: cover;
+  width: 45.25vh; /* 9.05 * height*/
+  height: 5vh;
+}
+
+body {
+  background: linear-gradient(20deg, white 15%, rgba(73, 103, 170, .05) 70%, rgba(73, 103, 170, .20));
+}
