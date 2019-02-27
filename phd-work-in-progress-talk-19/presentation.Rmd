@@ -1,0 +1,60 @@
+---
+title: "Modeling Frailty Correlated Defaults with Multivariate Latent Factors"
+date: "March 6, 2019"
+output: 
+  revealjs::revealjs_presentation:
+    css: styles.css
+    theme: simple
+    center: false
+    transition: slide
+    self_contained: true
+    reveal_options:
+      slideNumber: true
+    includes:
+      after_body: doc_suffix.html
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## dummy slide
+
+<!--html_preserve-->
+<script>
+(function() {
+  document.getElementById("dummy-slide").remove(); 
+  
+  var credit_div = document.createElement('div');
+  credit_div.innerHTML = "<p>Benjamin Christoffersen<br><small>Copenhagen Business School, Department of Finance, Center for Statistics</small></p>";
+  document.getElementsByTagName("section")[0].appendChild(credit_div);
+  document.getElementsByTagName("section")[0].classList.add("front");
+  document.getElementsByTagName("section")[0].classList.add("center");
+})();
+</script>
+<!--end dummy slide-->
+</section>
+
+<section>
+<section class="titleslide slide level1">
+<h1>Introduction</h1>
+<p class="fragment">Some long text about ...</p>
+
+<!-- there is a end tag from the previous slide -->
+<!-- </section> -->
+<!--/html_preserve-->
+
+
+## Something more
+
+xyz
+
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+## Including Plots
+
+Nah
