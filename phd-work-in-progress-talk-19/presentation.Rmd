@@ -138,7 +138,7 @@ and macro variables $\vec m_k$
 $$
 \lambda_i(t) = \lambda_{ik}=
   \exp\left(\alpha+\vec\beta^\top\vec x_{ik} + \vec\gamma^\top\vec m_k\right), \quad
-  \quad k = \lceil t\rceil
+  k - 1 < t \leq k
 $$
 </div>
 
@@ -207,7 +207,7 @@ Add non-linear effect to the idiosyncratic volatility and net income / size.
 
 <!--/html_preserve-->
 <img src="fig/table-coef-wo-frailty.png" class="tbl">
-<p class="smallish">$Z$-scores are the parentheses except for the splines
+<p class="smallish">The figures in the parentheses are $Z$-scores except for the splines
 which are likelihood-ratio test statistics.</p>
 
 <!--html_preserve-->
@@ -285,7 +285,8 @@ Use Monte Carlo expectation maximization algorithm.
 
 Use `dynamichazard` package [@Christoffersen18B] in R [@R2018]. 
 
-`dynamichazard` implements the particle smoother suggested by @Fearnhead10.
+`dynamichazard` contains an implement of the particle smoother suggested by 
+@Fearnhead10.
 
 <!--html_preserve-->
 </section>
@@ -342,9 +343,9 @@ $$
 
 ## Evidence from the literature
 
-@David13 find time-varying effect of log pledgeable assets.
+@David13 find a time-varying effect of log pledgeable assets.
 
-@Filipe16 find time-varying log total assets coefficient in 
+@Filipe16 find a non-constant log total assets coefficient in 
 their robustness check.
 
 <div class="w-small">
@@ -464,7 +465,7 @@ only have one discrete period.</p>
 <img src="fig/concordance-out-sample.jpg">
 <p class="smallish" style="text-align: left;">Open diamonds: model as in @Duffie07, open triangles: model 
 with splines and the interaction, closed triangles: same as open triangles with 
-random intercept, and closed diamonds: same as before with random log relative 
+a random intercept, and closed diamonds: same as before with a random log relative 
 market value slope.</p>
 
 ## Concordance index
@@ -561,7 +562,7 @@ of frailty variable.</p>
 <section class = "center">
 <h1>Extra slides</h1>
 <p>Slides with coefficient estimates in annual models, more predicted random 
-effects, and marginal effect of log relative market value slope.</p>
+effects, and marginal effect of log relative market value.</p>
 
 </section>
 <section class="center-horiz">
