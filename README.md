@@ -1,13 +1,16 @@
+# PhD Work-in-Progress seminar 2019
+[Code](/phd-work-in-progress-talk-19/presentation.Rmd) and presentation at [RPubs](http://rpubs.com/boennecd/PhD-wipt-19).
+
 # Presentation at University of Copenhagen on Particle Smoothers
-[Code](/KU-PF-18/presentation.Rmd) and [presentation](https://raw.githubusercontent.com/boennecd/Talks/master/KU-PF-18/presentation.html) (download the latter and open with Chrome). Also on [Rpubs](http://rpubs.com/boennecd/KU-PF-18).
+[Code](/KU-PF-18/presentation.Rmd) and [presentation](https://raw.githubusercontent.com/boennecd/Talks/master/KU-PF-18/presentation.html) (download the latter and open with Chrome). Also on [RPubs](http://rpubs.com/boennecd/KU-PF-18).
 
 # PhD probability of default seminar 2018
 [Code](/US-pd-analysis-cbs-18/presentation.Rmd) and [presentation](https://raw.githubusercontent.com/boennecd/Talks/master/US-pd-analysis-cbs-18/presentation.html) (download the latter and open with Chrome).
 
 # Nordstat 2018 on dynamichazard
-[Code](Nordstat2018/nordstat18/) and [presentation](https://htmlpreview.github.io/?https://github.com/boennecd/Talks/blob/master/Nordstat2018/nordstat18//presentation.html) ([download directory](Nordstat2018/nordstat18/) for formatting). Also on [Rpubs](http://rpubs.com/boennecd/Nordstat2018).
+[Code](Nordstat2018/nordstat18/) and [presentation](https://htmlpreview.github.io/?https://github.com/boennecd/Talks/blob/master/Nordstat2018/nordstat18//presentation.html) ([download directory](Nordstat2018/nordstat18/) for formatting). Also on [RPubs](http://rpubs.com/boennecd/Nordstat2018).
 
-# Yearly PhD talk at CBS
+# PhD Work-in-Progress seminar 2018
 [Code](cbs_phd_day_18/cbs_presentation.zip) and [presentation](https://htmlpreview.github.io/?https://github.com/boennecd/Talks/blob/master/cbs_phd_day_18/presentation.html).
 
 # EMS 2017 talk on dynamichazard
