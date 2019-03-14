@@ -1,0 +1,316 @@
+---
+title: "Frailty Models for Corporate Default Prediction"
+bibliography: bibliography.bib
+output: 
+  revealjs::revealjs_presentation:
+    css: styles.css
+    theme: simple
+    center: false
+    transition: slide
+    self_contained: true
+    reveal_options:
+      slideNumber: true
+    includes:
+      in_header: header.html
+      after_body: doc_suffix.html
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## dummy slide
+
+<!--html_preserve-->
+<script>
+(function() {
+  document.getElementById("dummy-slide").remove(); 
+  
+  var credit_div = document.createElement('div');
+  credit_div.innerHTML += "<div class='w-small'><p>Benjamin Christoffersen</p><p class='smallish'>Copenhagen Business School, Department of Finance, Center for Statistics, <a href='mailto:bch.fi@cbs.dk'>bch.fi@cbs.dk</p></div>";
+  credit_div.classList.add("authors");
+  document.getElementsByTagName("section")[0].appendChild(credit_div);
+  document.getElementsByTagName("section")[0].classList.add("front");
+  document.getElementsByTagName("section")[0].classList.add("center");
+})();
+</script>
+<!--end dummy slide-->
+
+</section>
+
+<section>
+<section class="titleslide slide level1 center">
+<h1>Motivation</h1>
+<p>Goal: assess risk of a portfolio with loans to a number of 
+firms.</p>
+
+<!-- there is a end tag from the previous slide -->
+<!-- </section> -->
+<!--/html_preserve-->
+
+
+## Motivation
+
+<!--html_preserve-->
+<div style="display: none;">
+$$
+\def\vect#1{\boldsymbol #1}
+\def\bigO#1{\mathcal{O}(#1)}
+\def\Cond#1#2{\left(#1 \mid #2\right)}
+\def\diff{{\mathop{}\!\mathrm{d}}}
+$$
+</div>
+<!--/html_preserve-->
+
+Loss of bank $b$ at time $t$, $L_{bt}$, is given by
+
+$$
+L_{bt} = \sum_{i:\in I_{bit}} E_{bit} L_{bit} Y_{it}
+$$
+
+- $E_{bit}$ is exposure ("loan size") to firm $i$.
+- $L_{bit}\in[0,1]$ is loss fraction given default. 
+- $Y_{it}$ is whether firm $i$ defaults.
+
+<p class="fragment">I focus on $Y_{it}$.&nbsp;
+<span class="fragment">$L_{bit}$ is also interesting.</span>&nbsp;
+<span class="fragment">Joint modelling might be even more interesting.</span>
+</p>
+
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<!--html_preserve-->
+<section>
+<section class="center">
+<h1>Talk</h1>
+<p>The hazard models I use and implemented software.</p>
+</section>
+</section>
+
+
+
+<section>
+<section class="center">
+<h1>Literature overview</h1>
+<!--/html_preserve-->
+
+Quick overview and my contributions.
+
+## Base models
+<div>
+We model the instantaneous hazard rate of firm $i$ at time $t$ 
+
+$$
+\lambda_i(t) = \lim_{h\rightarrow 0^+}\frac{P\left(T_i \leq t + h\mid T_i \geq t\right)}{h}
+$$
+</div>
+<div class="fragment">
+
+as a piecewise constant function of firm variables $\vect x_{ik}$ 
+and macro variables $\vect m_k$
+
+$$
+\lambda_i(t) = \lambda_{ik}=
+  \exp\left(\vect\beta^\top\vect x_{ik} + \vect\gamma^\top\vect m_k\right), \quad
+  k - 1 < t \leq k
+$$
+</div>
+
+<p class="fragment">Units are on monthly, quarterly, half-yearly, or annual
+scale.</p>
+
+## Base models -- performance
+
+<div class="w-small">
+<p>Good at sorting by riskiness.</p>
+<p class="smallish">Concordance index for one year ahead prediction in 
+$[0.80,0.85]$ for private firms and $\geq0.90$ for public firms.</p>
+</div>
+
+<p class="fragment">Harder to predict the level.</p>
+
+
+## Frailty
+
+Add random effect to account for clustering
+
+$$
+\begin{aligned}
+\lambda_{ik} &=
+  \exp\left(\vect\beta^\top\vect x_{ik} + \vect\gamma^\top\vect m_k
+  +A_k\right) \\
+A_k &= \theta A_{k-1}+\epsilon_k & \epsilon_k\sim N\left(0,\sigma^2\right)
+\end{aligned}
+$$
+
+## My work
+
+Relax linearity assumption
+
+$$
+\begin{aligned}
+\lambda_{ik} &=
+  \exp\left(\vect\beta^\top\vect x_{ik}^{(1)} +\sum_{i=1}^pf_p(x_{ikp}^{(2)};\vect\nu)+ \vect\gamma^\top\vect m_k
+  +A_k\right) \\
+A_k &= \theta A_{k-1}+\epsilon_k \\
+\epsilon_k&\sim N\left(0,\sigma^2\right)
+\end{aligned}
+$$
+
+where $\vect x_{ik} = (\vect x_{ik}^{(1)\top},\vect x_{ik}^{(2)\top})^\top$.
+
+## My work -- multivariate random variable
+
+Consider 
+
+$$
+\begin{aligned}
+\lambda_{ik} &=
+  \exp\left(\vect\beta^\top\vect x_{ik}^{(1)} +\sum_{i=1}^pf_p(x_{ikp}^{(2)};\vect\nu)+ \vect\gamma^\top\vect m_k
+  + \vect A_k^\top\vect z_{ik}\right) \\
+\vect A_k &= F \vect A_{k-1}+\vect \epsilon_k \\
+\vect \epsilon_k&\sim N\left(\vect 0,Q\right)
+\end{aligned}
+$$
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="center">
+<h1>Estimation</h1>
+<!--/html_preserve-->
+
+Implementations of particle filter and smoothers.
+
+## Fast approximation
+
+E.g., (very) fast approximation
+
+* Pseudo-likelihood estimation based on linearization.
+* Extended Kalman and unscented Kalman filters. 
+* and other approximations...
+
+Start of `dynamichazard` package.
+
+## Monte Carlo methods
+
+Use a Monte Carlo expectations maximization algorithm.
+
+Get arbitrary precision in E-step. 
+
+<div class="w-small fragment">
+<p>Need to sample from $Td$ dimensional space.</p>
+<p class="smallish">$T$ is number of time periods and 
+$\vect A_k \in \mathbb R^d$.</p>
+</div>
+
+## Particle filter
+
+Go from importance sampling of $\vect A_1 \mid \vect y_1$ density
+
+$$
+\begin{aligned}
+f(\vect A_1) &\approx 
+  \sum_{i =1}^N w_1^{(i)}\delta_{\vect a_1^{(i)}}(\vect A_1)\\
+\vect y_t &= \{y_{it}\}_{i\in R_t}
+\end{aligned}
+$$
+<p class = "fragment">to sequential importance sampling.</p>
+
+<p class="fragment">Can sample in $\bigO{Td}$ time.</p>
+
+## Particle filter -- idea
+
+$$
+L = \int \mu_0(\vect A_1)g_1\Cond{\vect y_1}{\vect A_1} 
+  \prod_{t = 2}^T g_t\Cond{\vect y_t}{\vect A_t}f\Cond{\vect A_t}{\vect A_{t - 1}}
+  \diff \vect A_{1:T}
+$$
+
+## Particle filter -- idea
+
+Given some discrete approximation 
+$\{\vect a_{t-1}^{(i)}, w_{t-1}^{(i)}\}_{i=1,\dots,N}$ of 
+$P\Cond{\vect A_{t-1}}{\vect y_{1:(t-1)}}$ and proposal distribution $q_t$ 
+
+<div class = "fragment">
+
+1. Sample $\vect a_t^{(i)} \sim q_t\Cond{\cdot}{\vect y_t, \vect a_{t-1}^{(i)}}$. 
+2. Update and normalize weights 
+$$
+\begin{aligned}
+\tilde w_t^{(i)} &= w_{t -1}^{(i)} \frac{
+  g_t\Cond{\vect y_t}{\vect a_t^{(i)}}
+  f\Cond{\vect a_t^{(i)}}{\vect a_{t -1}^{(i)}}
+  }{
+  q_t\Cond{\vect a_t^{(i)}}{\vect y_t, \vect a_{t-1}^{(i)}}
+  } \\
+w_t^{(i)} &= \tilde w_t^{(i)} / \sum_{k = 1}^N \tilde w_t^{(k)} 
+\end{aligned}
+$$
+
+</div>
+
+## Particle filter -- computational considerations
+
+Evaluating $g_t\Cond{\vect y_t}{\vect a_t^{(i)}}$ is the main issue: 
+$\bigO{\lvert R_t\rvert}$. 
+
+<p class="fragment">
+All $N$ computations can easily be done in parallel and scales nicely in 
+number threads.</p>
+
+## Particle smoothers and more
+<div class="w-small">
+<p>Improve sampling.</p>
+<p class="smallish fragment">Use auxiliary particle filter as 
+suggested by @Pitt99.</p>
+</div>
+
+<div class="w-small fragment">
+<p>Needs smoothing for E-step.</p>
+<p class="smallish fragment">`dynamichazard` contains an implementation of 
+the smoothers suggested by @Briers09 and @Fearnhead10.</p>
+</div>
+
+<div class="w-small fragment">
+<p>Want the observed information matrix.</p>
+<p class="smallish fragment">Use methods suggested by @Cappe05 and 
+@Poyiadjis11.</p>
+</div>
+
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+<section>
+<section class = "center">
+<h1>Thank you!</h1>
+
+<div class="w-small">
+<p class="smallish">Slides are on 
+<a href="http://rpubs.com/boennecd/YRD-19">rpubs.com/boennecd/YRD-19</a>.</p>
+<p class="smallish"><code>dynamichazard</code> is on CRAN at 
+<a href=" https://CRAN.R-project.org/package=dynamichazard"> CRAN.R-project.org/package=dynamichazard</a>.</p>
+<p class="smallish">An example of an application is at 
+<a href="https://ssrn.com/abstract=3339981">ssrn.com/abstract=3339981</a>.</p>
+</div>
+
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+<section class="titleslide slide level1">
+<h1>References</h1>
+
+<!--/html_preserve-->
