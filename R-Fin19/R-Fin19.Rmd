@@ -291,27 +291,76 @@ particle.</p>
 
 ## Small Example
 
-```{r prep_pbc, echo = FALSE}
+```{r prep_lung, echo = FALSE}
 library(survival)
-pbc2 <- local({
-  temp <- subset(pbc, id <= 312, select=c(id, sex, time, status, edema, age))
-  pbc2 <- survival::tmerge(
-    temp, temp, id=id, death = event(time, status))
-  pbc2 <- survival::tmerge(
-    pbc2, pbcseq, id=id, albumin = tdc(day, albumin),
-    protime = tdc(day, protime), bili = tdc(day, bili))
-  pbc2 <- pbc2[, c("id", "tstart", "tstop", "death", "sex", "edema",
-                   "age", "albumin", "protime", "bili")]
-})
+lung <- lung[!is.na(lung$ph.ecog), c("time", "status", "ph.ecog", "age")]
+lung$id <- 1:nrow(lung)
+lung$status <- lung$status == 2L
+lung$status[lung$time > 800L] <- FALSE
+lung$time <- pmin(lung$time, 800L)
 ```
 
-```{r show_pbc2}
-subset(pbc2, id == 3L)
+```{r show_lung}
+head(lung)
 ```
 
 ## Fit Model
 
-TODO: insert small example where a model is estimated.  
+```{r attach_dynam, echo = FALSE}
+library(dynamichazard)
+```
+
+```{r fit_lung, message = FALSE}
+set.seed(59366336)
+system.time(pf_fit <- PF_EM(
+  fixed = Surv(time, status) ~ ph.ecog + age, random = ~ 1,
+  model = "exponential", Q = as.matrix(.0001), type = "VAR", 
+  by = 50L, Fmat = as.matrix(.0001),
+  control = PF_control(
+    N_fw_n_bw = 500L, N_smooth = 1000L, N_first = 1000L, 
+    nu = 6, smoother = "Fearnhead_O_N", n_threads = 6, 
+    averaging_start = 200L, n_max = 300L, eps = 1e-4),
+  data = lung, max_T = max(lung$time), id = lung$id, 
+  Q_0 = as.matrix(4)))
+```
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Smoothed Predicted Value</h2>
+<!--/html_preserve-->
+
+```{r plot_lung}
+par(mar = c(6, 4, 1, 1))
+plot(pf_fit)
+```
+
+## Compare Fits
+
+```{r comp_coef}
+# fit models
+const_fit <- survreg(Surv(time, status) ~ ph.ecog + age, 
+                     data = lung, dist = "exponential")
+coxf <- coxph(Surv(time, status) ~ ph.ecog + age, data = lung)
+
+rbind(
+  survreg = -const_fit$coefficients,
+  coxph   = c(NA_real_, coef(coxf)), 
+  PF_EM   = pf_fit$fixed_effects)
+```
+
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Log-Likelihood Approximations</h2>
+<!--/html_preserve-->
+
+```{r plot_ll}
+par(mar = c(6, 4, 1, 1))
+plot(pf_fit$log_likes, type = "l", ylab = "Log-Likelihood")
+abline(h = logLik(const_fit), lty = 2)
+```
 
 ## Features 
 
@@ -328,36 +377,6 @@ Approximations of gradient and observed information matrix are available.
 Both method suggested by @Poyiadjis11 and method mentioned in @Cappe05. See 
 the `dynamichazard::PF_get_score_n_hess` function.
 </p></div>
-
-<!--
-
-## Fit model
-
-```{r attach_dynam}
-library(dynamichazard)
-```
-
-
-```{r fit_pbc}
-set.seed(59366336)
-
-const_fit <- survreg(
-  Surv(tstop - tstart, death == 2L) ~ age + edema + log(albumin) + 
-    log(bili) + log(protime), data = pbc2, dist = "exponential")
-
-pf_fit <- PF_EM(
-  fixed = Surv(tstart, tstop, death == 2L) ~ age + edema + log(albumin) + 
-    log(protime) - 1, random = ~ log(bili), 
-  data = pbc2, by = 50L, max_T = max(pbc2$tstop), model = "exponential", 
-  id = pbc2$id, order = 1L, Q_0 = diag(4, 2), type = "RW", Q = diag(1e-4, 2),
-  control = PF_control(
-    N_fw_n_bw = 200L, N_smooth = 1000L, N_first = 1000L, eps = 1e-4,
-    nu = 6, smoother = "Fearnhead_O_N", n_threads = 6, n_max = 1L), 
-  trace = 1L)
-```
-
--->
-
 
 <!--html_preserve-->
 </section>

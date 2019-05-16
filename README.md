@@ -1,3 +1,7 @@
+# R Finane 2019
+[Code](/R-Fin19/R-Fin19.Rmd) and presentation at 
+[RPubs](http://rpubs.com/boennecd/R-Fin19).
+
 # PhD Work-in-Progress seminar 2019
 [Code](/phd-work-in-progress-talk-19/presentation.Rmd) and presentation at [RPubs](http://rpubs.com/boennecd/PhD-wipt-19).
 
