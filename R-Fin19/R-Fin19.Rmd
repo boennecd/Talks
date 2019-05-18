@@ -138,9 +138,9 @@ confidence intervals.
 
 $$
 \begin{aligned}
-\log\lambda_{it} &= \vect\beta^\top \vect x_{it} + \vect\gamma^\top \vect z_t + A_k \\
-A_k &\sim \theta A_{k-1} + \epsilon_k \\ 
-\epsilon_k&\sim N(0,\sigma^2)
+\log\lambda_{it} &= \vect\beta^\top \vect x_{it} + \vect\gamma^\top \vect z_t + A_t \\
+A_t &\sim \theta A_{t-1} + \epsilon_t \\ 
+\epsilon_t&\sim N(0,\sigma^2)
 \end{aligned}    
 $$
 
@@ -168,15 +168,15 @@ $$
 \log\lambda_{it} &= \vect\beta^{(1)\top}\vect x_{it}^{(1)} +  
     \vect\gamma^\top \vect z_t + 
     \vect\beta^{(2)\top} \vect f(\vect x_{it}^{(2)}) + 
-    \vect A_k^\top\vect u_{it} \\
-\vect A_k &\sim F\vect A_{k-1} + \vect \epsilon_k \\ 
-\vect \epsilon_k&\sim \vect N(\vect 0, Q) \\
+    \vect A_t^\top\vect u_{it} \\
+\vect A_t &\sim F\vect A_{t-1} + \vect \epsilon_t \\ 
+\vect \epsilon_t&\sim \vect N(\vect 0, Q) \\
 \vect x_{it} &= 
      \left(\vect x_{it}^{(1)\top}, \vect x_{it}^{(2)\top}\right)^\top
 \end{aligned}    
 $$
 
-$\vect A_k \in \mathbb{R}^p$ is low dimensional and some elements in $\vect u_{it}$ and 
+$\vect A_t \in \mathbb{R}^p$ is low dimensional and some elements in $\vect u_{it}$ and 
 $\vect x_{it}$ may match.
 
 ## Generalize {data-transition="fade-in slide-out"}
@@ -186,16 +186,16 @@ $$
 \log\lambda_{it} &= \color{gray}{\vect\beta^{(1)\top}\vect x_{it}^{(1)} +  
     \vect\gamma^\top \vect z_t} + 
     \vect\beta^{(2)\top} \vect f(\vect x_{it}^{(2)}) + 
-    \vect A_k^\top\vect u_{it} \\
-\color{gray}{\vect A_k} &\sim F \color{gray}{\vect A_{k-1} + \vect \epsilon_k} \\ 
-\color{gray}{\vect \epsilon_k}
+    \vect A_t^\top\vect u_{it} \\
+\color{gray}{\vect A_t} &\sim F \color{gray}{\vect A_{t-1} + \vect \epsilon_t} \\ 
+\color{gray}{\vect \epsilon_t}
     &\color{gray}\sim \color{gray}{\vect N(\vect 0, }Q\color{gray}) \\
 \color{gray}{\vect x_{it}} & \color{gray}= \color{gray}{ 
     \left(\vect x_{it}^{(1)\top}, \vect x_{it}^{(2)\top}\right)^\top}
 \end{aligned}    
 $$
 
-<p class="gray">$\vect A_k \in \mathbb{R}^p$ is low dimensional and some elements in $\vect u_{it}$ and 
+<p class="gray">$\vect A_t \in \mathbb{R}^p$ is low dimensional and some elements in $\vect u_{it}$ and 
 $\vect x_{it}$ may match.</p>
 
 ## Need to Evaluate
@@ -222,7 +222,7 @@ $O_t$ is the risk set.
 
 <section>
 <section class = "center">
-<h1>Talk overview</h1>
+<h1>Talk Overview</h1>
 
 <div class="w-small">
 How?
@@ -559,7 +559,7 @@ From @Christoffersen18 with iid random effects and a much larger sample.
 
 <section>
 <section class="large-first center">
-<h1>Why another package?</h1>
+<h1>Why Another Package?</h1>
 
 <!-- there is a end tag from the previous slide -->
 <!-- </section> -->
@@ -631,7 +631,7 @@ Need some extra work to fit models in dynamichazard.
 
 <section>
 <section class="center final">
-<h1>Thank you!</h1>
+<h1>Thank You!</h1>
 
 <div class="w-small">
 <p class="smallish">Paper is at  
