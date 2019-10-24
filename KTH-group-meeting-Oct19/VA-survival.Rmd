@@ -1,5 +1,5 @@
 ---
-title: "Variational Approximations in Surival Analysis"
+title: "Variational Approximations"
 bibliography: ref.bib
 biblio-style: apa
 output: 
@@ -32,6 +32,13 @@ knitr::opts_chunk$set(echo = TRUE, fig.height = 5)
   var front_div = document.getElementsByTagName("section")[0];
   front_div.classList.add("front");
   front_div.classList.add("center");
+  
+  // add second header
+  var second_head = document.createElement("h1");
+  var node = document.createTextNode("in Surival Analysis");
+  second_head.appendChild(node);
+  second_head.style.margin = "0";
+  front_div.appendChild(second_head);
   
   // add author 
   var credit_div = document.createElement('div');
@@ -99,7 +106,7 @@ Model the time of a terminal event.
 Time zero is time of diagnosis, onset, or birth date.</p>
 
 <p class="fragment">
-Some event are (right) censored.</p>
+Some events are (right) censored.</p>
 
 
 <!--html_preserve-->
@@ -168,7 +175,7 @@ Black: treatment. Blue and dashed: placebo.</p>
 <div class="w-small">
 A larger number of observations may be censored
 <p class="smallish">
-e.g., short trail period or low event rate.</p>
+e.g., short trial period or low event rate.</p>
 </div>
 
 <p class="fragment">
@@ -256,7 +263,7 @@ to improve prediction accuracy or make inference.</p>
 Typical choice is 
 
 $$
-\lambda\Cond{t}{x} = \lambda_0(t)\exp\left(\vec\beta^\top\vec x\right)
+\lambda\Cond{t}{\vec x} = \lambda_0(t)\exp\left(\vec\beta^\top\vec x\right)
 $$
 <div class="w-small">
 where $\vec x$ is known covariates and $\lambda_0$ is the baseline hazard. 
@@ -288,7 +295,7 @@ $$g\left(S\Cond{t}{\vec x}\right) =
   g\left(S_0(t)\right) + \vec\beta^\top\vec x$$
 
 <div class="w-small">
-where $g$ is a link function and $S_0$ is a baseline survival function
+where $g$ is a link function and $S_0$ is a baseline survival function.
 <p class = "smallish">
 E.g., see @Younes97 and @Royston02.</p>
 </div>
@@ -330,7 +337,7 @@ g\left(S\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k}\right) &=
 \end{align*}
 $$
 <div class="w-small">
-$\vec z$ is known covariates and $\vec u_k$ is group $k$'s random effect.
+$\vec z_{ki}$ is known covariates and $\vec u_k$ is group $k$'s random effect.
 <p class="smallish">
 $k=1,\dots,m$ indicates the group and group $k$ has $i=1,\dots,n_k$ members.
 </p>
@@ -394,7 +401,7 @@ $l_k(\vec\beta, \mat\Sigma)$ is intractable in general.</p>
 <div class="w-small">
 Laplace Approximation.
 <p class="smallish">
-Fast, scales well, but may perform poorly e.g., small groups ($n_k$ small).
+Fast, scales well, but may perform poorly e.g., for small groups ($n_k$ small).
 </p></div>
 
 <div class="w-small fragment">
@@ -429,6 +436,9 @@ covariance matrix $\mat\Lambda$, and $\mat I$ is the identity matrix.</p>
 
 ## Adaptive Gaussian Quadrature
 Apply Gauss-Hermite quadrature for each coordinate of $\vec s$.
+
+<p class="fragment">
+Each  coordinate, $s_l$, is approximated at $b$ points.</p>
 
 <div class = "fragment">
 Let $(g_i, w_i)$ be one of the node values and the corresponding weight for 
@@ -515,7 +525,7 @@ l_k(\vec\beta, \mat\Sigma) &= \log \int
     \log p(\vec t_k, \vec d_k, \vec u)}
   \der \vec u \\
 h_k(\vec\beta, \mat\Sigma, \vec u) &=
-  \vec d^\top \log \lambda\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u} \\
+  \vec d^\top_k \log \lambda\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u} \\
   &\hspace{20pt} + \vec 1^\top\log S\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u}
 \end{align*}
 $$
@@ -531,7 +541,7 @@ term is tractable.</p>
 <div class = "fragment">
 The remaining two types of terms
 
-$$\left(\vec d^\top \log \lambda\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u} + \vec 1^\top\log S\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u}\right)\phi(\cdot)$$
+$$\left(\vec d^\top_k \log \lambda\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u} + \vec 1^\top\log S\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u}\right)\phi(\cdot)$$
 </div>
 
 ## Applying the Lower Bound
@@ -602,19 +612,20 @@ Suppose that
 $$
 \lambda\Cond{s}{\vec x_{ki}, \vec z_{ki}, \vec u_k}
   = \lambda_0(s ;\vec x_{ki})
-  \exp\left(f(s, \vec z_{ki})^\top\vec u_k\right)
+  \exp\left(\vec f(s, \vec z_{ki})^\top\vec u_k\right)
 $$
-<p>where $f$ is **not** applied elementwise.<span class = "fragment" data-fragment-index=1> Then</span></p>
+<p>where $\vec f:\, \mathbb{R}^v\rightarrow\mathbb{R}^k$ is **not** 
+applied elementwise.<span class = "fragment" data-fragment-index=1> Then</span></p>
 
 <div class="fragment" data-fragment-index=1>
 
 $$\begin{align*}
 \log S\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k} &\\
 &\hspace{-40pt}= -\int_0^{t_{ki}} \lambda_0(s ;\vec x_{ki})
-  \exp\left(f(s, \vec z_{ki})^\top\vec u_k\right) \der s \\
+  \exp\left(\vec f(s, \vec z_{ki})^\top\vec u_k\right) \der s \\
 \log\lambda\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k}
   &= \log \lambda_0(t_{ki};\vec x_{ki}) + 
-  f(t_{ki}, \vec z_{ki})^\top\vec u_k
+  \vec f(t_{ki}, \vec z_{ki})^\top\vec u_k
 \end{align*}$$
 </div>
 
@@ -627,7 +638,7 @@ $$
   \phi(\vec u; \vec\mu, \mat\Lambda)\der\vec u \\
 &=- \int_0^{t_{ki}} \lambda_0(s ;\vec x_{ki})
   \bigg(\int
-  \exp\left(f(s, \vec z_{ki})^\top\vec u\right) \\
+  \exp\left(\vec f(s, \vec z_{ki})^\top\vec u\right) \\
 &\hspace{110pt}\cdot
   \phi(\vec u; \vec\mu, \mat\Lambda)
   \der\vec u\bigg)\der s
@@ -679,7 +690,7 @@ Dependence is often assumed through a random mean function of the markers.</p>
 <p class="smallish">The markdown is at  
 <a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
 <p class="smallish">Notes are available at  
-<a href="https://github.com/boennecd/Talks/KTH-group-meeting-Oct19/notes.pdf">github.com/boennecd/Talks/KTH-group-meeting-Oct19/notes.pdf</a>.</p>
+<a href="http://bit.ly/KTH19-VA-notes">bit.ly/KTH19-VA-notes</a>.</p>
 <p class="smallish">References are on the next slide.</p>
 </div>
 
