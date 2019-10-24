@@ -1,3 +1,7 @@
+# KTH Group Meeting 2019
+[Code](/KTH-group-meeting-Oct19/VA-survival.Rmd) and presentation at 
+[RPubs](http://rpubs.com/boennecd/KTH-group-meeting-Oct19).
+
 # R Finane 2019
 [Code](/R-Fin19/R-Fin19.Rmd) and presentation at 
 [RPubs](http://rpubs.com/boennecd/R-Fin19).

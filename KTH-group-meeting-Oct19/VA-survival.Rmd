@@ -1,0 +1,694 @@
+---
+title: "Variational Approximations in Surival Analysis"
+bibliography: ref.bib
+biblio-style: apa
+output: 
+  revealjs::revealjs_presentation:
+    css: styles.css
+    theme: black
+    center: false
+    transition: slide
+    highlight: monochrome
+    self_contained: true
+    reveal_options:
+      slideNumber: true
+    includes:
+      in_header: header.html
+      after_body: doc_suffix.html
+---
+
+## dummy slide
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.height = 5)
+.par_use <- list(cex = 1.33, cex.lab = 1.2)
+```
+
+<!--html_preserve-->
+<script>
+(function() {
+  document.getElementById("dummy-slide").remove(); 
+  
+  var front_div = document.getElementsByTagName("section")[0];
+  front_div.classList.add("front");
+  front_div.classList.add("center");
+  
+  // add author 
+  var credit_div = document.createElement('div');
+  credit_div.innerHTML += "<div class='w-small'><p>Benjamin Christoffersen</p><p class='smallish'>KI, Department of Medical Epidemiology and Biostatistics, <a href='mailto:benjamin.christoffersen@ki.se'>benjamin.christoffersen@ki.se</a></p><p class='smallish'>KTH, Division of Robotics, Perception and Learning, <a href='mailto:benchr@kth.se'>benchr@kth.se</a></p></div>";
+  credit_div.classList.add("authors");
+  front_div.appendChild(credit_div);
+})();
+</script>
+<!--end dummy slide-->
+
+</section>
+
+<section>
+<section class="large-first center slide level2">
+<h1>Introduction</h1>
+<!--/html_preserve-->
+
+<div style="display: none;">
+$$
+\definecolor{gray}{RGB}{192,192,192}
+\renewcommand\vec{\boldsymbol}
+\def\bigO#1{\mathcal{O}(#1)}
+\def\Cond#1#2{\left(#1\,\middle|\, #2\right)}
+\def\mat#1{\boldsymbol{#1}}
+\def\der{{\mathop{}\!\mathrm{d}}}
+\def\argmax{\text{arg}\,\text{max}}
+$$
+</div>
+
+## Presentation Outline
+Introduce survival analysis.
+
+<div class="w-small fragment">
+Show computational issues in survival analysis
+<p class="smallish">
+particularly with random effects.</p>
+</div>
+
+<div class="w-small fragment">
+Show applications of variational approximations (VAs)
+<p class="smallish">
+in survival analysis.</p>
+</div>
+
+<p class = "fragment"> 
+Cover future work.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Survival Analysis</h1>
+<!--/html_preserve-->
+
+## Typical Application
+
+Model the time of a terminal event.
+
+<p class="fragment">
+Time zero is time of diagnosis, onset, or birth date.</p>
+
+<p class="fragment">
+Some event are (right) censored.</p>
+
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz" data-transition="slide-in fade-out">
+<h2>Motivating Example</h2>
+<!--/html_preserve-->
+
+```{r show_simple_ex, echo = FALSE}
+library(survival)
+pbc <- pbc[order(pbc$time), ]
+pbc$event <- pbc$status == 2
+pbc <- subset(pbc, !is.na(trt))
+
+ex_data <- local({
+  set.seed(65522208)
+  n <- 45
+  keep <- sort(sample.int(nrow(pbc), n))
+  
+  y <- rev(seq_len(n)) / (n + 1)
+  x     <- pbc[keep, ]$time
+  event <- pbc[keep, ]$event
+  trt   <- pbc[keep, ]$trt
+  
+  data.frame(y, x, event, trt)
+})
+
+.ex_plot <- function(use_col){
+  with(ex_data, {
+    n <- length(y)
+    par(.par_use)
+    par(mar = c(5, 2, 2, 2), xpd = TRUE)
+    plot(range(c(0, x)), range(y), type = "n", bty = "l",
+         xaxs = "i", yaxt = "n", xlab = "Time", ylab = "", xpd = NA)
+    
+    col <- if(use_col) 
+      ifelse(trt == 1, "Black", "DarkBlue") else "Black"
+    arrows(x0 = rep(0, n), y0 = y, x1 = x, y1 = y, code = 0, col = col, 
+           lwd = 1.5, lty = 1 + (if(use_col) trt == 2 else 0))  
+    points(
+      x, y, pch = ifelse(event, 16, 1), cex = par()$cex * .6, col = col)
+  })
+}
+.ex_plot(FALSE)
+```
+
+<p class="smallish" style="text-align: left;">
+Full circle: observed event. Open circle: censored. Order is only for 
+visualization purposes.</p>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz" data-transition="fade-in slide-out">
+<h2>Motivating Example</h2>
+<!--/html_preserve-->
+
+```{r cont_simple_ex, echo = FALSE}
+.ex_plot(TRUE)
+```
+
+<p class="smallish" style="text-align: left;">
+Black: treatment. Blue and dashed: placebo.</p>
+
+## Remarks
+
+<div class="w-small">
+A larger number of observations may be censored
+<p class="smallish">
+e.g., short trail period or low event rate.</p>
+</div>
+
+<p class="fragment">
+Need to account for censoring.</p>
+
+## Notation
+
+$T_i^*$ be the event time of individual $i$ and let $f$ denote the density 
+function. 
+
+<div class="w-small fragment">
+Observe $T_i = \min (T_i^*, C_i)$ where $C_i$ is the censoring time.
+<p class="smallish">
+Let $D_i = 1_{\{T_i^* < C_i\}}$ be the event indicators. 
+</p></div>
+
+<div class = "fragment">
+The observed likelihood is 
+
+$$p(t_i, d_i) = f(t_i)^{d_i}P(T_i^* > t_i)^{1 - d_i}$$
+</div>
+
+## Notation
+
+Let $S$ be the survival function 
+
+$$S(t_i) = P(T_i^* > t_i) = \int_t^\infty f(s)\der s$$
+
+<div class = "fragment">
+Let $\lambda$ be the hazard function
+
+$$
+\lambda(t) = \lim_{h\rightarrow 0^+} \frac
+  {P(t\leq T_i^* < t + h \mid T_i^*\geq t)}{h}
+$$
+
+which is the instantaneous event rate.
+</div>
+
+## Notation
+
+Then 
+
+$$p(t_i, d_i) = \lambda(t_i)^{d_i}S(t_i) = 
+  \lambda(t_i)^{d_i}\exp\left(-\int_0^{t_i}\lambda(s)\der s\right)$$
+  
+<div class = "fragment"> 
+Important: two types of terms in maximum likelihood estimation
+
+$$d_i\log\lambda(t_i) + \log S(t)$$
+</div> 
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Nonparametric Estimates</h2>
+<!--/html_preserve-->
+
+```{r km_plots, echo = FALSE}
+local({
+  km_fit <- survfit(Surv(time, event) ~ I(trt == 1), data = pbc, 
+                    conf.type = "log-log")
+  par(.par_use)
+  par(mar = c(5, 5, 1, 1))
+  plot(km_fit, ylab = expression(S(t)), xlab = "Time", bty = "l", 
+       xaxs = "i", yaxs = "i", conf.int = TRUE, 
+       col = c( "DarkBlue", "Black"))
+})
+```
+
+## Remarks
+<div class="w-small">
+Want to control for additional factors 
+<p class="smallish">
+e.g., with observational data sets.</p>
+</div>
+
+<div class="w-small fragment">
+Want to impose (parametric) assumptions
+<p class="smallish">
+to improve prediction accuracy or make inference.</p>
+</div>
+
+## Proportional Hazards (PH) Models
+Typical choice is 
+
+$$
+\lambda\Cond{t}{x} = \lambda_0(t)\exp\left(\vec\beta^\top\vec x\right)
+$$
+<div class="w-small">
+where $\vec x$ is known covariates and $\lambda_0$ is the baseline hazard. 
+<p class="smallish">
+$\lambda_0$ may be parametric or nonparametric [@cox72].</p>
+</div>
+
+<p class = "fragment">
+Unit increase in $x_l$ yields an $\exp\beta_l$ factor increase in 
+$\lambda$.</p>
+
+## Proportional Hazards (PH) comments
+Special classes of $\lambda_0$ yields a tractable (partial) 
+log-likelihood function.
+
+<div class = "fragment">
+Generalization may be intractable due to 
+
+$$S\Cond{t}{\vec x} = \exp\left(-\int_0^t\lambda\Cond{s}{\vec x}\der s\right)$$
+<p class = "smallish">
+Leads to one-dimensional numerical integration.</p>
+
+</div>
+
+## Generalized Survival Models (GSMs)
+Let 
+
+$$g\left(S\Cond{t}{\vec x}\right) = 
+  g\left(S_0(t)\right) + \vec\beta^\top\vec x$$
+
+<div class="w-small">
+where $g$ is a link function and $S_0$ is a baseline survival function
+<p class = "smallish">
+E.g., see @Younes97 and @Royston02.</p>
+</div>
+
+<p class = "fragment"> 
+Avoid integration.</p>
+
+<p class = "fragment">
+Get a monotonicity constraint for $S\Cond{t}{\vec x}$ for all $\vec x$.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Computational Issues</h1>
+<!--/html_preserve-->
+
+## Random Effects
+<div class="w-small">
+May have unobserved factors which we want to account for or are interested
+in 
+<p class="smallish">
+e.g., twins who share genetic background and environment.</p>
+</div>
+
+## GSMs with Random Effects
+$$
+\begin{align*}
+g\left(S\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k}\right) &= 
+  g\left(S_0(t_{ki})\right) + \vec\beta^\top\vec x_{ki}
+  + \vec z^\top_{ki}\vec u_k \\
+  &= g\left(S_0(t_{ki}; \vec x_{ki})\right) + \vec z^\top\vec u_k \\
+\vec U_k &\sim h(\vec \theta)
+\end{align*}
+$$
+<div class="w-small">
+$\vec z$ is known covariates and $\vec u_k$ is group $k$'s random effect.
+<p class="smallish">
+$k=1,\dots,m$ indicates the group and group $k$ has $i=1,\dots,n_k$ members.
+</p>
+</div>
+
+<div class = "fragment">
+In particular, we consider
+
+$$\vec U_k \sim N(\vec 0, \mat \Sigma)$$
+</div>
+
+## Notation 
+Let functions be applied elementwise
+
+$$
+\begin{align*}
+\vec x &= (x_1, x_2)^\top \\
+f(\vec x) &= (f(x_1), f(x_2))^\top
+\end{align*}
+$$
+
+<div class = "fragment">
+Further, let
+
+$$
+\begin{align*}
+\vec t_k &= (t_{k1}, \dots, t_{kn_k})^\top, &
+  \vec d_k &= (d_{k1}, \dots, d_{kn_k})^\top \\
+\mat X_k &= (\vec x_{k1}, \dots, \vec x_{kn_k})^\top, &
+  \mat Z_k &= (\vec z_{k1}, \dots, \vec z_{kn_k})^\top
+\end{align*}
+$$
+</div>
+
+## Marginal Log-likelihood
+
+The marginal log-likelihood (or *model evidence*) term for each group $k$ is
+
+$$
+\begin{align*}
+l_k(\vec\beta, \mat\Sigma) &= \log \int
+  \exp\left(h_k(\vec\beta, \mat\Sigma, \vec u)
+  + \log \phi(\vec u;\mat \Sigma)\right)
+  \der \vec u \\
+h_k(\vec\beta, \mat\Sigma, \vec u) &=
+  \vec d^\top_k \log \lambda\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u} \\
+  &\hspace{20pt} + \vec 1^\top\log S\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u}
+\end{align*}
+$$
+
+<p class="smallish">
+where $\phi(\cdot ;\mat \Sigma)$ is the density function of the multivariate 
+normal distribution with a zero mean vector and covariance matrix $\mat \Sigma$.
+$\vec 1$ is a vector of ones.</p>
+
+<p class="fragment">
+$l_k(\vec\beta, \mat\Sigma)$ is intractable in general.</p>
+
+## Common Approximations
+
+<div class="w-small">
+Laplace Approximation.
+<p class="smallish">
+Fast, scales well, but may perform poorly e.g., small groups ($n_k$ small).
+</p></div>
+
+<div class="w-small fragment">
+Adaptive Gaussian quadrature.
+<p class="smallish">
+Fast in low dimensions, scales poorly, and performs well.
+For examples, see @Liu94 and @Pinheiro95.
+</p></div>
+
+<div class="w-small fragment">
+Monte Carlo methods.
+<p class="smallish">
+Slow, scales poorly, and performs well.
+</p></div>
+
+## Adaptive Gaussian Quadrature
+$$\begin{align*}
+l &= \int c(\vec u)\der u \qquad\qquad\qquad\qquad\qquad \text{(intractable)} \\
+&= \int \frac{c(\vec u)}{\phi(\vec u; \vec\mu, \mat\Lambda)}
+  \phi(\vec u; \vec\mu, \mat\Lambda)\der\vec u \\
+&= \int\underbrace{(2\pi)^{k/2} \lvert\Lambda\rvert^{1/2}
+  c(\vec\mu + \Lambda^{1/2}\vec s)
+  \exp\left(\vec s^\top\vec s / 2\right)}_{
+  \tilde c(\vec s; \vec\mu, \mat\Lambda)}
+  \phi(\vec s; \vec 0, \mat I)\der\vec s
+\end{align*}$$
+
+<p class="smallish">    
+where $\vec u\in \mathbb{R}^k$, $\phi(\cdot; \vec\mu, \mat\Lambda)$ is the 
+density of a multivariate normal distribution with mean $\vec\mu$ and 
+covariance matrix $\mat\Lambda$, and $\mat I$ is the identity matrix.</p>
+
+## Adaptive Gaussian Quadrature
+Apply Gauss-Hermite quadrature for each coordinate of $\vec s$.
+
+<div class = "fragment">
+Let $(g_i, w_i)$ be one of the node values and the corresponding weight for 
+$i = 1,\dots,b$ for each coordinate, $s_l$, and
+
+$$\vec s_{j_1,\cdots,j_k} = (g_{j_1},\cdots,g_{j_k})^\top$$
+</div>
+
+## Adaptive Gaussian Quadrature
+
+Repeatedly applying Gauss-Hermite quadrature yields
+
+$$\begin{align*}
+l &= \int \tilde c(\vec s; \vec\mu; \mat\Lambda)
+  \phi(\vec s; \vec 0, \mat I)\der\vec s \\
+&\approx \sum_{j_1=1}^b\cdots\sum_{j_k=1}^b
+   \tilde c(\vec s_{j_1,\cdots,j_k}; \vec\mu, \mat\Lambda)
+   \prod_{q = 1}^k w_{j_q}
+\end{align*}$$
+
+<div class = "fragment w-small">
+Scales poorly in dimension of the random effect, $k$.
+<p class = "smallish">
+Fast alternatives are attractive.</p>
+</div>
+
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Variational Approximations</h1>
+<!--/html_preserve-->
+
+## Lower Bound
+
+A lower bound of the log-likelihood is
+
+$$
+\begin{align*}
+\log p\left(\vec t_k, \vec d_k\right) &= 
+  \int q(\vec u;\vec\theta_k) \log \left(\frac
+  {p\left(\vec t_k, \vec d_k, \vec u\right) / q(\vec u;\vec\theta_k)}
+  {p\Cond{\vec u}{\vec t_k, \vec d_k} / q(\vec u;\vec\theta_k)}
+  \right)\der\vec u \\
+&\geq \int q(\vec u;\vec\theta_k) \log \left(\frac
+  {p\left(\vec t_k, \vec d_k, \vec u\right)}
+  {q(\vec u;\vec\theta_k)}
+  \right)\der\vec u \\
+&= \log \tilde p \left(\vec t_k, \vec d_k;\vec\theta_k\right)
+\end{align*}
+$$
+
+<p>for some density function $q$.<span class = "fragment" data-fragment-index=1> Equality is if and only
+</span></p>
+
+<div class = "fragment" data-fragment-index=1>
+
+$$
+q(\vec u_k;\vec\theta_k) = p\Cond{\vec u_k}{\vec t_k, \vec d_k}
+$$
+</div>
+
+## Lower Bound 
+Approximate maximum likelihood is 
+
+$$\argmax_{\vec\beta, \mat \Sigma, \vec\theta_1, \cdots, \vec\theta_m}
+  \sum_{k=1}^m\log \tilde p \left(\vec t_k, \vec d_k;\vec\theta_k\right)$$
+
+## Marginal Log-likelihood
+
+Recall the marginal log-likelihood 
+
+$$
+\begin{align*}
+l_k(\vec\beta, \mat\Sigma) &= \log \int
+  \exp\underbrace{\left(h_k(\vec\beta, \mat\Sigma, \vec u)
+  + \log \phi(\vec u;\mat \Sigma)\right)}_{
+    \log p(\vec t_k, \vec d_k, \vec u)}
+  \der \vec u \\
+h_k(\vec\beta, \mat\Sigma, \vec u) &=
+  \vec d^\top \log \lambda\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u} \\
+  &\hspace{20pt} + \vec 1^\top\log S\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u}
+\end{align*}
+$$
+
+## Applying the Lower Bound
+Suppose 
+$q(\vec u; \vec\mu, \mat\Lambda) = \phi(\vec u; \vec\mu, \mat\Lambda)$.
+
+<p class = "fragment">
+$\left(\log \phi(\vec u;\mat \Sigma) - \log q(\vec u; \vec\mu, \mat\Lambda)\right)\phi(\cdot)$ 
+term is tractable.</p>
+
+<div class = "fragment">
+The remaining two types of terms
+
+$$\left(\vec d^\top \log \lambda\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u} + \vec 1^\top\log S\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u}\right)\phi(\cdot)$$
+</div>
+
+## Applying the Lower Bound
+
+$$
+\lambda\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u_k} = 
+  s\left(\vec t_k; \eta_1(\mat X_k) + \mat Z_k\vec u_k\right)
+$$
+
+<p>for some function $s$.<span class = "fragment" data-fragment-index=1> Then</span></p>
+
+<div class = "fragment" data-fragment-index=1>
+$$
+\begin{align*}
+\hspace{20pt}&\hspace{-20pt}
+\int \log\lambda\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u}
+  \phi(\vec u; \vec\mu, \mat\Lambda) \der \vec u  \\
+&= \int \log s \left(t_{ki};\eta_1(\vec x_{ki}) 
+  + \vec z_{ki}^\top\vec\mu + \sqrt{\vec z_{ki}^\top\Sigma\vec z_{ki}}x\right)
+  \phi(x)\der x
+\end{align*}
+$$
+</div>
+
+<div class="w-small fragment">
+I.e., $n_k$ one-dimensional integrals
+<p class="smallish">
+instead of one $k$-dimensional integral. As shown by @Ormerod12
+for generalized linear mixed models.</p>
+</div>
+
+## GSM with Log-log Link Function
+Recall 
+
+$$
+g\left(S\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k}\right) 
+  = g\left(S_0(t_{ki}; \vec x_{ki})\right) +
+  \vec z^\top_{ki}\vec u_k
+$$
+
+and suppose that
+
+$$g(x) = \log(-\log(x))$$
+
+## GSM with Log-log Link Function
+Then 
+
+$$\begin{align*}
+\log S\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k}
+  &= \exp(\vec z^\top_{ki}\vec u_k)\log S_0(t_{ki}; \vec x_{ki}) \\
+\log\lambda\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k}
+  &= L_0(t_{ki}; \vec x_{ki}) + \vec z^\top_{ki}\vec u_k
+\end{align*}$$
+
+with 
+
+$$L_0(t_{ki}; \vec x_{ki}) = 
+  \log\left(- \frac
+  {S'_0(t_{ki}; \vec x_{ki})}
+  {S_0(t_{ki}; \vec x_{ki})} \right)$$
+  
+<p class = "fragment">
+Both yield tractable lower bound terms.</p>
+
+## Generalized PH Model
+Suppose that 
+
+$$
+\lambda\Cond{s}{\vec x_{ki}, \vec z_{ki}, \vec u_k}
+  = \lambda_0(s ;\vec x_{ki})
+  \exp\left(f(s, \vec z_{ki})^\top\vec u_k\right)
+$$
+<p>where $f$ is **not** applied elementwise.<span class = "fragment" data-fragment-index=1> Then</span></p>
+
+<div class="fragment" data-fragment-index=1>
+
+$$\begin{align*}
+\log S\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k} &\\
+&\hspace{-40pt}= -\int_0^{t_{ki}} \lambda_0(s ;\vec x_{ki})
+  \exp\left(f(s, \vec z_{ki})^\top\vec u_k\right) \der s \\
+\log\lambda\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k}
+  &= \log \lambda_0(t_{ki};\vec x_{ki}) + 
+  f(t_{ki}, \vec z_{ki})^\top\vec u_k
+\end{align*}$$
+</div>
+
+## Generalized PH Model
+
+$$
+\begin{align*}
+\hspace{40pt}&\hspace{-40pt}
+\int \log S\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u}
+  \phi(\vec u; \vec\mu, \mat\Lambda)\der\vec u \\
+&=- \int_0^{t_{ki}} \lambda_0(s ;\vec x_{ki})
+  \bigg(\int
+  \exp\left(f(s, \vec z_{ki})^\top\vec u\right) \\
+&\hspace{110pt}\cdot
+  \phi(\vec u; \vec\mu, \mat\Lambda)
+  \der\vec u\bigg)\der s
+\end{align*}
+$$
+<p class = "smallish">
+Assuming we can change order of integration. Similar to result by 
+@yue19.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Future work</h1>
+<!--/html_preserve-->
+
+## Precision
+The lower bounds are computationally attractive but precision is unknown. 
+
+<p class="fragment">
+Compare the Laplace approximation with VA in simple case.</p>
+
+## Joint Models
+Markers are often observed in discrete time which are supposedly related 
+to the event rate.
+
+<p class = "fragment">
+Dependence is often assumed through a random mean function of the markers.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="center final">
+<h1>Thank You!</h1>
+
+<div class="w-small">
+<p class="smallish">The presentation is at  
+<a href="http://rpubs.com/boennecd/KTH-group-meeting-Oct19">rpubs.com/boennecd/KTH-group-meeting-Oct19</a>.</p>
+<p class="smallish">The markdown is at  
+<a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
+<p class="smallish">Notes are available at  
+<a href="https://github.com/boennecd/Talks/KTH-group-meeting-Oct19/notes.pdf">github.com/boennecd/Talks/KTH-group-meeting-Oct19/notes.pdf</a>.</p>
+<p class="smallish">References are on the next slide.</p>
+</div>
+
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<section>
+<h1>References</h1>
+
+<!--/html_preserve-->
