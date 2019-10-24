@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="generator" content="pandoc">
-  <title>Variational Approximations in Surival Analysis</title>
+  <title>Variational Approximations</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui">
@@ -454,7 +454,7 @@ document.getElementsByTagName('head')[0].appendChild(style);
     <div class="slides">
 
 <section>
-    <h1 class="title">Variational Approximations in Surival Analysis</h1>
+    <h1 class="title">Variational Approximations</h1>
 </section>
 
 <section id="dummy-slide" class="slide level2">
@@ -467,6 +467,13 @@ document.getElementsByTagName('head')[0].appendChild(style);
   var front_div = document.getElementsByTagName("section")[0];
   front_div.classList.add("front");
   front_div.classList.add("center");
+  
+  // add second header
+  var second_head = document.createElement("h1");
+  var node = document.createTextNode("in Surival Analysis");
+  second_head.appendChild(node);
+  second_head.style.margin = "0";
+  front_div.appendChild(second_head);
   
   // add author 
   var credit_div = document.createElement('div');
@@ -532,7 +539,7 @@ Cover future work.
 Time zero is time of diagnosis, onset, or birth date.
 </p>
 <p class="fragment">
-Some event are (right) censored.
+Some events are (right) censored.
 </p>
 
 </section>
@@ -558,7 +565,7 @@ Black: treatment. Blue and dashed: placebo.
 <div class="w-small">
 A larger number of observations may be censored
 <p class="smallish">
-e.g., short trail period or low event rate.
+e.g., short trial period or low event rate.
 </p>
 </div>
 <p class="fragment">
@@ -627,7 +634,7 @@ to improve prediction accuracy or make inference.
 <h2>Proportional Hazards (PH) Models</h2>
 <p>Typical choice is</p>
 <span class="math display">\[
-\lambda\Cond{t}{x} = \lambda_0(t)\exp\left(\vec\beta^\top\vec x\right)
+\lambda\Cond{t}{\vec x} = \lambda_0(t)\exp\left(\vec\beta^\top\vec x\right)
 \]</span>
 <div class="w-small">
 where <span class="math inline">\(\vec x\)</span> is known covariates and <span class="math inline">\(\lambda_0\)</span> is the baseline hazard.
@@ -656,7 +663,7 @@ Leads to one-dimensional numerical integration.
 <p><span class="math display">\[g\left(S\Cond{t}{\vec x}\right) = 
   g\left(S_0(t)\right) + \vec\beta^\top\vec x\]</span></p>
 <div class="w-small">
-where <span class="math inline">\(g\)</span> is a link function and <span class="math inline">\(S_0\)</span> is a baseline survival function
+where <span class="math inline">\(g\)</span> is a link function and <span class="math inline">\(S_0\)</span> is a baseline survival function.
 <p class="smallish">
 E.g., see <span class="citation" data-cites="Younes97">Younes and Lachin (1997)</span> and <span class="citation" data-cites="Royston02">Royston and Parmar (2002)</span>.
 </p>
@@ -700,7 +707,7 @@ g\left(S\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k}\right) &amp;=
 \end{align*}
 \]</span>
 <div class="w-small">
-<span class="math inline">\(\vec z\)</span> is known covariates and <span class="math inline">\(\vec u_k\)</span> is group <span class="math inline">\(k\)</span>’s random effect.
+<span class="math inline">\(\vec z_{ki}\)</span> is known covariates and <span class="math inline">\(\vec u_k\)</span> is group <span class="math inline">\(k\)</span>’s random effect.
 <p class="smallish">
 <span class="math inline">\(k=1,\dots,m\)</span> indicates the group and group <span class="math inline">\(k\)</span> has <span class="math inline">\(i=1,\dots,n_k\)</span> members.
 </p>
@@ -757,7 +764,7 @@ where <span class="math inline">\(\phi(\cdot ;\mat \Sigma)\)</span> is the densi
 <div class="w-small">
 Laplace Approximation.
 <p class="smallish">
-Fast, scales well, but may perform poorly e.g., small groups (<span class="math inline">\(n_k\)</span> small).
+Fast, scales well, but may perform poorly e.g., for small groups (<span class="math inline">\(n_k\)</span> small).
 </p>
 </div>
 <div class="w-small fragment">
@@ -792,6 +799,9 @@ where <span class="math inline">\(\vec u\in \mathbb{R}^k\)</span>, <span class="
 <section id="adaptive-gaussian-quadrature-1" class="slide level2">
 <h2>Adaptive Gaussian Quadrature</h2>
 <p>Apply Gauss-Hermite quadrature for each coordinate of <span class="math inline">\(\vec s\)</span>.</p>
+<p class="fragment">
+Each coordinate, <span class="math inline">\(s_l\)</span>, is approximated at <span class="math inline">\(b\)</span> points.
+</p>
 <div class="fragment">
 <p>Let <span class="math inline">\((g_i, w_i)\)</span> be one of the node values and the corresponding weight for <span class="math inline">\(i = 1,\dots,b\)</span> for each coordinate, <span class="math inline">\(s_l\)</span>, and</p>
 <p><span class="math display">\[\vec s_{j_1,\cdots,j_k} = (g_{j_1},\cdots,g_{j_k})^\top\]</span></p>
@@ -868,7 +878,7 @@ l_k(\vec\beta, \mat\Sigma) &amp;= \log \int
     \log p(\vec t_k, \vec d_k, \vec u)}
   \der \vec u \\
 h_k(\vec\beta, \mat\Sigma, \vec u) &amp;=
-  \vec d^\top \log \lambda\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u} \\
+  \vec d^\top_k \log \lambda\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u} \\
   &amp;\hspace{20pt} + \vec 1^\top\log S\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u}
 \end{align*}
 \]</span></p>
@@ -881,7 +891,7 @@ h_k(\vec\beta, \mat\Sigma, \vec u) &amp;=
 </p>
 <div class="fragment">
 <p>The remaining two types of terms</p>
-<p><span class="math display">\[\left(\vec d^\top \log \lambda\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u} + \vec 1^\top\log S\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u}\right)\phi(\cdot)\]</span></p>
+<p><span class="math display">\[\left(\vec d^\top_k \log \lambda\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u} + \vec 1^\top\log S\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u}\right)\phi(\cdot)\]</span></p>
 </div>
 </section>
 <section id="applying-the-lower-bound-1" class="slide level2">
@@ -947,19 +957,19 @@ Both yield tractable lower bound terms.
 <span class="math display">\[
 \lambda\Cond{s}{\vec x_{ki}, \vec z_{ki}, \vec u_k}
   = \lambda_0(s ;\vec x_{ki})
-  \exp\left(f(s, \vec z_{ki})^\top\vec u_k\right)
+  \exp\left(\vec f(s, \vec z_{ki})^\top\vec u_k\right)
 \]</span>
 <p>
-where <span class="math inline">\(f\)</span> is <strong>not</strong> applied elementwise.<span class="fragment" data-fragment-index="1"> Then</span>
+where <span class="math inline">\(\vec f:\, \mathbb{R}^v\rightarrow\mathbb{R}^k\)</span> is <strong>not</strong> applied elementwise.<span class="fragment" data-fragment-index="1"> Then</span>
 </p>
 <div class="fragment" data-fragment-index="1">
 <p><span class="math display">\[\begin{align*}
 \log S\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k} &amp;\\
 &amp;\hspace{-40pt}= -\int_0^{t_{ki}} \lambda_0(s ;\vec x_{ki})
-  \exp\left(f(s, \vec z_{ki})^\top\vec u_k\right) \der s \\
+  \exp\left(\vec f(s, \vec z_{ki})^\top\vec u_k\right) \der s \\
 \log\lambda\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k}
   &amp;= \log \lambda_0(t_{ki};\vec x_{ki}) + 
-  f(t_{ki}, \vec z_{ki})^\top\vec u_k
+  \vec f(t_{ki}, \vec z_{ki})^\top\vec u_k
 \end{align*}\]</span></p>
 </div>
 </section>
@@ -972,7 +982,7 @@ where <span class="math inline">\(f\)</span> is <strong>not</strong> applied ele
   \phi(\vec u; \vec\mu, \mat\Lambda)\der\vec u \\
 &amp;=- \int_0^{t_{ki}} \lambda_0(s ;\vec x_{ki})
   \bigg(\int
-  \exp\left(f(s, \vec z_{ki})^\top\vec u\right) \\
+  \exp\left(\vec f(s, \vec z_{ki})^\top\vec u\right) \\
 &amp;\hspace{110pt}\cdot
   \phi(\vec u; \vec\mu, \mat\Lambda)
   \der\vec u\bigg)\der s
@@ -1023,7 +1033,7 @@ Dependence is often assumed through a random mean function of the markers.
 <p class="smallish">The markdown is at  
 <a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
 <p class="smallish">Notes are available at  
-<a href="https://github.com/boennecd/Talks/KTH-group-meeting-Oct19/notes.pdf">github.com/boennecd/Talks/KTH-group-meeting-Oct19/notes.pdf</a>.</p>
+<a href="http://bit.ly/KTH19-VA-notes">bit.ly/KTH19-VA-notes</a>.</p>
 <p class="smallish">References are on the next slide.</p>
 </div>
 
@@ -1117,7 +1127,10 @@ Dependence is often assumed through a random mean function of the markers.
 (function() {
   Reveal.configure({
       keyboard: {
+          // see: https://stackoverflow.com/a/35606596/5861244
+          // 37: 'prev',
           38: 'prev',
+          // 39: 'next',
           40: 'next'
       }
   });
