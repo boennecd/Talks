@@ -470,7 +470,7 @@ document.getElementsByTagName('head')[0].appendChild(style);
   
   // add second header
   var second_head = document.createElement("h1");
-  var node = document.createTextNode("in Surival Analysis");
+  var node = document.createTextNode("in Survival Analysis");
   second_head.appendChild(node);
   second_head.style.margin = "0";
   front_div.appendChild(second_head);
@@ -536,7 +536,7 @@ Cover future work.
 <h2>Typical Application</h2>
 <p>Model the time of a terminal event.</p>
 <p class="fragment">
-Time zero is time of diagnosis, onset, or birth date.
+Time zero is the time of diagnosis, time of onset, or birth date.
 </p>
 <p class="fragment">
 Some events are (right) censored.
@@ -606,7 +606,7 @@ Let <span class="math inline">\(D_i = 1_{\{T_i^* &lt; C_i\}}\)</span> be the eve
   \lambda(t_i)^{d_i}\exp\left(-\int_0^{t_i}\lambda(s)\der s\right)\]</span></p>
 <div class="fragment">
 <p>Important: two types of terms in maximum likelihood estimation</p>
-<p><span class="math display">\[d_i\log\lambda(t_i) + \log S(t)\]</span></p>
+<p><span class="math display">\[d_i\log\lambda(t_i) + \log S(t_i)\]</span></p>
 </div>
 
 </section>
@@ -702,7 +702,7 @@ e.g., twins who share genetic background and environment.
 g\left(S\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k}\right) &amp;= 
   g\left(S_0(t_{ki})\right) + \vec\beta^\top\vec x_{ki}
   + \vec z^\top_{ki}\vec u_k \\
-  &amp;= g\left(S_0(t_{ki}; \vec x_{ki})\right) + \vec z^\top\vec u_k \\
+  &amp;= g\left(S_0(t_{ki}; \vec x_{ki})\right) + \vec z^\top_{ki}\vec u_k \\
 \vec U_k &amp;\sim h(\vec \theta)
 \end{align*}
 \]</span>
@@ -798,7 +798,7 @@ where <span class="math inline">\(\vec u\in \mathbb{R}^k\)</span>, <span class="
 </section>
 <section id="adaptive-gaussian-quadrature-1" class="slide level2">
 <h2>Adaptive Gaussian Quadrature</h2>
-<p>Apply Gauss-Hermite quadrature for each coordinate of <span class="math inline">\(\vec s\)</span>.</p>
+<p>Apply Gauss-Hermite quadrature to each coordinate of <span class="math inline">\(\vec s\)</span>.</p>
 <p class="fragment">
 Each coordinate, <span class="math inline">\(s_l\)</span>, is approximated at <span class="math inline">\(b\)</span> points.
 </p>
@@ -837,7 +837,7 @@ Fast alternatives are attractive.
 </section>
 <section id="lower-bound" class="slide level2">
 <h2>Lower Bound</h2>
-<p>A lower bound of the log-likelihood is</p>
+<p>A lower bound of the marginal log-likelihood is</p>
 <p><span class="math display">\[
 \begin{align*}
 \log p\left(\vec t_k, \vec d_k\right) &amp;= 
@@ -930,8 +930,10 @@ g\left(S\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k}\right)
   = g\left(S_0(t_{ki}; \vec x_{ki})\right) +
   \vec z^\top_{ki}\vec u_k
 \]</span></p>
+<div class="fragment">
 <p>and suppose that</p>
 <p><span class="math display">\[g(x) = \log(-\log(x))\]</span></p>
+</div>
 </section>
 <section id="gsm-with-log-log-link-function-1" class="slide level2">
 <h2>GSM with Log-log Link Function</h2>
@@ -953,14 +955,13 @@ Both yield tractable lower bound terms.
 </section>
 <section id="generalized-ph-model" class="slide level2">
 <h2>Generalized PH Model</h2>
-<p>Suppose that</p>
 <span class="math display">\[
 \lambda\Cond{s}{\vec x_{ki}, \vec z_{ki}, \vec u_k}
   = \lambda_0(s ;\vec x_{ki})
   \exp\left(\vec f(s, \vec z_{ki})^\top\vec u_k\right)
 \]</span>
 <p>
-where <span class="math inline">\(\vec f:\, \mathbb{R}^v\rightarrow\mathbb{R}^k\)</span> is <strong>not</strong> applied elementwise.<span class="fragment" data-fragment-index="1"> Then</span>
+where <span class="math inline">\(\vec f:\, [0,\infty)\times \mathbb{R}^v\rightarrow\mathbb{R}^k\)</span> is <strong>not</strong> applied elementwise.<span class="fragment" data-fragment-index="1"> Then</span>
 </p>
 <div class="fragment" data-fragment-index="1">
 <p><span class="math display">\[\begin{align*}
