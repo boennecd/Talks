@@ -35,7 +35,7 @@ knitr::opts_chunk$set(echo = TRUE, fig.height = 5)
   
   // add second header
   var second_head = document.createElement("h1");
-  var node = document.createTextNode("in Surival Analysis");
+  var node = document.createTextNode("in Survival Analysis");
   second_head.appendChild(node);
   second_head.style.margin = "0";
   front_div.appendChild(second_head);
@@ -103,7 +103,7 @@ Cover future work.</p>
 Model the time of a terminal event.
 
 <p class="fragment">
-Time zero is time of diagnosis, onset, or birth date.</p>
+Time zero is the time of diagnosis, time of onset, or birth date.</p>
 
 <p class="fragment">
 Some events are (right) censored.</p>
@@ -225,7 +225,7 @@ $$p(t_i, d_i) = \lambda(t_i)^{d_i}S(t_i) =
 <div class = "fragment"> 
 Important: two types of terms in maximum likelihood estimation
 
-$$d_i\log\lambda(t_i) + \log S(t)$$
+$$d_i\log\lambda(t_i) + \log S(t_i)$$
 </div> 
 
 <!--html_preserve-->
@@ -332,7 +332,7 @@ $$
 g\left(S\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k}\right) &= 
   g\left(S_0(t_{ki})\right) + \vec\beta^\top\vec x_{ki}
   + \vec z^\top_{ki}\vec u_k \\
-  &= g\left(S_0(t_{ki}; \vec x_{ki})\right) + \vec z^\top\vec u_k \\
+  &= g\left(S_0(t_{ki}; \vec x_{ki})\right) + \vec z^\top_{ki}\vec u_k \\
 \vec U_k &\sim h(\vec \theta)
 \end{align*}
 $$
@@ -435,7 +435,7 @@ density of a multivariate normal distribution with mean $\vec\mu$ and
 covariance matrix $\mat\Lambda$, and $\mat I$ is the identity matrix.</p>
 
 ## Adaptive Gaussian Quadrature
-Apply Gauss-Hermite quadrature for each coordinate of $\vec s$.
+Apply Gauss-Hermite quadrature to each coordinate of $\vec s$.
 
 <p class="fragment">
 Each  coordinate, $s_l$, is approximated at $b$ points.</p>
@@ -480,7 +480,7 @@ Fast alternatives are attractive.</p>
 
 ## Lower Bound
 
-A lower bound of the log-likelihood is
+A lower bound of the marginal log-likelihood is
 
 $$
 \begin{align*}
@@ -582,9 +582,12 @@ g\left(S\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k}\right)
   \vec z^\top_{ki}\vec u_k
 $$
 
+<div class = "fragment">
+
 and suppose that
 
 $$g(x) = \log(-\log(x))$$
+</div>
 
 ## GSM with Log-log Link Function
 Then 
@@ -607,14 +610,13 @@ $$L_0(t_{ki}; \vec x_{ki}) =
 Both yield tractable lower bound terms.</p>
 
 ## Generalized PH Model
-Suppose that 
 
 $$
 \lambda\Cond{s}{\vec x_{ki}, \vec z_{ki}, \vec u_k}
   = \lambda_0(s ;\vec x_{ki})
   \exp\left(\vec f(s, \vec z_{ki})^\top\vec u_k\right)
 $$
-<p>where $\vec f:\, \mathbb{R}^v\rightarrow\mathbb{R}^k$ is **not** 
+<p>where $\vec f:\, [0,\infty)\times \mathbb{R}^v\rightarrow\mathbb{R}^k$ is **not** 
 applied elementwise.<span class = "fragment" data-fragment-index=1> Then</span></p>
 
 <div class="fragment" data-fragment-index=1>
