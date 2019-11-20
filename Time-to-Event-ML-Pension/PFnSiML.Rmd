@@ -1,0 +1,998 @@
+---
+title: "Applications of Particle Filtering and"
+bibliography: ref.bib
+biblio-style: apa
+output: 
+  revealjs::revealjs_presentation:
+    css: styles.css
+    theme: black
+    center: false
+    transition: slide
+    highlight: monochrome
+    self_contained: true
+    reveal_options:
+      slideNumber: true
+    includes:
+      in_header: header.html
+      after_body: doc_suffix.html
+---
+
+## dummy slide
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.height = 6)
+.par_use <- list(cex = 1.33, cex.lab = 1.2)
+```
+
+<!--html_preserve-->
+<script>
+(function() {
+  document.getElementById("dummy-slide").remove(); 
+  
+  var front_div = document.getElementsByTagName("section")[0];
+  front_div.classList.add("front");
+  front_div.classList.add("center");
+  
+  // add second header
+  var second_head = document.createElement("h1");
+  var node = document.createTextNode("Smoothing in Dynamic Hazard Models");
+  second_head.appendChild(node);
+  second_head.style.margin = "0";
+  front_div.appendChild(second_head);
+  
+  // add author 
+  var credit_div = document.createElement('div');
+  credit_div.innerHTML += "<div class='w-small'><p>Benjamin Christoffersen</p><p class='smallish'>PhD candidate, CBS, Department of Finance</p><p class='smallish'>KI, Department of Medical Epidemiology and Biostatistics, <a href='mailto:benjamin.christoffersen@ki.se'>benjamin.christoffersen@ki.se</a></p><p class='smallish'>KTH, Division of Robotics, Perception and Learning, <a href='mailto:benchr@kth.se'>benchr@kth.se</a></p></div>";
+  credit_div.classList.add("authors");
+  front_div.appendChild(credit_div);
+})();
+</script>
+<!--end dummy slide-->
+
+</section>
+
+<section>
+<section class="large-first center slide level2">
+<h1>Introduction</h1>
+<!--/html_preserve-->
+
+<div style="display: none;">
+$$
+\definecolor{gray}{RGB}{192,192,192}
+\renewcommand\vec{\boldsymbol}
+\def\bigO#1{\mathcal{O}(#1)}
+\def\Cond#1#2{\left(#1\,\middle|\, #2\right)}
+\def\mat#1{\boldsymbol{#1}}
+\def\der{{\mathop{}\!\mathrm{d}}}
+\def\argmax{\text{arg}\,\text{max}}
+\def\prob{\text{P}}
+\def\expec{\text{E}}
+\def\part#1#2{#1^{(#2)}}
+\def\rR#1{\overrightarrow{#1}}
+\def\lR#1{\overleftarrow{#1}}
+\def\bR#1{\overleftrightarrow{#1}}
+\def\apxprop{\underset{\displaystyle\sim}{\propto}}
+$$
+</div>
+
+## Presentation Outline
+Motivate interest in extrapolation. 
+
+<p class="fragment">
+Alternative estimation methods.</p>
+
+<p class="fragment">
+Importance sampling and particle filtering.</p>
+
+<div class="w-small fragment">
+Particle smoothing
+<p class="smallish">
+as implemented in the `dynamichazard` package.</p>
+</div>
+
+<div class="w-small fragment">
+Gradient and Hessian approximations
+<p class = "smallish">
+as implemented in the `mssm` package.</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Survival Analysis Setup</h1>
+<!--/html_preserve-->
+
+## Notation
+
+$\tilde T_i$ is time to event for individual $i$. 
+
+<div class = "w-small fragment">
+Observe covariates $\vec x_{ik}$ at time 
+$k = 0, 1, \dots, \lfloor T_i \rfloor$.
+<p class="smallish">
+$\lfloor T_i \rfloor$ is the floor of $T_i$.</p>
+</div>
+
+<div class = "w-small fragment">
+Assume independent censoring $C_i$. We observe 
+$T_i = \min (\tilde T_i, C_i)$
+<p class = "smallish">
+and define indicators $D_i = 1_{\{\tilde T_i < C_i\}}$.</p>
+</div>
+
+<div class = "w-small fragment">
+$p$ will denote a (conditional) density function
+<p class = "smallish">
+which specification is implicitly given by the context.</p>
+</div>
+
+## Time-varying Effects
+
+<div class="w-small">
+We have data up to time $\bar t$ for all observations. 
+<p class = "smallish">
+Could also be for a group of conditionally correlated individuals or 
+an individual with recurrent events.</p>
+</div>
+
+
+<div class="fragment">
+Interested in e.g.
+
+$$\prob\Cond{\tilde T_i \leq \bar t + \Delta t}{\tilde T_i \geq \bar t, 
+  \vec x_{i\lfloor \bar t \rfloor}}, \qquad \Delta t > 0$$
+
+</div>
+
+<p class = "fragment">
+Assume $\bar t$ is an integer from now.</p>
+
+## Models
+
+Time-invariant model like
+
+$$
+\prob\Cond{\tilde T_i \leq k + 1}
+  {\tilde T_i \geq k, \vec x_{ik}}
+ = 1 - \exp(-\vec\beta^\top\vec x_{ik})
+$$
+
+<div class= "w-small fragment">
+A spline based model
+<p class="smallish">
+like the Royston-Parmar model [@Royston02].</p>
+</div> 
+
+## Mixed Models
+
+$$
+\begin{align*}
+\Delta t &\in (0,1) \\
+\prob\Cond{\tilde T_i \leq k + \Delta t}
+  {\tilde T_i \geq k, \vec x_{ik}, \vec z_{ik}, \vec u_k} \hspace{-70pt}&\\
+&= 1 - \exp\left(-(\vec\beta^\top\vec x_{ik} + \vec u_k^\top\vec z_{ik})
+    \Delta t\right) \\
+\vec U_k \mid \vec U_{k - 1} = \vec u_{k - 1} &\sim N(\mat F \vec u_{k -1} , \mat\Sigma)
+\end{align*}
+$$
+
+<div class= "w-small fragment">
+Joint modelling 
+<p class="smallish">
+with random mean function. Typically, with a simpler random effect structure.</p>
+</div>
+
+## Applications
+<div class = "w-small">
+Firms default models.
+<p class="smallish">
+May have e.g., unobserved time-varying macro or industry effects. </p>
+</div>
+
+## Notation
+
+$$\begin{align*}
+T_{ik} &= \min(\max(T_i - k, 0), 1) \\
+D_{ik} &= 1_{\{\tilde T_i < C_i\wedge T_i \in (k, k + 1]\}}
+\end{align*}$$
+
+<div class = "fragment">
+$$
+\begin{align*}
+\vec t_k &= (t_{1k}, \dots, t_{nk})^\top & 
+  \vec d_k &= (d_{1k}, \dots, d_{nk})^\top \\
+\vec t_{s:k} &= (\vec t_s, \vec t_{s + 1}, \dots, \vec t_k)
+\end{align*}
+$$
+</div>
+
+## Mixed Models Marginal Log-likelihood
+<div class="w-small">
+
+$$
+\begin{align*}
+f(\vec t_{1:\bar t}, \vec d_{1:\bar t}, 
+  \vec u_{1,\bar t}; \vec\beta, \mat\Sigma) \hspace{-70pt} \\
+&= \mu(\vec u_1)g(\vec t_1, \vec d_1; \mat X_1, \mat Z_1, \vec u_1)\\
+&\hspace{20pt}  \cdot\prod_{k = 2}^{\bar t} 
+  g(\vec t_k, \vec d_k; \mat X_k, \mat Z_k, \vec u_k) 
+  \phi(\vec u_k; \mat F\vec u_{k-1}, \mat\Sigma)
+   \\
+L(\vec\beta, \mat \Sigma) &= \int_{\mathbb{R}^{\bar td}}
+  f(\vec t_{1:\bar t}, \vec d_{1:\bar t}, 
+    \vec u_{1:\bar t}; \vec\beta, \mat\Sigma) 
+    \der\vec u_{1:\bar t}
+\end{align*}
+$$
+<p class = "smallish">
+where $\vec U_k\in\mathbb{R}^{d}$, $\mu$ is the time-invariante 
+distribution, $\mat X_s$ and $\mat Z_s$ are design matrices,
+$g$ is a suitable 
+conditional density function, and $\phi$ is a 
+multivariate normal distribution density function.</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+<!--/html_preserve-->
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Approximation Methods</h1>
+
+## Deterministic Methods
+
+MQL, PQL, and Laplace approximations.
+
+<p class = "fragment">
+Extended and unscented Kalman filters.</p>
+
+<p class = "fragment">
+Variational approximations.</p>
+
+<p class = "fragment">
+Quadrature.</p>
+
+## Monte Carlo Methods
+Markov chain Monte Carlo. 
+
+<p class = "fragment">
+Importance sampling.</p> 
+
+<div class = "w-small fragment">
+Particle filters.
+<p class="smallish">
+Also known as sequential Monte Carlo.</p>
+</div>
+
+## Usage
+
+Expectation maximization [@Dempster77]. 
+$$
+\begin{align*}
+Q\Cond{\vec\beta, \mat\Sigma}
+  {\widehat{\vec\beta}, \widehat{\mat\Sigma}}\hspace{-30pt} &\\
+&= \expec_{(\widehat{\vec\beta}, \widehat{\mat\Sigma})}
+   \Cond{\log f(\vec T_{1:\bar t}, \vec D_{1:\bar t}, 
+   \vec U_{1:\bar t}; \vec\beta, \mat\Sigma)}
+  {\vec t_{1:\bar t}, \vec d_{1:\bar t}}
+\end{align*}
+$$
+
+<div class = "w-small fragment">
+Direct maximization
+<p class="smallish">
+using an approximation of $L'(\vec\beta, \mat \Sigma)$.</p>
+</div>
+
+<p class = "fragment">
+Estimate of $L''(\vec\beta, \mat \Sigma)$ at the maximum.</p>
+
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Importance Sampling</h1>
+<!--/html_preserve-->
+
+## Basics 
+
+<div class = "w-small">
+Want to approximate $h(x) = \alpha \tilde h(x)$.
+<p class="smallish"> 
+$h$ and $\alpha$ are unknown and $\tilde h$ is known.</p>
+</div>
+
+<div class = "fragment">
+ 1. Sample $\part{x}{1}, \dots, \part{x}{N}$ from $q(x)$. 
+ 2. Compute unnormalized weights 
+ $$\part{\widetilde W}{j} = \tilde h(\part{x}{1}) / q(\part{x}{N})$$ 
+ 3. Normalize $$\part{W}{j} = \part{\widetilde W}{j} / \sum_{i = 1}^N \part{\widetilde W}{i}$$
+</div>
+
+## Usage
+
+Yields discrete approximation of 
+$$
+\expec (c(x)) \approx \sum_{j = 1}^N \part{W}{j} c(\part{x}{j})
+$$
+
+<div class = "fragment"> 
+With only one time period 
+
+$$
+\expec_{(\widehat{\vec\beta}, \widehat{\mat\Sigma})}
+  \Cond{\log \mu(\vec U_1) + 
+  \log g(\vec T_1, \vec D_1; \mat X_1, \mat Z_1, \vec U_1)}
+  {\vec t_1, \vec d_1}
+$$
+requires 
+$$p\Cond{\vec u_1}{\vec t_1, \vec d_1} = 
+  \frac{\mu(\vec u_1)g(\vec t_1, \vec d_1; \mat X_1, \mat Z_1, \vec u_1)}
+  {p(\vec t_1, \vec d_1)}$$
+
+</div>
+
+## In Practice
+Some $\part{W}{j}$ may be very small.
+
+<div class = "w-small fragment">
+May re-sample using $\part{W}{j}$
+<p class="smallish">
+setting new weights to $N^{-1}$.</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz" data-transition="slide-in fade-out">
+<h2>Example</h2>
+<!--/html_preserve-->
+
+```{r get_ex_func, warning = FALSE, echo = FALSE}
+get_plot_imp_ex <- function(n_sample = 30L){
+  # parameters in simulation
+  ps <- c(1, 1, 1)
+  ps <- ps / sum(ps)
+  mus <- c(-2.5, 2.5, -.5) - 1
+  dh <- function(x)
+    colSums(
+      rbind(dnorm(x, mean = mus[1]), 
+            dt(x, df = 5, ncp = mus[2]), 
+            dnorm(x, mean = mus[3])) * ps)
+  mu_q <- 0
+  sd_q <- 4
+  dq <- function(x)
+    dnorm(x, mean = mu_q, sd = sd_q)
+  
+  # sample and sub-sample points
+  set.seed(63318147)
+  samp <- rnorm(n_sample, mu_q, sd_q)
+  ws <- dh(samp) / dq(samp)
+  
+  idx_sub <- sample(n_sample, replace = TRUE, prob = ws)
+  idx_sub_use <- unique(idx_sub)
+  samp_sub <- samp[idx_sub_use]
+  ws_sub <- sapply(idx_sub_use, function(x) sum(idx_sub == x))
+  
+  # return plot function
+  function(idx){
+    par(.par_use)
+    par(mar = c(1.5, 2.5, 1.5, 1.5), mgp = c(1, 0, 0))
+    xs <- seq(-11, 11, length.out = 250)
+    y1 <- dh(xs)
+    y2 <- dq(xs)
+    ylim <- ylim_org <- range(y1, y2)
+    ylim[2] <- ylim[2] + .08 * diff(ylim)
+    plot(xs, y1, bty = "l", yaxs = "i", ylim = ylim,
+         xlab = "", ylab = "Density", type = "l", 
+         xaxt= "n", yaxt = "n", frame = TRUE)
+    abline(h = 0, lty = 1, lwd = 1)
+    axis(1, labels = FALSE)
+    axis(2, labels = FALSE)
+    # legend("topright", bty = "n", lty = c(1, 3),
+    #        legend = c(expression(h(x)), expression(q(x))))
+    if(idx == 1L)
+      return(invisible())
+    
+    lines(xs, y2, lty = 2)
+    if(idx == 2L)
+      return(invisible())
+    
+    if(idx %in% c(3L, 5L)){
+      yws <- ws * .5 * diff(ylim_org) / diff(range(ws))
+      arrows(samp, 0, samp, yws, lwd = 1.5, angle = 90,
+           code = 3, length = 0.03)
+      if(idx == 3L)
+        rug(samp, ticksize = .05, side = 3, lwd = 1)
+      
+      if(idx == 5L){
+        dens_est <- density(samp, weights = ws / sum(ws), bw = .5)
+        lines(dens_est$x, dens_est$y, lty = 3)
+        
+      }
+      
+    } else if(idx == 4L) {
+      ws <- ws_sub
+      samp <- samp_sub
+      yws <- ws * .5 * diff(ylim_org) / diff(range(ws))
+      arrows(samp, 0, samp, yws, lwd = 1.5, angle = 90,
+           code = 3, length = 0.05)
+      rug(samp, ticksize = .05, side = 3, lwd = 1)
+      
+    }
+    
+    invisible()
+  }
+}
+
+imp_ex <- get_plot_imp_ex()
+```
+
+```{r show_dens_import, echo = FALSE}
+imp_ex(1L)
+```
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz" data-transition="fade-in fade-out">
+<h2>Example</h2>
+<!--/html_preserve-->
+
+```{r w_propposal_show_dens_import, echo = FALSE, warning = FALSE}
+imp_ex(2L)
+```
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz" data-transition="fade-in fade-out">
+<h2>Example without Re-sampling</h2>
+<!--/html_preserve-->
+
+```{r show_wo_resample, echo = FALSE, warning = FALSE}
+imp_ex(3L)
+```
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz" data-transition="fade-in fade-out">
+<h2>Example with Re-sampling</h2>
+<!--/html_preserve-->
+
+```{r show_w_resample, echo = FALSE, warning = FALSE}
+imp_ex(4L)
+```
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz" data-transition="fade-in slide-out">
+<h2>Example with More Samples</h2>
+<!--/html_preserve-->
+
+```{r more_show_wo_resample, echo = FALSE, warning = FALSE}
+get_plot_imp_ex(500L)(5L)
+```
+
+## Points
+$q$ needs to be fast to sample from and evaluate. 
+
+<p class = "fragment">
+$q$ needs to be a good approximation of $h$.</p>
+
+<div class = "w-small fragment">
+Many variance reduction methods
+<p class = "smallish"> 
+E.g., antithetic variables as used in the `mssm` package. E.g., see 
+@Durbin97.</p>
+</div>
+
+<p class = "fragment">
+Often in-accurate in higher dimensions.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Particle Filtering</h1>
+<!--/html_preserve-->
+
+## End Goal
+
+Cover smoothers in the `dynamichazard` package.
+
+<div class = "fragment">
+
+$$
+\begin{align*}
+Q\Cond{\vec\beta, \mat\Sigma}
+  {\widehat{\vec\beta}, \widehat{\mat\Sigma}} \hspace{-30pt}& \\ 
+&=\expec_{(\widehat{\vec\beta}, \widehat{\mat\Sigma})}
+ \Big(
+ \log \mu(\vec U_1) 
+ + \log g(\vec T_1, \vec D_1; \mat X_1, \mat Z_1, \vec U_1) \\
+&\hspace{50pt}
+  +\sum_{k = 2}^{\bar t} 
+  \log g(\vec T_k, \vec D_k; \mat X_k, \mat Z_k, \vec U_k) \\
+&\hspace{70pt}+
+  \log\phi(\vec U_k; \mat F\vec U_{k-1}, \mat\Sigma)
+  \,\Big|\, \vec t_{1:\bar t}, \vec d_{1:\bar t}\Big)
+ \end{align*}
+$$
+
+</div>
+
+<p class="fragment">
+Need $p\Cond{\vec U_{k-1:k}}{\vec t_{1:\bar t}, \vec d_{1:\bar t}}$.</p>
+
+## Notation
+
+(Forward) particle filter 
+$(\part{\rR{\vec u}}{s}_{1:k}, \part{\rR{W}}{s}_{k})_{s=1,\dots,N}$.
+
+Backward particle filter
+$(\part{\lR{\vec u}}{s}_k, \part{\lR{W}}{s}_k)_{s=1,\dots,N}$.
+
+Smoothed particles
+$(\part{\bR{\vec u}}{s}_k, \part{\bR{W}}{s}_k)_{s=1,\dots,N}$.
+
+## Particle Filter
+
+Have some estimate of
+$p\Cond{\vec u_{1:k-1}}{\vec t_{1:k-1}, \vec d_{1:k-1}}$.
+
+<div class="fragment w-small"> 
+Use 
+$$\begin{align*}
+p\Cond{\vec u_{1:k}}{\vec t_{1:k}, \vec d_{1:k}} \hspace{-50pt}&\\
+&= 
+p\Cond{\vec u_{1:k-1}}{\vec t_{1:k-1}, \vec d_{1:k-1}}
+  \frac{g_k\Cond{\vec t_k, \vec d_k}{\vec u_k}
+  h\Cond{\vec u_k}{\vec u_{k - 1}}}
+  {p\Cond{\vec t_k, \vec d_k}{\vec t_{1:k-1}, \vec d_{1:k-1}}} \\
+&\approx \sum_{s = 1}^N \part{\rR{W}}{s}_{k-1}
+  \delta_{\part{\rR{\vec u}}{s}_{1:k-1}}(\vec u_{1:k-1})
+  \frac{g_k\Cond{\vec t_k, \vec d_k}{\vec u_k}
+  h\Cond{\vec u_k}{\part{\rR{\vec u}}{s}_{1:k-1}}}
+  {p\Cond{\vec t_k, \vec d_k}{\vec t_{1:k-1}, \vec d_{1:k-1}}}
+\end{align*}$$
+<p class="smallish">
+where $\delta$ is the Dirac delta function, 
+$g_k\Cond{\vec t_k, \vec d_k}{\vec u_k} = g(\vec t_k, \vec d_k;\mat X_k, \mat Z_k, \vec u_k)$,
+and $h\Cond{\vec u_k}{\vec u_{1:k - 1}} = \phi(\vec u_k; \mat F\vec u_{k-1}, \mat\Sigma)$.</p>
+</div>
+
+## Auxiliary Particle Filter
+<div class ="w-small"> 
+Some weights, $\part{\rR{W}}{s}_k$, quickly get all the mass.
+<p class="smallish">
+Weight degeneracy.</p>
+</div>
+
+<div class = "fragment">
+Advantageous to re-sample with weights 
+$$
+\part{\rR{\beta}}{s}_k \apxprop
+  p\Cond{\vec t_k, \vec d_k}{\part{\rR{\vec u}}{s}_{1:k-1}}
+  \part{\rR{W}}{s}_{1:k-1}
+$$
+<p class = "smallish">
+An auxiliary particle filter [@Pitt99].</p>
+</div>
+
+## Auxiliary Particle Filter Algorithm
+<div class="smaller">
+
+1. Sample $j_1,\dots,j_N$ using 
+$\{\part{\rR{\beta}}{s}_k\}_{s=1,\dots,N}$.
+2. Sample new *state*
+$$\part{\rR{\vec u}}{s}_k \sim \rR{q}_k\Cond{\cdot}{
+ \part{\rR{\vec u}}{j_s}_{1:k-1}, \vec t_k, \vec d_k}$$
+3. Compute and normalize weights
+$$\begin{align*}
+\widetilde W_s &= 
+  \frac {\part{\rR{W}}{j_s}_{k-1}}{\part{\rR{\beta}}{j_s}_k}
+  \frac{g_k\Cond{\vec t_k, \vec d_k}{\part{\rR{\vec u}}{s}_k}
+  h\Cond{\part{\rR{\vec u}}{s}_k}{\part{\rR{\vec u}}{j_s}_{1:k-1}}}
+  {\rR{q}_k\Cond{\part{\rR{\vec u}}{s}_k}{
+   \part{\rR{\vec u}}{j_s}_{1:k-1}, \vec t_k, \vec d_k}} \\
+\part{\rR{W}}{s}_k &= \widetilde W_s / \sum_{i = 1}^N \widetilde W_i
+\end{align*}$$
+
+</div>
+
+## Implementation Details
+Both sampling and computation of weights require $N$ similar and independent 
+computations.
+
+<div class = "fragment w-small"> 
+Easily done in parallel
+<p class = "smallish">
+as in the `dynamichazard` and `mssm` using the C++ `thread` library.</p>
+</div>
+
+<div class = "w-small fragment">
+Largest computational cost 
+<p class = "smallish">
+as $g_k$ is relatively expensive to 
+evaluate when $\vec t_k$ and $\vec d_k$ has many elements.</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Particle Smoothing</h1>
+<!--/html_preserve-->
+
+## Issue with Particle Filter
+
+Can use 
+$(\part{\rR{\vec u}}{s}_{1:\bar t}, \part{\rR{w}}{s}_{1:\bar t})$ for 
+$s = 1, \dots, N$.
+
+<div class = "fragment w-small">
+Often few unique values of $\vec u_k$ with small $k$
+<p class = "smallish">
+due to weight degeneracy.</p>
+</div>
+
+## Smoother from @Briers09
+
+Use the identity 
+
+$$
+\begin{align*}
+p\Cond{\vec u_k}{\vec t_{1:\bar t}, \vec d_{1:\bar t}}
+  &= \frac
+  {p\Cond{\vec u_k}{\vec t_{1:k -1}, \vec d_{1:k -1}}
+   p\Cond{\vec t_{k:\bar t}, \vec d_{k:\bar t}}{\vec u_k}}
+  {p\Cond{\vec t_{k:\bar t}, \vec d_{k:\bar t}}
+  {\vec t_{1:k-1}, \vec d_{1:k-1}}} \\
+&\propto\int h\Cond{\vec u_k}{\vec u_{k - 1}}
+  p\Cond{\vec u_{k-1}}{\vec t_{1:k-1}, \vec d_{1:k-1}}\der\vec u_{k-1}\\
+&\hspace{40pt}
+  \cdot p\Cond{\vec t_{k:\bar t}, \vec d_{k:\bar t}}{\vec u_k}
+\end{align*}
+$$
+
+<p class = "fragment">
+Have an approximation of 
+$p\Cond{\vec u_{k-1}}{\vec t_{1:k-1}, \vec d_{1:k-1}}$ but not
+$p\Cond{\vec t_{k:\bar t}, \vec d_{k:\bar t}}{\vec u_k}$.
+</p>
+
+## Backward Particle Filter
+
+Run a backward particle filter to get 
+$(\part{\lR{\vec u}}{s}_k, \part{\lR{W}}{s}_k)_{s=1,\dots,N}$
+targeting an artificial 
+$\tilde p\Cond{\vec u_k}{\vec t_{k:\bar t}, \vec d_{k:\bar t}}$.
+
+<div class = "fragment w-small">
+Has the property that 
+$$
+p\Cond{\vec t_{k:\bar t}, \vec d_{k:\bar t}}{\vec u_k} \propto
+  \frac{\tilde p\Cond{\vec u_k}{\vec t_{k:\bar t}, \vec d_{k:\bar t}}}
+  {\gamma_k(\vec u_k)} 
+  \approx \sum_{s = 1}^N \frac
+  {\part{\lR{W}}{s}_k}{\gamma_k(\part{\lR{\vec u}}{s}_k)}
+  \delta_{\part{\lR{\vec u}}{s}_k}(\vec u_k)
+$$
+<p class = "smallish">
+for a prespecified density function $\gamma_k$.</p>
+</div>
+
+## Comments
+Smoothed weights are given by 
+
+$$\begin{align*}
+\part{\bR{W}}{s}_k \propto \sum_{i = 1}^N
+  h\Cond{\part{\lR{\vec u}}{s}_k}{\part{\rR{\vec u}}{i}_{k -1}}
+  \part{\rR{W}}{i}_{k -1}\frac
+  {\part{\lR{W}}{s}_k}
+  {\gamma_k({\part{\lR{\vec u}}{s}_k})}
+\end{align*}$$
+
+<p class = "fragment">
+We get $2N$ evaluations of $g$.</p>
+
+<div class = "w-small fragment">
+$\bigO{N^2}$
+<p class = "smallish"> 
+but can be reduced an average case of $\bigO{N\log N}$ with the dual k-d tree
+method as implemented in the `mssm` package.
+</div>
+
+## Smoother from @Fearnhead10
+$$
+\begin{align*}
+p\Cond{\vec u_k}{\vec t_{1:\bar t}, \vec d_{1:\bar t}}\hspace{-50pt}& \\
+&= \frac
+  {p\Cond{\vec u_k}{\vec t_{1:k -1}, \vec d_{1:k -1}}
+   g_k\Cond{\vec t_k, \vec d_k}{\vec u_k}
+   p\Cond{\vec t_{k + 1:\bar t}, \vec d_{k + 1:\bar t}}{\vec u_k}}
+  {p\Cond{\vec t_{k:\bar t}, \vec d_{k:\bar t}}
+  {\vec t_{1:k-1}, \vec d_{1:k-1}}} \\
+&\propto\int h(\vec u_k, \vec u_{k - 1})
+  p\Cond{\vec u_{k-1}}{\vec t_{1:k-1}, \vec d_{1:k-1}}\der\vec u_{k-1}\\
+&\hspace{20pt}
+  \cdot g_k\Cond{\vec t_k, \vec d_k}{\vec u_k}
+  \int p\Cond{\vec t_{k + 1:\bar t}, \vec d_{k + 1:\bar t}}{\vec u_{k + 1}} \\
+&\hspace{100pt}
+  \cdot h\Cond{\vec u_{k+1}}{\vec u_k}\der \vec u_{k + 1}
+\end{align*}
+$$
+
+## Algorithm
+
+1. Sample $(i_s, j_s)_{s = 1,\dots N}$ using 
+$\{\part{\rR{\beta}}{i}_k\}_{i=1,\dots,N}$ and 
+$\{\part{\lR{\beta}}{j}_k\}_{j=1,\dots,N}$.
+2. Sample 
+$$
+\part{\bR{\vec u}}{s}_k \sim 
+  \bR q_k\Cond{\cdot}{\part{\rR{\vec u}}{i_s}_{k-1}, 
+  \part{\lR{\vec u}}{j_s}_{k+1}, \vec t_k, \vec d_k}
+$$
+
+## Algorithm
+
+3. Compute and normalize weights
+$$\begin{align*}
+\widetilde W_s &= \frac
+  {h\Cond{\part{\bR{\vec u}}{s}_k}{\part{\rR{\vec u}}{i_s}_{k - 1}}
+   g_k\Cond{\vec t_k, \vec d_k}{\part{\bR{\vec u}}{s}_k}
+   h\Cond{\part{\lR{\vec u}}{j_s}_{k + 1}}{\part{\bR{\vec u}}{s}_k}}
+  {\bR q_k\Cond{\part{\bR{\vec u}}{s}_k}{\part{\rR{\vec u}}{i_s}_{k-1}, 
+   \part{\lR{\vec u}}{j_s}_{k+1}, \vec t_k, \vec d_k}} \\
+&\hspace{20pt}
+  \cdot \frac
+  {\part{\lR{W}}{j_s}_{k+1}\part{\rR{W}}{i_s}_{k-1}}
+  {\gamma_{k + 1}(\part{\lR{\vec u}}{j_s}_{k+1})
+   \part{\lR{\beta}}{j_s}_{k+1}
+   \part{\rR{\beta}}{i_s}_{k-1}} \\
+\part{\bR{W}}{s}_k &= \widetilde W_s / \sum_{o = 1}^N \widetilde W_o
+\end{align*}$$
+
+## Comments
+We get $3N$ evaluations of $g$.
+
+<p class = "fragment">
+$\bigO{N}$.</p>
+
+<p class = "fragment">
+Can sample more particles in the smoothing step.</p>
+
+<p class = "fragment">
+Can be generalized to handle singular components.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Implementation</h1>
+<!--/html_preserve-->
+
+## Dynamichazard
+Both smoothers. 
+
+<p class = "fragment">
+All in C++ with parallel computation using the C++ `thread` library.</p>
+
+<div class = "fragment w-small">
+Computation in M-step is done in parallel in a memory efficient manner
+<p class = "smallish">
+using QR decompositions as in the `bam` function in `mgcv` package.</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Gradient and Hessian Approximations</h1>
+<!--/html_preserve-->
+
+## Motivation
+
+Cover methods in `mssm` package.
+
+<div class = "w-small fragment">
+Direct maximization
+<p class="smallish">
+using an approximation of $L'(\vec\beta, \mat \Sigma)$.</p>
+</div>
+
+<p class = "fragment">
+Estimate of $L''(\vec\beta, \mat \Sigma)$ at the maximum.</p>
+
+## Method
+<div class = "w-small">
+Can use the forward particle filter to approximate
+
+$$
+\begin{align*}
+L'(\vec\theta) &= \int 
+  \nabla_{\vec\theta}\log f(\vec T_{1:\bar t}, \vec D_{1:\bar t}, 
+   \vec U_{1:\bar t}; \vec\theta) \\
+&\hspace{80pt}
+   \cdot p\Cond{\vec u_{1:\bar t}}{\vec t_{1:\bar t}, \vec d_{1:\bar t}}
+   \der\vec u_{1:\bar t}
+\end{align*}
+$$
+<p class = "smallish">
+where $\vec\theta = (\vec\beta, \mat\Sigma)$.</p>
+</div>
+
+<p class = "fragment">
+And a similar expression $L''(\vec\beta, \mat \Sigma)$ using Louis' identity
+[@Louis82].</p>
+
+<p class = "fragment"> 
+In-accurate due to weight degeneracy.</p>
+
+## Alternative 
+@Poyiadjis11 show a recursive method with better properties. 
+
+<div class = "w-small fragment">
+Requires evaluation of 
+$$
+\sum_{i = 1}^N \frac{\part{\rR{W}}{i}_{k - 1}
+  h\Cond{\part{\rR{\vec u}}{s}_k}{\part{\rR{\vec u}}{i}_{k - 1}}}
+  {\sum_{j = 1}^N\part{\rR{W}}{j}_{k - 1}
+   h\Cond{\part{\rR{\vec u}}{s}_k}{\part{\rR{\vec u}}{j}_{k - 1}}}
+  \psi\left(\part{\rR{\vec u}}{s}_k, \part{\rR{\vec u}}{i}_{k - 1}\right)
+$$
+<p class = "smallish">
+for some function $\psi$ as the smoother suggested by @Briers09.</p>
+</div>
+
+## Dual k-d Tree
+Can use that for some $s\in\mathcal{S}$, $i\in\mathcal{I}$, and constant $C$
+
+$$
+h\Cond{\part{\rR{\vec u}}{s}_k}{\part{\rR{\vec u}}{i}_{k - 1}} \approx C
+$$
+
+when $\part{\rR{\vec u}}{s}_k$ are similar for $s\in\mathcal{S}$ and 
+similarly for $i\in\mathcal{I}$.
+
+<p class = "fragment">
+Form two k-d trees and make an approximation as in @Klaas06.</p>
+
+## Fast Approximation
+
+```r
+##          method
+## N         Dual-tree      Naive
+##   12288    0.039704  0.7137595
+##   24576    0.062140  2.6771194
+##   49152    0.115722 10.9796716
+##   98304    0.227879         NA
+##   196608   0.450209         NA
+##   393216   0.913649         NA
+##   786432   1.844256         NA
+##   1572864  4.057902         NA
+```
+
+Units are seconds.
+
+## mssm Package
+Supports a wider range of models (not limited to survival models). 
+
+<p class = "fragment">
+All the computation is in C++ with parallel computation using the C++ 
+`thread` library.</p>
+
+<div class = "w-small fragment">
+Can be used for clustered data
+<p = class = "smallish"> 
+as the method can be used to get gradients for multiple different groups.</p>
+</div>
+
+<p class = "fragment">
+"More work" required by the user.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Final Comments</h1>
+<!--/html_preserve-->
+
+## Proposal Distribution
+The proposal distribution is important. 
+
+<div class = "w-small fragment"> 
+Bootstrap filter [@Gordon93] using $h$ is implemented, along with various 
+mode approximations
+<p class="smallish">
+using either a multivariate normal distribution or multivariate 
+$t$-distribution.</p>
+</div>
+
+## Take Away
+Mixed models is an alternative when one is interested in extrapolation.
+
+<p class = "fragment">
+Particle based methods can provide an efficient means of working with the 
+presented mixed models.</p>
+
+<p class = "fragment">
+There are complications with particle based methods and 
+potential solutions.</p>
+
+<p class = "fragment">
+A broad overview of the methods in `dynamichazard` and `mssm` package.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+
+<section>
+<section class="center final">
+<h1>Thank You!</h1>
+
+<div class="w-small">
+<p class="smallish">The presentation is at  
+<a href="http://rpubs.com/boennecd/PFnSiML">rpubs.com/boennecd/PFnSiML</a>.</p>
+<p class="smallish">The markdown is at  
+<a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
+<p class="smallish">The <code>dynamichazard</code> package is at  
+<a href="https://github.com/boennecd/dynamichazard">github.com/boennecd/dynamichazard</a>.</p>
+<p class="smallish">The <code>mssm</code> package is at  
+<a href="https://github.com/boennecd/mssm">github.com/boennecd/mssm</a>.</p>
+<p class="smallish">References are on the next slide.</p>
+</div>
+
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<section>
+<h1>References</h1>
+
+<!--/html_preserve-->
