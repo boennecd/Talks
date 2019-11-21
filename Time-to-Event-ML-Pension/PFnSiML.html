@@ -564,17 +564,17 @@ as implemented in the <code>mssm</code> package.
 </section>
 <section id="notation" class="slide level2">
 <h2>Notation</h2>
-<p><span class="math inline">\(\tilde T_i\)</span> is time to event for individual <span class="math inline">\(i\)</span>.</p>
-<div class="w-small fragment">
-Observe covariates <span class="math inline">\(\vec x_{ik}\)</span> at time <span class="math inline">\(k = 0, 1, \dots, \lfloor T_i \rfloor\)</span>.
-<p class="smallish">
-<span class="math inline">\(\lfloor T_i \rfloor\)</span> is the floor of <span class="math inline">\(T_i\)</span>.
-</p>
-</div>
+<p><span class="math inline">\(\tilde T_i\)</span> is the time to event for individual <span class="math inline">\(i\)</span>.</p>
 <div class="w-small fragment">
 Assume independent censoring <span class="math inline">\(C_i\)</span>. We observe <span class="math inline">\(T_i = \min (\tilde T_i, C_i)\)</span>
 <p class="smallish">
 and define indicators <span class="math inline">\(D_i = 1_{\{\tilde T_i &lt; C_i\}}\)</span>.
+</p>
+</div>
+<div class="w-small fragment">
+Observe covariates <span class="math inline">\(\vec x_{ik}\)</span> at time <span class="math inline">\(k = 0, 1, \dots, \lfloor T_i \rfloor\)</span>.
+<p class="smallish">
+<span class="math inline">\(\lfloor T_i \rfloor\)</span> is the floor of <span class="math inline">\(T_i\)</span>.
 </p>
 </div>
 <div class="w-small fragment">
@@ -763,7 +763,7 @@ Want to approximate <span class="math inline">\(h(x) = \alpha \tilde h(x)\)</spa
 <div class="fragment">
 <ol type="1">
 <li>Sample <span class="math inline">\(\part{x}{1}, \dots, \part{x}{N}\)</span> from <span class="math inline">\(q(x)\)</span>.</li>
-<li>Compute unnormalized weights <span class="math display">\[\part{\widetilde W}{j} = \tilde h(\part{x}{1}) / q(\part{x}{N})\]</span></li>
+<li>Compute unnormalized weights <span class="math display">\[\part{\widetilde W}{j} = \tilde h\left(\part{x}{j}\right) / q\left(\part{x}{j}\right)\]</span></li>
 <li>Normalize <span class="math display">\[\part{W}{j} = \part{\widetilde W}{j} / \sum_{i = 1}^N \part{\widetilde W}{i}\]</span></li>
 </ol>
 </div>
@@ -972,7 +972,7 @@ as <span class="math inline">\(g_k\)</span> is relatively expensive to evaluate 
 </section>
 <section id="issue-with-particle-filter" class="slide level2">
 <h2>Issue with Particle Filter</h2>
-<p>Can use <span class="math inline">\((\part{\rR{\vec u}}{s}_{1:\bar t}, \part{\rR{w}}{s}_{1:\bar t})\)</span> for <span class="math inline">\(s = 1, \dots, N\)</span>.</p>
+<p>Can use <span class="math inline">\((\part{\rR{\vec u}}{s}_{1:\bar t}, \part{\rR{w}}{s}_{\bar t})\)</span> for <span class="math inline">\(s = 1, \dots, N\)</span>.</p>
 <div class="fragment w-small">
 Often few unique values of <span class="math inline">\(\vec u_k\)</span> with small <span class="math inline">\(k\)</span>
 <p class="smallish">
@@ -1008,9 +1008,9 @@ Have an approximation of <span class="math inline">\(p\Cond{\vec u_{k-1}}{\vec t
 Has the property that <span class="math display">\[
 p\Cond{\vec t_{k:\bar t}, \vec d_{k:\bar t}}{\vec u_k} \propto
   \frac{\tilde p\Cond{\vec u_k}{\vec t_{k:\bar t}, \vec d_{k:\bar t}}}
-  {\gamma_k(\vec u_k)} 
+  {\gamma_k\left(\vec u_k\right)} 
   \approx \sum_{s = 1}^N \frac
-  {\part{\lR{W}}{s}_k}{\gamma_k(\part{\lR{\vec u}}{s}_k)}
+  {\part{\lR{W}}{s}_k}{\gamma_k\left(\part{\lR{\vec u}}{s}_k\right)}
   \delta_{\part{\lR{\vec u}}{s}_k}(\vec u_k)
 \]</span>
 <p class="smallish">
@@ -1026,7 +1026,7 @@ for a prespecified density function <span class="math inline">\(\gamma_k\)</span
   h\Cond{\part{\lR{\vec u}}{s}_k}{\part{\rR{\vec u}}{i}_{k -1}}
   \part{\rR{W}}{i}_{k -1}\frac
   {\part{\lR{W}}{s}_k}
-  {\gamma_k({\part{\lR{\vec u}}{s}_k})}
+  {\gamma_k\left({\part{\lR{\vec u}}{s}_k}\right)}
 \end{align*}\]</span></p>
 <p class="fragment">
 We get <span class="math inline">\(2N\)</span> evaluations of <span class="math inline">\(g\)</span>.
@@ -1082,7 +1082,7 @@ p\Cond{\vec u_k}{\vec t_{1:\bar t}, \vec d_{1:\bar t}}\hspace{-50pt}&amp; \\
 &amp;\hspace{20pt}
   \cdot \frac
   {\part{\lR{W}}{j_s}_{k+1}\part{\rR{W}}{i_s}_{k-1}}
-  {\gamma_{k + 1}(\part{\lR{\vec u}}{j_s}_{k+1})
+  {\gamma_{k + 1}\left(\part{\lR{\vec u}}{j_s}_{k+1}\right)
    \part{\lR{\beta}}{j_s}_{k+1}
    \part{\rR{\beta}}{i_s}_{k-1}} \\
 \part{\bR{W}}{s}_k &amp;= \widetilde W_s / \sum_{o = 1}^N \widetilde W_o
@@ -1094,9 +1094,6 @@ p\Cond{\vec u_k}{\vec t_{1:\bar t}, \vec d_{1:\bar t}}\hspace{-50pt}&amp; \\
 <p>We get <span class="math inline">\(3N\)</span> evaluations of <span class="math inline">\(g\)</span>.</p>
 <p class="fragment">
 <span class="math inline">\(\bigO{N}\)</span>.
-</p>
-<p class="fragment">
-Can sample more particles in the smoothing step.
 </p>
 <p class="fragment">
 Can be generalized to handle singular components.
@@ -1252,8 +1249,8 @@ using either a multivariate normal distribution or multivariate <span class="mat
 </p>
 </div>
 </section>
-<section id="take-away" class="slide level2">
-<h2>Take Away</h2>
+<section id="summary" class="slide level2">
+<h2>Summary</h2>
 <p>Mixed models is an alternative when one is interested in extrapolation.</p>
 <p class="fragment">
 Particle based methods can provide an efficient means of working with the presented mixed models.

@@ -110,20 +110,20 @@ as implemented in the `mssm` package.</p>
 
 ## Notation
 
-$\tilde T_i$ is time to event for individual $i$. 
-
-<div class = "w-small fragment">
-Observe covariates $\vec x_{ik}$ at time 
-$k = 0, 1, \dots, \lfloor T_i \rfloor$.
-<p class="smallish">
-$\lfloor T_i \rfloor$ is the floor of $T_i$.</p>
-</div>
+$\tilde T_i$ is the time to event for individual $i$. 
 
 <div class = "w-small fragment">
 Assume independent censoring $C_i$. We observe 
 $T_i = \min (\tilde T_i, C_i)$
 <p class = "smallish">
 and define indicators $D_i = 1_{\{\tilde T_i < C_i\}}$.</p>
+</div>
+
+<div class = "w-small fragment">
+Observe covariates $\vec x_{ik}$ at time 
+$k = 0, 1, \dots, \lfloor T_i \rfloor$.
+<p class="smallish">
+$\lfloor T_i \rfloor$ is the floor of $T_i$.</p>
 </div>
 
 <div class = "w-small fragment">
@@ -322,7 +322,7 @@ $h$ and $\alpha$ are unknown and $\tilde h$ is known.</p>
 <div class = "fragment">
  1. Sample $\part{x}{1}, \dots, \part{x}{N}$ from $q(x)$. 
  2. Compute unnormalized weights 
- $$\part{\widetilde W}{j} = \tilde h(\part{x}{1}) / q(\part{x}{N})$$ 
+ $$\part{\widetilde W}{j} = \tilde h\left(\part{x}{j}\right) / q\left(\part{x}{j}\right)$$ 
  3. Normalize $$\part{W}{j} = \part{\widetilde W}{j} / \sum_{i = 1}^N \part{\widetilde W}{i}$$
 </div>
 
@@ -652,7 +652,7 @@ evaluate when $\vec t_k$ and $\vec d_k$ has many elements.</p>
 ## Issue with Particle Filter
 
 Can use 
-$(\part{\rR{\vec u}}{s}_{1:\bar t}, \part{\rR{w}}{s}_{1:\bar t})$ for 
+$(\part{\rR{\vec u}}{s}_{1:\bar t}, \part{\rR{w}}{s}_{\bar t})$ for 
 $s = 1, \dots, N$.
 
 <div class = "fragment w-small">
@@ -698,9 +698,9 @@ Has the property that
 $$
 p\Cond{\vec t_{k:\bar t}, \vec d_{k:\bar t}}{\vec u_k} \propto
   \frac{\tilde p\Cond{\vec u_k}{\vec t_{k:\bar t}, \vec d_{k:\bar t}}}
-  {\gamma_k(\vec u_k)} 
+  {\gamma_k\left(\vec u_k\right)} 
   \approx \sum_{s = 1}^N \frac
-  {\part{\lR{W}}{s}_k}{\gamma_k(\part{\lR{\vec u}}{s}_k)}
+  {\part{\lR{W}}{s}_k}{\gamma_k\left(\part{\lR{\vec u}}{s}_k\right)}
   \delta_{\part{\lR{\vec u}}{s}_k}(\vec u_k)
 $$
 <p class = "smallish">
@@ -715,7 +715,7 @@ $$\begin{align*}
   h\Cond{\part{\lR{\vec u}}{s}_k}{\part{\rR{\vec u}}{i}_{k -1}}
   \part{\rR{W}}{i}_{k -1}\frac
   {\part{\lR{W}}{s}_k}
-  {\gamma_k({\part{\lR{\vec u}}{s}_k})}
+  {\gamma_k\left({\part{\lR{\vec u}}{s}_k}\right)}
 \end{align*}$$
 
 <p class = "fragment">
@@ -773,7 +773,7 @@ $$\begin{align*}
 &\hspace{20pt}
   \cdot \frac
   {\part{\lR{W}}{j_s}_{k+1}\part{\rR{W}}{i_s}_{k-1}}
-  {\gamma_{k + 1}(\part{\lR{\vec u}}{j_s}_{k+1})
+  {\gamma_{k + 1}\left(\part{\lR{\vec u}}{j_s}_{k+1}\right)
    \part{\lR{\beta}}{j_s}_{k+1}
    \part{\rR{\beta}}{i_s}_{k-1}} \\
 \part{\bR{W}}{s}_k &= \widetilde W_s / \sum_{o = 1}^N \widetilde W_o
@@ -784,9 +784,6 @@ We get $3N$ evaluations of $g$.
 
 <p class = "fragment">
 $\bigO{N}$.</p>
-
-<p class = "fragment">
-Can sample more particles in the smoothing step.</p>
 
 <p class = "fragment">
 Can be generalized to handle singular components.</p>
@@ -949,7 +946,7 @@ using either a multivariate normal distribution or multivariate
 $t$-distribution.</p>
 </div>
 
-## Take Away
+## Summary
 Mixed models is an alternative when one is interested in extrapolation.
 
 <p class = "fragment">
