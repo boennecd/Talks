@@ -1,3 +1,7 @@
+# MEB Thursday seminar Fall 2019
+[Code](/MEB-Thursday-19/VA-survival.Rmd) and presentation at 
+[RPubs](http://rpubs.com/boennecd/MEB-Thursday-19).
+
 # Workshop on Time to Event Data and Machine Learning with Focus on Pension Insurance Problems
 [Code](/Time-to-Event-ML-Pension/PFnSiML.Rmd) and presentation at 
 [RPubs](http://rpubs.com/boennecd/PFnSiML).
