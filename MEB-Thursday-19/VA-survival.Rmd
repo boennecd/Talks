@@ -78,7 +78,7 @@ $$
 Survival analysis setup.
 
 <p class="fragment">
-Computational issues in survival analysis</p>
+Computational issues in survival analysis.</p>
 
 <p class="fragment">
 Show applications of variational approximations (VAs).</p>
@@ -106,7 +106,7 @@ $T_{ki}^*$ be the event time of individual $i$ in the $k$th cluster.
 Observe $T_{ki} = \min (T_{ki}^*, C_{ki})$ where $C_{ki}$ is the 
 assumed independent censoring time.
 <p class="smallish">
-Let $D_i = 1_{\{T_i^* < C_i\}}$ be the event indicators. 
+Let $D_{ki} = 1_{\{T_{ki}^* < C_{ki}\}}$ be the event indicators. 
 </p></div>
 
 <div class = "w-small fragment">
@@ -590,7 +590,7 @@ ex1 <- get_sim_data()
 $$
 \begin{align*}
 g(S(t_{ki} \mid \vec x_{ki}, \vec z_{ki}, u_k))
-  &= g(S_0(t_{ki})) + \vec x_{ki}^\top\vec\beta + \vec z_{ki}^\top u_k \\
+  &= g(S_0(t_{ki})) + \vec x_{ki}^\top\vec\beta + u_k \\
 U_k &\sim N(0, \sigma^2) \\
 S_0(t) &= c \exp(-\lambda_1 t^{\gamma_1}) + 
   (1 - c) \exp(-\lambda_2 t^{\gamma_2}) \\
@@ -1621,7 +1621,7 @@ $$
 </div>
 
 ## Summary
-Variational approximation is a broad class of approximations.
+Variational approximations are a broad class of approximations.
 
 <p class = "fragment">
 The Gaussian variational approximation seems to work similar to a Laplace 
