@@ -1,4 +1,4 @@
-# MEB Thursday seminar Fall 2019
+# MEB Thursday Seminar Fall 2019
 [Code](/MEB-Thursday-19/VA-survival.Rmd) and presentation at 
 [RPubs](http://rpubs.com/boennecd/MEB-Thursday-19).
 
