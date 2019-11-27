@@ -1,0 +1,12 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+packrat/lib*/
+rsconnect/
+packrat/src/
+VA-survival_cache
+VA-survival_files
+*.so
+*.o
+*.dll

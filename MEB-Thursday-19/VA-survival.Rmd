@@ -1,0 +1,1661 @@
+---
+title: "Variational Approximations"
+bibliography: ref.bib
+biblio-style: apa
+output: 
+  revealjs::revealjs_presentation:
+    css: styles.css
+    theme: black
+    center: false
+    transition: slide
+    highlight: monochrome
+    self_contained: true
+    reveal_options:
+      slideNumber: true
+    includes:
+      in_header: header.html
+      after_body: doc_suffix.html
+---
+
+## dummy slide
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.height = 5)
+.par_use <- list(cex = 1.33, cex.lab = 1.2, oma = c(1, 1, 1, 1))
+options(width = 70, digits = 3)
+palette(c("#000000", "#009E73", "#e79f00", "#9ad0f3", "#0072B2", "#D55E00", 
+          "#CC79A7", "#F0E442"))
+```
+
+<!--html_preserve-->
+<script>
+(function() {
+  document.getElementById("dummy-slide").remove(); 
+  
+  var front_div = document.getElementsByTagName("section")[0];
+  front_div.classList.add("front");
+  front_div.classList.add("center");
+  
+  // add second header
+  var second_head = document.createElement("h1");
+  var node = document.createTextNode("in Survival Analysis");
+  second_head.appendChild(node);
+  second_head.style.margin = "0";
+  front_div.appendChild(second_head);
+  
+  // add author 
+  var credit_div = document.createElement('div');
+  credit_div.innerHTML += "<div class='w-small'><p>Benjamin Christoffersen</p><p class='smallish'>KI, Department of Medical Epidemiology and Biostatistics, <a href='mailto:benjamin.christoffersen@ki.se'>benjamin.christoffersen@ki.se</a></p><p class='smallish'>KTH, Division of Robotics, Perception and Learning, <a href='mailto:benchr@kth.se'>benchr@kth.se</a></p></div>";
+  credit_div.classList.add("authors");
+  front_div.appendChild(credit_div);
+})();
+</script>
+<!--end dummy slide-->
+
+</section>
+
+<section>
+<section class="large-first center slide level2">
+<h1>Introduction</h1>
+<!--/html_preserve-->
+
+<div style="display: none;">
+$$
+\definecolor{gray}{RGB}{192,192,192}
+\renewcommand\vec{\boldsymbol}
+\def\bigO#1{\mathcal{O}(#1)}
+\def\Cond#1#2{\left(#1\,\middle|\, #2\right)}
+\def\mat#1{\boldsymbol{#1}}
+\def\der{{\mathop{}\!\mathrm{d}}}
+\def\argmax{\text{arg}\,\text{max}}
+\def\expec{\text{E}}
+\def\prob{\text{E}}
+\def\trace{\text{tr}}
+$$
+</div>
+
+## Presentation Outline
+Survival analysis setup.
+
+<p class="fragment">
+Computational issues in survival analysis</p>
+
+<p class="fragment">
+Show applications of variational approximations (VAs).</p>
+
+<p class = "fragment"> 
+Future work.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Survival Analysis</h1>
+<!--/html_preserve-->
+
+## Notation
+
+$T_{ki}^*$ be the event time of individual $i$ in the $k$th cluster. 
+
+<div class="w-small fragment">
+Observe $T_{ki} = \min (T_{ki}^*, C_{ki})$ where $C_{ki}$ is the 
+assumed independent censoring time.
+<p class="smallish">
+Let $D_i = 1_{\{T_i^* < C_i\}}$ be the event indicators. 
+</p></div>
+
+<div class = "w-small fragment">
+$p$ will denote a (conditional) density function
+<p class = "smallish">
+which specification is implicitly given by the context.</p>
+</div>
+
+## Proportional Hazards (PH) Models
+Typical choice is 
+
+$$
+\lambda\Cond{t}{\vec x} = \lambda_0(t)\exp\left(\vec\beta^\top\vec x\right)
+$$
+
+<div class = "fragment">
+Generalization may be intractable due to 
+
+$$S\Cond{t}{\vec x} = \exp\left(-\int_0^t\lambda\Cond{s}{\vec x}\der s\right)$$
+<p class = "smallish">
+Leads to one-dimensional numerical integration.</p>
+
+</div>
+
+## Generalized Survival Models (GSMs)
+Let 
+
+$$\begin{align*}
+g\left(S\Cond{t}{\vec x}\right) = 
+  g\left(S_0(t)\right) + \vec\beta^\top\vec x
+\end{align*}$$
+
+<div class="w-small">
+where $g$ is a link function and $S_0$ is a baseline survival function
+<p class = "smallish">
+e.g., see @Royston02.</p>
+</div>
+
+<p class = "fragment"> 
+Avoid integration.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Computational Issues</h1>
+<!--/html_preserve-->
+
+## Random Effects
+<div class="w-small">
+May have unobserved factors which we want to account for or are interested
+in 
+<p class="smallish">
+e.g., twins who share genetic background and environment.</p>
+</div>
+
+## GSMs with Random Effects
+$$
+\begin{align*}
+g\left(S\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k}\right) &= 
+  g\left(S_0(t_{ki})\right) + \vec\beta^\top\vec x_{ki}
+  + \vec z^\top_{ki}\vec u_k \\
+  &= g\left(S_0(t_{ki}; \vec x_{ki})\right) + \vec z^\top_{ki}\vec u_k \\
+\vec U_k &\sim h(\vec \theta)
+\end{align*}
+$$
+<div class="w-small">
+$\vec z_{ki}$ is known covariates and $\vec u_k\in\mathbb{R}^K$ is group $k$'s random effect.
+<p class="smallish">
+$k=1,\dots,m$ indicates the group and group $k$ has $i=1,\dots,n_k$ members.
+</p>
+</div>
+
+<div class = "fragment">
+In particular, we consider
+
+$$\vec U_k \sim N(\vec 0, \mat \Sigma)$$
+</div>
+
+## Notation 
+Let functions be applied elementwise
+
+$$
+\begin{align*}
+\vec x &= (x_1, x_2)^\top \\
+f(\vec x) &= (f(x_1), f(x_2))^\top
+\end{align*}
+$$
+
+<div class = "fragment">
+Further, let
+
+$$
+\begin{align*}
+\vec t_k &= (t_{k1}, \dots, t_{kn_k})^\top, &
+  \vec d_k &= (d_{k1}, \dots, d_{kn_k})^\top \\
+\mat X_k &= (\vec x_{k1}, \dots, \vec x_{kn_k})^\top, &
+  \mat Z_k &= (\vec z_{k1}, \dots, \vec z_{kn_k})^\top
+\end{align*}
+$$
+</div>
+
+## Marginal Log-likelihood
+
+The marginal log-likelihood (or *model evidence*) term for each group $k$ is
+
+$$
+\begin{align*}
+l_k(\vec\beta, \mat\Sigma) &= \log \int
+  \exp\left(h_k(\vec\beta, \mat\Sigma, \vec u)
+  + \log \phi(\vec u;\mat \Sigma)\right)
+  \der \vec u \\
+h_k(\vec\beta, \mat\Sigma, \vec u) &=
+  \vec d^\top_k \log \lambda\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u} \\
+  &\hspace{20pt} + \vec 1^\top\log S\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u}
+\end{align*}
+$$
+
+<p class="smallish">
+where $\phi(\cdot ;\mat \Sigma)$ is the density function of the multivariate 
+normal distribution with a zero mean vector and covariance matrix $\mat \Sigma$.
+$\vec 1$ is a vector of ones.</p>
+
+<p class="fragment">
+$l_k(\vec\beta, \mat\Sigma)$ is intractable in general.</p>
+
+## Common Approximations
+
+<div class="w-small">
+Laplace Approximation.
+<p class="smallish">
+Fast, scales well, but may perform poorly e.g., for small groups ($n_k$ small).
+</p></div>
+
+<div class="w-small fragment">
+Adaptive Gaussian quadrature (AGQ).
+<p class="smallish">
+Fast in low dimensions, scales poorly, and performs well.
+For examples, see @Liu94 and @Pinheiro95.
+</p></div>
+
+<div class="w-small fragment">
+Monte Carlo methods.
+<p class="smallish">
+Slow, scales poorly, and performs well.
+</p></div>
+
+## Adaptive Gaussian Quadrature
+$$\begin{align*}
+l &= \int c(\vec u)\der u \qquad\qquad\qquad\qquad\qquad \text{(intractable)} \\
+&= \int \frac{c(\vec u)}{\phi(\vec u; \vec\mu, \mat\Lambda)}
+  \phi(\vec u; \vec\mu, \mat\Lambda)\der\vec u \\
+&= \int\underbrace{(2\pi)^{k/2} \lvert\Lambda\rvert^{1/2}
+  c(\vec\mu + \Lambda^{1/2}\vec s)
+  \exp\left(\vec s^\top\vec s / 2\right)}_{
+  \tilde c(\vec s; \vec\mu, \mat\Lambda)}
+  \phi(\vec s; \vec 0, \mat I)\der\vec s
+\end{align*}$$
+
+<p class="smallish">    
+where $\vec u\in \mathbb{R}^K$, $\phi(\cdot; \vec\mu, \mat\Lambda)$ is the 
+density of a multivariate normal distribution with mean $\vec\mu$ and 
+covariance matrix $\mat\Lambda$, and $\mat I$ is the identity matrix.</p>
+
+## Adaptive Gaussian Quadrature
+Apply Gauss-Hermite quadrature to each coordinate of $\vec s$.
+
+<p class="fragment">
+Each  coordinate, $s_l$, is approximated at $b$ points.</p>
+
+<div class = "fragment">
+Let $(g_i, w_i)$ be one of the node values and the corresponding weight for 
+$i = 1,\dots,b$ for each coordinate, $s_l$, and
+
+$$\vec s_{j_1,\cdots,j_k} = (g_{j_1},\cdots,g_{j_K})^\top$$
+</div>
+
+## Adaptive Gaussian Quadrature
+
+Repeatedly applying Gauss-Hermite quadrature yields
+
+$$\begin{align*}
+l &= \int \tilde c(\vec s; \vec\mu; \mat\Lambda)
+  \phi(\vec s; \vec 0, \mat I)\der\vec s \\
+&\approx \sum_{j_1=1}^b\cdots\sum_{j_K=1}^b
+   \tilde c(\vec s_{j_1,\cdots,j_K}; \vec\mu, \mat\Lambda)
+   \prod_{q = 1}^K w_{j_q}
+\end{align*}$$
+
+<div class = "fragment w-small">
+Scales poorly in the dimension of the random effect, $K$.
+<p class = "smallish">
+Fast alternatives are attractive.</p>
+</div>
+
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Variational Approximations</h1>
+<!--/html_preserve-->
+
+## Lower Bound
+
+A lower bound of the marginal log-likelihood is
+
+$$
+\begin{align*}
+\log p\left(\vec t_k, \vec d_k\right) &= 
+  \int q(\vec u;\vec\theta_k) \log \left(\frac
+  {p\left(\vec t_k, \vec d_k, \vec u\right) / q(\vec u;\vec\theta_k)}
+  {p\Cond{\vec u}{\vec t_k, \vec d_k} / q(\vec u;\vec\theta_k)}
+  \right)\der\vec u \\
+&\geq \int q(\vec u;\vec\theta_k) \log \left(\frac
+  {p\left(\vec t_k, \vec d_k, \vec u\right)}
+  {q(\vec u;\vec\theta_k)}
+  \right)\der\vec u \\
+&= \log \tilde p \left(\vec t_k, \vec d_k;\vec\theta_k\right)
+\end{align*}
+$$
+
+<p>for some density function $q$.<span class = "fragment" data-fragment-index=1> Equality is if and only
+</span></p>
+
+<div class = "fragment" data-fragment-index=1>
+
+$$
+q(\vec u_k;\vec\theta_k) = p\Cond{\vec u_k}{\vec t_k, \vec d_k}
+$$
+</div>
+
+## Lower Bound 
+Approximate maximum likelihood is 
+
+$$\argmax_{\vec\beta, \mat \Sigma, \vec\theta_1, \cdots, \vec\theta_m}
+  \sum_{k=1}^m\log \tilde p \left(\vec t_k, \vec d_k;\vec\theta_k\right)$$
+
+## Marginal Log-likelihood
+
+Recall the marginal log-likelihood 
+
+$$
+\begin{align*}
+l_k(\vec\beta, \mat\Sigma) &= \log \int
+  \exp\underbrace{\left(h_k(\vec\beta, \mat\Sigma, \vec u)
+  + \log \phi(\vec u;\mat \Sigma)\right)}_{
+    \log p(\vec t_k, \vec d_k, \vec u)}
+  \der \vec u \\
+h_k(\vec\beta, \mat\Sigma, \vec u) &=
+  \vec d^\top_k \log \lambda\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u} \\
+  &\hspace{20pt} + \vec 1^\top\log S\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u}
+\end{align*}
+$$
+
+## Applying the Lower Bound
+<div class="w-small">
+$\log \phi(\vec u;\mat \Sigma)$ term requires a solution for
+$\expec(\vec U_k\vec U_k^\top)$
+<p class="smallish">
+or the mean and covariance.</p>
+</div>
+
+<p class = "fragment">
+Need to compute the entropy due to $- \log q(\vec u; \vec\theta_k)$.</p>
+
+<div class = "fragment">
+The remaining two types of terms
+
+$$\vec d^\top_k \log \lambda\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec U_k} + \vec 1^\top\log S\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec U_k}$$
+</div>
+
+## Applying the Lower Bound
+
+$$
+\lambda\Cond{\vec t_k}{\mat X_k, \mat Z_k, \vec u_k} = 
+  s\left(\vec t_k; \eta_1(\mat X_k) + \mat Z_k\vec u_k\right)
+$$
+
+<p>for some function $s$.<span class = "fragment" data-fragment-index=1> Then if we know the distribution of</span></p>
+
+<div class = "fragment" data-fragment-index=1>
+$$
+U_k^{\vec z_k}= \vec z_k^\top\vec U_k
+$$
+
+then we compute
+
+$$
+\begin{align*}
+\expec\left(\log\lambda\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec U_k}\right)
+  &= \expec\left(
+  \log s \left(t_{ki};\eta_1(\vec x_{ki}) 
+  + U_k^{\vec z_k}\right)
+  \right)
+\end{align*}
+$$
+
+</div>
+
+<div class="w-small fragment">
+I.e., $n_k$ one-dimensional integrals
+<p class="smallish">
+instead of one $K$-dimensional integral. As emphasized by @Ormerod12
+for generalized linear mixed models.</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Gaussian Variational Approximations</h1>
+<!--/html_preserve-->
+
+## Gaussian Variational Approximation (GVA)
+
+$$
+q(\vec u;\vec\mu_k, \mat\Lambda_k) 
+  = \phi\left(\vec u; \vec\mu_k, \mat\Lambda_k\right)
+$$
+
+<div class = "fragment">
+Closed-form entropy and expected outer product.
+
+$$
+\begin{align*}
+\hat l_k(\vec \beta, \mat\Sigma;\vec\mu_k,\mat\Lambda_k)
+  &= \int h_k(\vec\beta, \mat\Sigma, \vec u)
+  \phi\left(\vec u; \vec\mu_k, \mat\Sigma_k\right)
+  \der\vec u \\
+&\hspace{20pt} + \frac 12\bigg(
+  \log\lvert\mat\Sigma^{-1}\mat\Lambda_k\rvert
+  - \trace \mat\Sigma^{-1}\mat\Lambda_k \\
+&\hspace{85pt}- \vec\mu_k^\top\mat\Sigma^{-1}\vec\mu_k
+  + K
+  \bigg)
+\end{align*}
+$$
+
+</div>
+
+## GSM with Log-log Link Function
+Recall 
+
+$$
+g\left(S\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k}\right) 
+  = g\left(S_0(t_{ki}; \vec x_{ki})\right) +
+  \vec z^\top_{ki}\vec u_k
+$$
+
+<div class = "fragment">
+
+and suppose that
+
+$$g(x) = \log(-\log(x))$$
+</div>
+
+## GSM with Log-log Link Function
+Then 
+
+$$\begin{align*}
+\log S\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k}
+  &= \exp(\vec z^\top_{ki}\vec u_k)\log S_0(t_{ki}; \vec x_{ki}) \\
+\log\lambda\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k}
+  &= L_0(t_{ki}; \vec x_{ki}) + \vec z^\top_{ki}\vec u_k
+\end{align*}$$
+
+with 
+
+$$L_0(t_{ki}; \vec x_{ki}) = 
+  \log\left(- \frac
+  {S'_0(t_{ki}; \vec x_{ki})}
+  {S_0(t_{ki}; \vec x_{ki})} \right)$$
+  
+<div class = "w-small fragment">
+Both are tractable.
+<p class = "smallish">
+$-\text{logit}$ and $\text{probit}$ require univariate numerical 
+integration.</p>
+</div>
+
+## Generalized PH Model
+
+$$
+\lambda\Cond{s}{\vec x_{ki}, \vec z_{ki}, \vec u_k}
+  = \lambda_0(s ;\vec x_{ki})
+  \exp\left(\vec f(s, \vec z_{ki})^\top\vec u_k\right)
+$$
+<p>where $\vec f:\, [0,\infty)\times \mathbb{R}^v\rightarrow\mathbb{R}^K$ is **not** 
+applied elementwise.<span class = "fragment" data-fragment-index=1> Then</span></p>
+
+<div class="fragment" data-fragment-index=1>
+
+$$\begin{align*}
+\log S\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k} &\\
+&\hspace{-40pt}= -\int_0^{t_{ki}} \lambda_0(s ;\vec x_{ki})
+  \exp\left(\vec f(s, \vec z_{ki})^\top\vec u_k\right) \der s \\
+\log\lambda\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u_k}
+  &= \log \lambda_0(t_{ki};\vec x_{ki}) + 
+  \vec f(t_{ki}, \vec z_{ki})^\top\vec u_k
+\end{align*}$$
+</div>
+
+## Generalized PH Model
+
+$$
+\begin{align*}
+\hspace{40pt}&\hspace{-40pt}
+\int \log S\Cond{t_{ki}}{\vec x_{ki}, \vec z_{ki}, \vec u}
+  \phi(\vec u; \vec\mu_k, \mat\Lambda_k)\der\vec u \\
+&=- \int_0^{t_{ki}} \lambda_0(s ;\vec x_{ki})
+  \bigg(\int
+  \exp\left(\vec f(s, \vec z_{ki})^\top\vec u\right) \\
+&\hspace{110pt}\cdot
+  \phi(\vec u; \vec\mu_k, \mat\Lambda_k)
+  \der\vec u\bigg)\der s
+\end{align*}
+$$
+<p class = "smallish">
+Assuming we can change order of integration. Similar to result by 
+@yue19.</p>
+
+## Example
+
+```{r load_packages_n_source_scripts, echo = FALSE, message = FALSE, warning=FALSE, results =FALSE}
+source(file.path("R", "simulate.R"))
+source(file.path("R", "snorm.R"))
+source(file.path("R", "get_gsm_obj_func.R"))
+library(rstpm2)
+library(parallel)
+set.seed(23132749)
+```
+
+```{r assign_sim_func, echo = FALSE, cache = 1}
+get_sim_data <- function(link = "PH"){
+  dat <- within(list(), {
+    n_p_grp <- 2L
+    n_grp <- 200L
+    n_obs <- n_p_grp * n_grp
+    grp <- gl(n_grp, n_p_grp)
+    
+    X <- cbind(`(Intercept)` = 1, treatment = runif(n_obs) > .5, 
+               x = rnorm(n_obs))
+    Z <- cbind(`(Intercept)` = rep(1, n_obs))
+    beta <- c(0, .5, .5)
+    cvmat <- as.matrix(exp(2 * .7))
+    gs <- c(1.5, 0.5)
+    ls <- c(.25, .25)
+    ps <- c(.5, .5)
+  })
+    
+  sim_dat <- with(dat, sim_wei_mix_base(
+    b = beta, X = X, Z = Z, cvmat = cvmat, grp = grp, ps = ps, 
+    gs = gs, ls = ls, link = link,
+    cens_func = function(n_obs) runif(n_obs, 1, 5)))
+  
+  out <- c(dat, sim_dat)
+  out$dframe <- with(
+    out, data.frame(y, event, grp, X[, c("treatment", "x")]))
+  out
+}
+
+ex1 <- get_sim_data()
+```
+
+$$
+\begin{align*}
+g(S(t_{ki} \mid \vec x_{ki}, \vec z_{ki}, u_k))
+  &= g(S_0(t_{ki})) + \vec x_{ki}^\top\vec\beta + \vec z_{ki}^\top u_k \\
+U_k &\sim N(0, \sigma^2) \\
+S_0(t) &= c \exp(-\lambda_1 t^{\gamma_1}) + 
+  (1 - c) \exp(-\lambda_2 t^{\gamma_2}) \\
+\hphantom{\vec(c, \lambda_1, \gamma_1, \lambda_2, \gamma_2, \log\sigma)} &
+\end{align*}
+$$
+
+<div class = "fragment">
+$$
+\begin{align*}
+\vec\beta &= (`r ex1$beta[1]`, `r ex1$beta[2]`, `r ex1$beta[3]`)^\top \\
+\vec x_{ki} &= (1, b_{ki}, s_{ki})^\top \\ 
+b_{ki} &= \text{Bern}(0.5) \\ 
+s_{ki} &= N(0, 1) \\
+\vec(c, \lambda_1, \gamma_1, \lambda_2, \gamma_2, \log\sigma) &= 
+  (`r ex1$ps[1]`, `r ex1$ls[1]`, `r ex1$gs[1]`, 
+   `r ex1$ls[2]`, `r ex1$gs[2]`, `r drop(log(ex1$cvmat))`) \\
+(m, n_k) &= (`r length(unique(ex1$grp))`, 2) \\
+\end{align*}
+$$
+</div>
+
+## Baseline
+
+```{r show_base, echo = FALSE}
+# computes the hazard of a mixture Weibull. 
+baseline_haz <- function(x, ps, gs, ls){
+  n_ele <- length(ps)
+  stopifnot(
+    length(gs) ==  n_ele, length(gs) ==  n_ele, length(ls) ==  n_ele)
+  ps <- ps / sum(ps)
+  
+  S  <- exp(-ls * t(outer(x, gs, `^`)))
+  Sd <- -S * ls * gs * t(outer(x, gs - 1, `^`))
+  S  <- colSums(ps * S )
+  Sd <- colSums(ps * Sd)
+  
+  -Sd / S
+}
+
+# plot baseline hazard
+par(.par_use)
+par(mar = c(4.5, 4.5, 1, 1))
+plot(function(x) 
+  baseline_haz(x, ps = c(.5, .5), gs = c(1.5, .5), ls = c(.25, .25)),
+  xlim = c(.01, 5), ylim = c(0, .4), xlab = "Time", ylab = "Hazard", 
+  yaxs = "i", xaxs = "i", bty = "l")
+```
+
+## Comparison
+
+<div = class = "w-small">
+Adaptive Gaussian quadrature using 30 nodes 
+<p class = "smallish">
+using `rstpm2::stpm2` [@Clements19].</p>
+</div>
+
+<div = class = "w-small fragment">
+Laplace approximation
+<p class = "smallish">
+using `TMB` [@Thygesen17].</p>
+</div>
+
+<div = class = "w-small fragment">
+Own GVA implementation
+<p class = "smallish">
+using automatic differentiation with the `CppAD` library [@Bell19].</p>
+</div>
+
+<p class = "fragment">
+6 degrees of freedom for the baseline with a natural cubic spline.</p>
+
+## One Example
+
+```{r def_est_funcs, cache = 1, echo = FALSE}
+# Returns an optimizer function. 
+#
+# Args: 
+#   method: character for optimization method to use.
+#   maxit: The maximum number of iterations.
+get_optim_method <- 
+  function(method = c("optim::BFGS", "optim::CG", "RBFGS", "RCG", "nloptr::LBFGS"), 
+           maxit = 10000L){
+    nlopt_regexp <- "^(nloptr::)(.+)$" 
+    nlopt_meth <- gsub(nlopt_regexp, "\\2", method)
+    stopifnot(is.character(method), 
+              method %in% c("optim::BFGS", "optim::CG", "RBFGS", "RCG") ||
+                grepl(nlopt_regexp, method), 
+              length(maxit) == 1L, is.integer(maxit))
+    method <- method[1]
+    eps <- sqrt(.Machine$double.eps)
+    optim_control <- list(maxit = maxit, reltol = eps)
+    Rx_control    <- list(maxit = maxit, eps = eps)
+    if(method == "optim::BFGS"){
+      func <- optim
+      formals(func)$method <- "BFGS"
+      formals(func)$control <- optim_control
+      
+    } else if (method == "optim::CG"){
+      func <- optim
+      formals(func)$method <- "CG"
+      formals(func)$control <- optim_control
+      
+    } else if(method == "RBFGS"){
+      if(!require("Rvmmin"))
+        stop(sprintf("Requires %s", sQuote("Rvmmin")))
+      func <- Rvmminu
+      formals(func)$control <- Rx_control
+      
+    } else if(method == "RCG"){
+      if(!require("Rcgmin"))
+        stop(sprintf("Requires %s", sQuote("Rcgmin")))
+      func <- Rcgmin
+      formals(func)$control <- Rx_control
+      
+    } else if(method == "nloptr::LBFGS"){
+      if(!require("nloptr"))
+        stop(sprintf("Requires %s", sQuote("nloptr")))
+      func <- function(par, fn, gr, ...){
+        out <- nloptr(
+          x0 = par, eval_f = function(x) fn(x), 
+          eval_grad_f = function(x) gr(x), 
+          opts = list(maxeval = maxit, algorithm = "NLOPT_LD_LBFGS", 
+                      ftol_rel = eps))
+        
+        list(par = structure(out$solution, names = names(par)), 
+             value = out$objective, 
+             # do not think that this matches `stats::optim`...
+             counts = c(out$iterations, NA_integer_), 
+             # see https://nlopt.readthedocs.io/en/latest/NLopt_Reference/#error-codes-negative-return-values
+             convergence = if(out$status %in% 1:4) 0L else out$status)
+      }
+    } else if(grepl(nlopt_regexp, method)){
+      if(!require("nloptr"))
+        stop(sprintf("Requires %s", sQuote("nloptr")))
+      func <- function(par, fn, gr, ...){
+        out <- nloptr(
+          x0 = par, eval_f = function(x) fn(x), 
+          eval_grad_f = function(x) gr(x), 
+          opts = list(
+            maxeval = maxit, algorithm = nlopt_meth, ftol_rel = eps))
+        
+        list(par = structure(out$solution, names = names(par)), 
+             value = out$objective, 
+             # do not think that this matches `stats::optim`...
+             counts = c(out$iterations, NA_integer_), 
+             # see https://nlopt.readthedocs.io/en/latest/NLopt_Reference/#error-codes-negative-return-values
+             convergence = if(out$status %in% 1:4) 0L else out$status)
+      }
+    }
+    
+    function(par, fn, gr, ...){
+      out <- func(par, fn, gr)
+      out
+    }
+  }
+
+# Takes in the output from `get_sim_data()`, estimates the model using
+# adaptive Gaussian quadrature, and returns quantities used for comparison.
+# 
+# Args: 
+#   dat: object from `get_sim_data()`.
+#   nodes: number of AGQ nodes to use.
+#   keep_stpm2: loical for whether to keep object returned by `gsm`. 
+#   
+# Returns:
+#   neg_2_LL: minus two times the estimated log-likelihood 
+#   coef: coefficient estimates.
+#   se: estimated standard errors.
+#   time: computation time of the estimation.
+#   gsm: if `keep_stpm2` is `TRUE` then `stpm2` object returned by `gsm`.
+#   link: character specifying the link function.
+#   init: pased to gsm.
+#   logtheta: pased to gsm.
+stpm2_wrap <- function(dat, nodes = 30L, keep_stpm2 = FALSE, link = "PH", 
+                       init = NULL, logtheta = NULL){
+  ti <- system.time(
+    fit <- with(dat, gsm(
+      formula = Surv(y, event) ~ x + treatment, data = dframe, df = 5, 
+      RandDist = "LogN", Z = ~ 1, link.type = link, cluster = dframe$grp, 
+      control = list(nodes = nodes), init = init, logtheta = logtheta)))
+  
+  co <- coef(fit)
+  co["logtheta"] <- co["logtheta"] / 2
+  se <- sqrt(diag(vcov(fit)))
+  se["logtheta"] <- se["logtheta"] / 2
+  
+  out <- list(neg_2_LL = summary(as(fit, "mle2"))@m2logL, 
+              coef = co, se = se, time = ti)
+  
+  if(keep_stpm2)
+    out$gsm <- fit
+  
+  out
+}
+
+# Takes in the output from `get_sim_data()`, estimates the model using
+# the Laplace approximation, and returns quantities used for comparison.
+# 
+# Returns: 
+#   Same as `adaptive_G` with the addition of
+#   conv: convergence code from `optim`.
+#            and the right-handside is the fixed effects. 
+#   formula: two-sided formula where the left-handside is a `Surv` object  
+#            and the right-handside is the fixed effects. 
+#   formula_Z: one-sided formula where the right-handside are the random 
+#              effects.
+#   method: character for optimization method to use.
+#   do_hess: logical for whether to compute the Hessian.
+laplace_app <- function(dat, link = "PH", 
+                        formula = Surv(y, event) ~ x + treatment, 
+                        formula_Z = ~ 1, method = "optim::BFGS", 
+                        do_hess = TRUE){
+  meth <- get_optim_method(method)
+  ti <- system.time({
+    optim_obj <- with(dat, get_gsm_obj_func(
+      formula = formula, data = dframe, df = 5L,  
+      Z = formula_Z, cluster = grp, do_setup = "Laplace", link = link))
+  
+    res <- with(optim_obj, do.call(meth, laplace))  
+  })
+  
+  # compute standard errors
+  if(res$convergence == 0L && do_hess){
+    # TODO: not run due to TMB. The result is
+    # > Hessian not yet implemented for models with random effects.
+    # hes <- optim_obj$laplace$he(res$value)
+    if(!require(numDeriv))
+      stop(sprintf("%s not installed", sQuote("numDeriv")))
+    hes <- hessian(optim_obj$laplace$fn, res$par)
+    se <- sqrt(diag(solve(hes)))
+    names(se) <- names(res$par)
+    
+  } else {
+    se <- res$par
+    se[] <- NA_real_
+    
+  }
+  
+  list(neg_2_LL = res$value * 2, coef = res$par, se = se, time = ti,
+       conv = res$convergence)
+}
+
+# Takes in the output from `get_sim_data()`, estimates the model using
+# a VA, and returns quantities used for comparison.
+# 
+# Args:
+#   keep_optim_obj: logical for whether to keep the object returned by 
+#                   `get_gsm_obj_func`.
+#   type: Type of VA.
+# 
+# Returns: 
+#   Same as `Laplace` where `neg_2_LL` is two times the negative lower 
+#   bound.
+#   optim_obj: if `keep_optim_obj` is `TRUE` then the object returned by 
+#              `get_gsm_obj_func`. 
+#   res: if `keep_optim_obj` is `TRUE` then the object returned by `optim`.
+#   use_CP: logical for whether to use centralized parameters.
+#   n_nodes: number of nodes to use in (adaptive) Gauss-Hermite quadrature.
+#   skew_start: starting value for the Pearson's moment coefficient of 
+#               skewness parameter when a SNVA is used. 
+#   theta: starting values for covariance matrix. 
+#   beta: starting values for fixed effect coefficients.
+V_app <- function(dat, keep_optim_obj = FALSE, type = c("GVA", "SNVA"), 
+                  use_CP = FALSE, link = "PH", n_nodes = 20L, 
+                  formula = Surv(y, event) ~ x + treatment, 
+                  formula_Z = ~ 1, method = "optim::BFGS", 
+                  skew_start = .alpha_to_gamma(-1), theta = NULL, 
+                  beta = NULL, do_hess = TRUE){
+  use_gva <- type[1L] == "GVA"
+  meth <- get_optim_method(method)
+  ev <- environment()
+  ti <- system.time({
+    optim_obj <- with(dat, get_gsm_obj_func(
+      formula = formula, data = dframe, df = 5L,  
+      Z = formula_Z, cluster = grp, do_setup = type[1], param_type = 
+        if(use_CP) "CP_trans" else "DP", 
+      link = link, n_nodes = n_nodes, skew_start = skew_start, 
+      theta = ev$theta, beta = ev$beta))
+  
+    res <- with(
+      optim_obj, do.call(meth, if(use_gva) gva else snva))
+  })
+  
+  fn         <- with(optim_obj, if(use_gva) gva$fn else snva$fn)
+  he         <- with(optim_obj, if(use_gva) gva$he else snva$he)
+  get_params <- with(
+    optim_obj, if(use_gva) gva$get_params else snva$get_params)
+  
+  # compute standard errors
+  if(res$convergence == 0L && do_hess){
+    se <- try(suppressWarnings(sqrt(diag(solve(he(res$par))))))
+    if(inherits(se, "try-error")){
+      se <- res$par
+      se[] <- NA_real_
+    }
+  }
+  else {
+    se <- res$par
+    se[] <- NA_real_
+  
+  }
+  
+  co <- get_params(res$par)
+  se <- get_params(se)
+  names(se) <- names(co)
+  out <- list(neg_2_LL = res$value * 2, coef = co, se = se, time = ti,
+              conv = res$convergence)
+  if(keep_optim_obj)
+    out[c("optim_obj", "res")] <- list(optim_obj, res)
+  out
+}
+SNV_app_CP <- SNV_app <- GV_app <- V_app
+formals(GV_app    )$type <- "GVA"
+formals(SNV_app   )$type <- "SNVA"
+formals(SNV_app_CP)$type <- "SNVA"
+
+formals(SNV_app_CP)$use_CP <- TRUE
+```
+
+```{r show_one_ex, cache = 1, dependson = c("def_est_funcs", "assign_sim_func")}
+set.seed(17288048)
+dat <- get_sim_data(link = "PH")
+
+rbind(
+  AGQ = system.time(sfit <- stpm2_wrap (dat                 )),
+  Lap = system.time(lfit <- laplace_app(dat, do_hess = FALSE)), 
+  GVA = system.time(gfit <- GV_app     (dat, do_hess = FALSE)))[, 1:3]
+```
+
+## One Example
+```{r show_show_one_ex}
+rbind(AGQ = sfit$coef, Laplace = lfit$coef, GVA = gfit$coef)
+```
+
+## Simulation Study (Bias)
+
+<!--
+knitr::opts_knit$set(output.dir = ".")
+knitr::opts_chunk$set(cache.path = "VA-survival_cache/revealjs")
+knitr::load_cache("/sim_comp")
+-->
+
+```{r sim_comp, cache = 1, echo = FALSE, dependson = c("def_est_funcs", "assign_sim_func")}
+set.seed(953302)
+comp_output <- (function(){
+  # setup cluster
+  require(parallel)
+  cl <- makeCluster(4L)
+  on.exit(stopCluster(cl))
+  clusterEvalQ(cl, {
+    require(rstpm2)
+    source(file.path("R", "simulate.R"))
+    source(file.path("R", "get_gsm_obj_func.R"))
+  })
+  clusterSetRNGStream(cl)
+  clusterExport(cl, c("stpm2_wrap", "laplace_app", "GV_app", "SNV_app", 
+                      "SNV_app_CP", "get_sim_data", "get_optim_method"))
+  
+  lapply(c(PH = "PH", PO = "PO", probit = "probit"), function(link){
+    n_sim <- 200L
+    parLapply(cl, 1:n_sim, function(...){
+      .seed_used <- .Random.seed
+      dat <- get_sim_data(link = link)
+      out <- lapply(
+        list(AGQ = stpm2_wrap,
+             Laplace = laplace_app, GVA = GV_app, SNVA = SNV_app, 
+             `SNVA (CP)` = SNV_app_CP), 
+        do.call, args = list(dat, link = link))
+      
+      # save the seed in case we want to re-run the simulation
+      attr(out, "seed") <- .seed_used
+      out
+    })
+  })
+})()
+
+# add link names
+comp_output <- mapply(function(x, n) within(x, link <- n), 
+                      comp_output, names(comp_output), SIMPLIFY = FALSE)
+```
+
+<!--
+knitr::opts_knit$set(output.dir = ".")
+knitr::opts_chunk$set(cache.path = "VA-survival_cache/revealjs")
+knitr::load_cache("/handle_failed_comp")
+-->
+
+```{r handle_failed_comp, echo = FALSE, message = FALSE, cache = 1, dependson = c("def_est_funcs", "assign_sim_func")}
+comp_output <- lapply(comp_output, function(link_res){
+  link <- link_res$link
+  
+  is_fail <- sapply(link_res[-length(link_res)], function(one_sim_res)
+    one_sim_res$AGQ$neg_2_LL > one_sim_res$`SNVA (CP)`$neg_2_LL)
+  
+  if(any(is_fail))
+    message(sprintf("%d failed with rstpm2::stpm2 and link %s\n", 
+                    sum(is_fail), sQuote(link)))
+  to_replace <- lapply(link_res[is_fail], function(one_sim_res){
+    # simulate data again
+    old_seed <- .Random.seed
+    on.exit(.GlobalEnv$.Random.seed <- old_seed)
+    .GlobalEnv$.Random.seed <- attr(one_sim_res, "seed")
+    dat <- get_sim_data(link = link)
+    
+    init <- one_sim_res$`SNVA (CP)`$coef
+    is_theta <- names(init) == "theta"
+    init[is_theta] <- init[is_theta] * 2
+    old_time <- one_sim_res$AGQ$time # save time to re-use
+    
+    new_fit <- stpm2_wrap(dat, link = link, init = init[!is_theta], 
+                          logtheta = unname(init[is_theta]), 
+                          keep_stpm2 = TRUE)
+    new_fit$time <- old_time
+    
+    one_sim_res$AGQ <- new_fit
+    one_sim_res
+  })
+
+  link_res[is_fail] <- to_replace
+  
+  # check for failures again
+  is_fail <- sapply(link_res[-length(link_res)], function(one_sim_res)
+    one_sim_res$AGQ$neg_2_LL > one_sim_res$`SNVA (CP)`$neg_2_LL)
+  is_fail <- c(is_fail, FALSE)
+  
+  if(any(is_fail))
+    message(sprintf("%d still failed with rstpm2::stpm2 and link %s. These are removed\n", 
+                    sum(is_fail), sQuote(link)))
+  
+  link_res <- link_res[!is_fail]
+  link_res
+})
+```
+
+```{r show_res_comp_simulation, fig.height = 4, warning = FALSE, echo = FALSE}
+comp_output <- lapply(comp_output, function(link_res){
+  not_conv <- sapply(link_res[names(link_res) != "link"], function(z)
+    sapply(z, function(o) !is.null(o$conv) && isTRUE(o$conv != 0)))
+  
+  # drop those where at leat one of the methods failed to converge
+  keep <- which(colSums(not_conv) == 0)
+  link_res[c(keep, length(link_res))]
+})
+
+get_labels <- Vectorize(function(x){
+  switch(
+    x, 
+    `(Intercept)` = "Intercept",
+    treatment = expression(b[ki]),
+    x = expression(s[ki]),
+    logtheta = expression(log(sigma)),
+    `nsx(log(y), df = 5)1` = "spline 1",
+    `nsx(log(y), df = 5)2` = "spline 2",
+    `nsx(log(y), df = 5)3` = "spline 3",
+    `nsx(log(y), df = 5)4` = "spline 4",
+    `nsx(log(y), df = 5)5` = "spline 5",
+    stop(sprintf("%s not known", sQuote(x))))
+})
+
+get_pretty_link <- Vectorize(function(link)
+  switch (link,
+    PH = "log-log",
+    PO = "-logit", 
+    probit = "probit", 
+    stop()))
+
+# Function to compare estimates.
+# 
+# Args:
+#   link_res: list with simulation results for a given link function.
+#   ele_name: name of element to compare. 
+#   na.rm: logical for whether NAs should be removed. 
+#   comp_truth: logical for whether to compare with true values.
+#   is_with_SNVA: whether to include SNVA results.
+compare_element <- function(
+  link_res, ele_name = "coef", na.rm = TRUE, comp_truth = FALSE, 
+  is_with_SNVA = FALSE){
+  link <- link_res$link
+  link_res <- link_res[names(link_res) != "link"]
+  link <- get_pretty_link(link)
+  stopifnot(!comp_truth || (comp_truth && ele_name == "coef"))
+  
+  # simulate a data set to get the true values. We reset the seed afterwards
+  if (!exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)) 
+    runif(1)
+  old_seed <- .GlobalEnv$.Random.seed
+  on.exit(.GlobalEnv$.Random.seed <- old_seed)
+  dat <- get_sim_data()
+  co <- c(dat$beta, drop(log(dat$cvmat)) / 2)
+  names(co) <- c(colnames(dat$X), "logtheta")
+  co <- co[names(co) != "(Intercept)"]
+  
+  # compute errors 
+  error <- 
+    if(!comp_truth)
+      sapply(link_res, function(res)
+        with(res, {
+          AGQ <- AGQ[[ele_name]]
+          cbind(
+            Laplace     = AGQ - Laplace    [[ele_name]], 
+            GVA         = AGQ - GVA        [[ele_name]],
+            SNVA        = AGQ - SNVA       [[ele_name]],
+            `SNVA (CP)` = AGQ - `SNVA (CP)`[[ele_name]])
+        }), 
+        simplify = "array") 
+    else
+      sapply(link_res, function(res) 
+        co - sapply(res, `[[`, "coef")[names(co), ], simplify = "array")
+  error_abs <- abs(error)
+  
+  denum <- sqrt(dim(error)[[3]])
+  out <- sapply(list(
+    Bias              = apply(error    , 1:2, mean, na.rm = na.rm), 
+    `Standard error`  = apply(error    , 1:2, sd  , na.rm = na.rm) / denum, 
+    `Mean abs(error)` = apply(error_abs, 1:2, mean, na.rm = na.rm), 
+    `Standard error`  = apply(error_abs, 1:2, sd  , na.rm = na.rm) / denum), 
+    I, simplify="array")
+  
+  # plot result
+  plot_func <- function(xs, ses, ylab, org_vals){
+    n_mod <- NCOL(xs)
+    n_est <- NROW(xs)
+    
+    lbs <- xs - 2 * ses
+    ubs <- xs + 2 * ses
+    
+    dp <-  1 - (n_mod - .75) / n_mod
+    xpval <- outer(1:n_est, seq(dp, 1 - dp, length.out = n_mod), `+`)
+    col <- rep(1:n_mod, each = n_est) + !comp_truth
+    bcol <- rep(1:n_mod, n_est) + !comp_truth
+    pchs <- col + 15L
+    
+    par(.par_use)
+    par(mar = c(3.5, 5, 1, 6.5))
+    vs <- matrix(
+      aperm(org_vals, 3:1), dim(org_vals)[3], prod(dim(org_vals)[1:2]))
+    ylim <- max(abs(vs))
+    ylim <- ylim * c(-1, 1)
+    boxplot(vs, at = c(t(xpval)), boxwex = 1 / n_mod / 3, 
+            bty = "c", axes = FALSE, xlab = "", ylab = ylab, 
+            xlim = range(xpval), ylim = ylim, outcol = bcol, 
+            whiskcol = bcol, staplecol = bcol, medcol = bcol)
+    points(xpval, xs, xlab = "", col = col,  pch = pchs)
+    axis(2)
+    arrows(xpval, lbs, xpval, ubs, code = 3, angle = 90, length = 0.05, 
+           col = col, lwd = 1.33)
+    abline(h = 0, lty = 2)
+    legend_tex <- colnames(xs)
+    legend_tex[legend_tex == "Adaptive Gaussian quadrature"] <- "AGQ"
+    legend("topright", inset = c(-.305, 0), bty = "n", legend = legend_tex, 
+           pch = unique(pchs), col = unique(col), xpd = TRUE, 
+           cex = par()$cex * .8)
+    text(1:NROW(xs) + .5, par("usr")[3] - .02 * diff(par("usr")[3:4]), 
+         srt = 60, adj= 1, xpd = TRUE,
+         labels = get_labels(rownames(xs)), cex = par()$cex * .8)
+  }
+  if(!is_with_SNVA){
+    snva_names <- c("SNVA", "SNVA (CP)")
+    out <- out[, !dimnames(out)[[2L]] %in% snva_names, ]
+    error <- error[, !dimnames(error)[[2L]] %in% snva_names, ]
+  }
+  
+  plot_func(out[, , 1], out[, , 2], 
+            paste0(dimnames(out)[[3]][1], " (link ", sQuote(link), ")"), 
+            error)
+  
+  invisible()
+}
+
+comp_fig_width <- 9
+```
+
+```{r 1_GVA_plot_bias, echo = FALSE, warning = FALSE, fig.width = comp_fig_width}
+compare_element(comp_output[[1L]], comp_truth = TRUE)
+```
+
+## Simulation Study (Bias)
+```{r 2_GVA_plot_bias, echo = FALSE, warning = FALSE, fig.width = comp_fig_width}
+compare_element(comp_output[[2L]], comp_truth = TRUE)
+```
+
+## Simulation Study (Bias)
+```{r 3_GVA_plot_bias, echo = FALSE, warning = FALSE, fig.width = comp_fig_width}
+compare_element(comp_output[[3L]], comp_truth = TRUE)
+```
+
+## Simulation Study (MLE Difference)
+```{r 1_GVA_plot_mle_diff, echo = FALSE, warning = FALSE, fig.width = comp_fig_width}
+compare_element(comp_output[[1L]], comp_truth = FALSE)
+```
+
+## Simulation Study (MLE Difference)
+```{r 2_GVA_plot_mle_diff, echo = FALSE, warning = FALSE, fig.width = comp_fig_width}
+compare_element(comp_output[[2L]], comp_truth = FALSE)
+```
+
+## Simulation Study (MLE Difference)
+```{r 3_GVA_plot_mle_diff, echo = FALSE, warning = FALSE, fig.width = comp_fig_width}
+compare_element(comp_output[[3L]], comp_truth = FALSE)
+```
+
+## Lower Bound
+
+```{r def_plot_lb, echo = FALSE}
+plot_lb <- function(link_res, with_snva = FALSE){
+  link <- link_res$link
+  link_res <- link_res[names(link_res) != "link"]
+  link <- get_pretty_link(link)
+  
+  differnce <- sapply(link_res, function(res){
+    AGQ         <- -.5 * res$AGQ        $neg_2_LL
+    GVA         <- -.5 * res$GVA        $neg_2_LL
+    SNVA        <- -.5 * res$SNVA       $neg_2_LL
+    `SNVA (CP)` <- -.5 * res$`SNVA (CP)`$neg_2_LL
+    c(AGQ = AGQ, GVA = GVA, SNVA = SNVA, `SNVA (CP)` = `SNVA (CP)`)
+  })
+  `Adaptive GQ` <- differnce["AGQ"      , ] 
+  GVA           <- differnce["GVA"      , ]
+  SNVA          <- differnce["SNVA"     , ]
+  `SNVA (CP)`   <- differnce["SNVA (CP)", ]
+  
+  par(.par_use)
+  par(mar = c(5, 4, 1, 1), xpd = NA)
+  `Adaptive GQ - Lower bound` <- 
+    `Adaptive GQ` - cbind(GVA, SNVA, `SNVA (CP)`)
+  ylim <- range(0, `Adaptive GQ - Lower bound`)
+  keep <- if(!with_snva)
+    !colnames(`Adaptive GQ - Lower bound`) %in% c("SNVA","SNVA (CP)")
+  else 
+    rep(TRUE, NCOL(`Adaptive GQ - Lower bound`))
+  matplot(`Adaptive GQ`, `Adaptive GQ - Lower bound`[, keep, drop = FALSE], 
+          pch = 16:18, yaxs = "i", bty = "l", xlab = paste0(
+           "AGQ (link ", sQuote(link), ")"),
+          ylim = ylim, ylab = "AGQ - Lower bound")
+  legend("topright", bty = "n", pch = (16:18)[keep], col = (1:3)[keep], 
+         legend = c("GVA", "SNVA", "SNVA (CP)")[keep])
+  
+  invisible()
+}
+```
+
+```{r 1_gva_use_plot_lb, echo = FALSE}
+plot_lb(comp_output[[1L]])
+```
+
+## Lower Bound
+
+```{r 2_gva_use_plot_lb, echo = FALSE}
+plot_lb(comp_output[[2L]])
+```
+
+## Lower Bound
+
+```{r 3_gva_use_plot_lb, echo = FALSE}
+plot_lb(comp_output[[3L]])
+```
+
+## Estimated Variational Distribution
+
+```{r assign_comp_dens_dat, echo = FALSE, cache = 1, dependson = c("def_est_funcs", "assign_sim_func")}
+# Returns the joint log-likelihood function as a function of the random 
+# effects.
+# 
+# Args: 
+#   Desing matrices, observed outcomes, etc. 
+# 
+# Returns: 
+#   Function where the first argument is the random effect and the second is
+#   an optional normalization constant.
+get_l_func <- function(y, X, XD, Z, event, vcov, beta, subset = TRUE){
+  y     <- y    [subset]
+  event <- event[subset]
+  X     <- X    [subset, , drop = FALSE]
+  XD    <- XD   [subset, , drop = FALSE]
+  Z     <- Z    [subset, , drop = FALSE]
+  stopifnot(NCOL(Z) == 1L)
+  
+  eta_fix <- drop(X  %*% beta)
+  etaD    <- drop(XD %*% beta)
+  
+  Vectorize(function(u, norm_const = 1, log_scale = FALSE){
+    eta <- eta_fix + drop(Z %*% u)
+    H <- exp(eta)
+    h <- etaD * H
+    
+    log_lik <- sum(event * log(h) - H) + dnorm(u, 0, sqrt(vcov[1]), TRUE) - 
+      log(norm_const)
+    
+    if(log_scale)
+      log_lik else exp(log_lik)
+  }, vectorize.args = "u")
+}
+
+# Returns two log-likelihood functions where one is the true conditional and
+# the other is the GVA density.
+# 
+# Args:
+#   GVA_fit: object returned by `V_app`. 
+#   grp_use: integer for group to use.
+get_join_and_GVA_dens <- function(GVA_fit, grp_use = 1L){
+  l_func <- with(GVA_fit, with(optim_obj, 
+    get_l_func(
+      y = y, X = X, XD = XD, Z = Z, event = event, subset = grp == grp_use,
+      vcov = as.matrix(exp(coef["theta"] * 2)), 
+      beta = head(coef, -1))))
+  norm_const <- integrate(function(u) l_func(u), -10, 10)
+  us <- seq(-5, 5, length.out = 1000)
+  co_use <- GVA_fit$res$par[paste0(c("mu1", "log_sd_va1"), ":", grp_use)]
+  
+  list(
+    condtional = function(us)
+      l_func(us, norm_const = norm_const$value), 
+    GVA_dens   = function(us)
+       dnorm(us, co_use[1], exp(co_use[2])))
+}
+
+# simulate a data set and assing random effect values to use when plotting
+comp_dens_dat <- within(list(), {
+  set.seed(12677649)
+  dat <- get_sim_data()
+  GVA_fit <- V_app(dat, keep_optim_obj = TRUE)  
+  us <- seq(-4, 4, length.out = 1000)
+})
+
+KL_SNVA <- with( 
+  comp_dens_dat, sapply(1:2, function(grp_use){
+    # assign function to evaluate the KL divergence numerically
+    kl_div <- function(mu, loglambda, delta){
+      lambda <- exp(loglambda)
+      
+      # assign joint density function and find normalization constant.
+      # We can avoid finding the later by optimizing the expected log joint
+      # density less the log density of distribution used in the VA
+      l_func <- with(GVA_fit, with(optim_obj, 
+        get_l_func(
+          y = y, X = X, XD = XD, Z = Z, event = event, 
+          subset = grp == grp_use, vcov = as.matrix(exp(coef["theta"] * 2)), 
+          beta = head(coef, -1))))
+      norm_const <- integrate(function(u) l_func(u), -10, 10)$value
+      
+      # assign function for integrand in KL divergence
+      kl_div_integrand <- function(u)
+        dsnorm  (u, mu = mu, sd = lambda, delta = delta, FALSE) * (
+          dsnorm(u, mu = mu, sd = lambda, delta = delta, TRUE) - 
+            l_func(u, log_scale = TRUE, norm_const = norm_const))
+      
+      # compute KL divergence
+      integrate(kl_div_integrand, -10, 10)
+    }
+
+    # optimize KL divergence numerically starting at the GVA parameters
+    # estimates with delta starting at two different values as the lower 
+    # bound seems to have multiple maxima. The +/- 1 is 
+    # rather arbitrary. One would likely want to do something more cleaver
+    par_start <- VA_params <- GVA_fit$res$par[
+      paste0(c("mu1", "log_sd_va1"), ":", grp_use)]
+    par_start <- c(par_start, delta = -1)
+    r1 <- optim(
+      par_start, function(par) kl_div(par[1], par[2], par[3])$value,
+      method = "BFGS", control = list(maxit = 10000))
+    
+    par_start["delta"] <- 1
+    r2 <- optim(
+      par_start, function(par) kl_div(par[1], par[2], par[3])$value,
+      method = "BFGS", control = list(maxit = 10000))
+    
+    # choose the SNVA parameters with the highest lower bound
+    res <- if(r1$value < r2$value) 
+      r1 else r2
+    
+    if(res$convergence != 0)
+      stop(sprintf("Failed with code %i", res$convergence))
+      
+    # return SNVA parameters, KL divergence and the GVA KL divergence
+    out <- c(res$par, KL_SNVA = res$value, KL_GVA = 
+               kl_div(VA_params[1], VA_params[2], 0)$value)
+    names(out)[1:3] <- c("mu", "log_sd", "delta")
+    out
+  })
+)
+```
+
+```{r plot_kl_diff, echo = FALSE}
+plot_func_w_snva <- function(us, GVA_fit, grp, snva_params, 
+                             with_snva = FALSE){
+  funcs <- get_join_and_GVA_dens(GVA_fit, grp)
+  true_cond <- funcs$condtional(us)
+  gva_dens   <- funcs$GVA_dens(us)
+  snva_dens <- dsnorm(us, mu = snva_params[1], sd = exp(snva_params[2]), 
+                      delta = snva_params[3])
+  
+  # plot the three densities
+  xlab <- paste0("Random effect (group ", grp, ")")
+  par(.par_use)
+  par(mar = c(5, 4.5, 1, 1))
+  ys <- if(with_snva)
+    cbind  (true_cond, gva_dens, snva_dens) else
+      cbind(true_cond, gva_dens)
+  matplot(us, ys, lty = c(1, 3, 2), col = "black", type = "l", 
+          ylab = "Density", xlab = xlab, 
+          ylim = range(true_cond, gva_dens, snva_dens))
+  polygon(c(us, rev(us)), c(true_cond, rev(gva_dens)), 
+          col = rgb(0, 0, 0, .1), border = NA)
+  if(with_snva)
+  polygon(c(us, rev(us)), c(true_cond, rev(snva_dens)), 
+          col = rgb(0, 0, 0, .4), border = NA)
+}
+
+with(comp_dens_dat, {
+  i <- 1L
+  plot_func_w_snva(us, GVA_fit, i, KL_SNVA[1:3, i], with_snva = FALSE)
+})
+```
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Skew-normal Variational Approximations</h1>
+<!--/html_preserve-->
+
+## Skew-normal Distribution
+
+```{r show_skew_normal, echo = FALSE}
+local({
+  n <- 50L
+  xs <- seq(-3, 3, length.out = n)
+  xxs <- as.matrix(expand.grid(xs, xs))
+  mu <- c(0, 0)
+  Sig <- matrix(c(1, .5, .5, 1), 2)
+  
+  . <- function(delta, lvls){
+    dens_vals <- dmsnorm(xxs, mu = mu, Sig =  Sig, delta = delta)
+    contour(xs, xs, drawlabels = FALSE, matrix(dens_vals, n), levels = lvls, 
+            xaxt = "n", yaxt = "n", bty = "l")
+    # axis(1, labels = FALSE)
+    # axis(2, labels = FALSE)
+    text(-2, 2, labels = bquote(paste(rho, " = (", .(delta[1]), ", ", 
+                                      .(delta[2]), ")")), 
+         cex = par()$cex * .67)
+    range(dens_vals)
+  }
+  
+  par(mfcol = c(2, 2))
+  par(.par_use)
+  par(mar = c(.5, .5, .5, .5))
+  lvls <- seq(0, 3e-1, length.out = 10)
+  .(c(0 , 0 ), lvls)
+  .(c(0,  -2), lvls)
+  .(c(-2, -2), lvls)
+  .(c(2 , -2), lvls)
+  
+  invisible()
+})
+```
+
+## Properties
+
+Closed under linear transformations.
+
+<div class = "w-small fragment">
+Closed-form moment generating function.
+<p class = "smallish">
+Neat for the log-log and generalized PH model.</p>
+</div>
+
+
+## Properties
+<div class = "w-small">
+Entropy term is 
+
+$$
+\begin{align*}
+-2\int \log \left(\phi(\vec u;\vec\mu_k, \mat\Sigma_k)
+  \Phi(\vec\rho_k^\top(\vec u - \vec\mu_k))\right) \hspace{-60pt} \\
+  \cdot q(\vec u; \vec\mu_k, \mat\Sigma_k, \vec\rho_k)\der\vec u
+  &= \frac 12\log\lvert\mat\Lambda_k\rvert
+   +\frac 12 \log 2\pi  \\
+   &\hspace{40pt}-\log 2- \psi(\vec\rho_k^\top\mat\Lambda_k\vec\rho_k) \\
+\psi(\sigma^2) &= 2\int \phi(z;\sigma^2)\Phi(z)\log\Phi(z)\der z
+\end{align*}
+$$
+
+<p class="smallish">
+As shown by @ormerod11 who also coins SNVA.</p>
+</div>
+
+## Estimated Variational Distribution
+
+```{r snva_plot_kl_diff, echo = FALSE}
+with(comp_dens_dat, {
+  i <- 1L
+  plot_func_w_snva(us, GVA_fit, i, KL_SNVA[1:3, i], with_snva = TRUE)
+})
+```
+
+## Simulation Study (Bias)
+
+```{r 1_SNVA_plot_bias, echo = FALSE, warning = FALSE, fig.width = comp_fig_width}
+compare_element(comp_output[[1L]], comp_truth = TRUE, is_with_SNVA = TRUE)
+```
+
+## Simulation Study (Bias)
+```{r 2_SNVA_plot_bias, echo = FALSE, warning = FALSE, fig.width = comp_fig_width}
+compare_element(comp_output[[2L]], comp_truth = TRUE, is_with_SNVA = TRUE)
+```
+
+## Simulation Study (Bias)
+```{r 3_SNVA_plot_bias, echo = FALSE, warning = FALSE, fig.width = comp_fig_width}
+compare_element(comp_output[[3L]], comp_truth = TRUE, is_with_SNVA = TRUE)
+```
+
+## Simulation Study (MLE Difference)
+```{r 1_SNVA_plot_mle_diff, echo = FALSE, warning = FALSE, fig.width = comp_fig_width}
+compare_element(comp_output[[1L]], comp_truth = FALSE, is_with_SNVA = TRUE)
+```
+
+## Simulation Study (MLE Difference)
+```{r 2_SNVA_plot_mle_diff, echo = FALSE, warning = FALSE, fig.width = comp_fig_width}
+compare_element(comp_output[[2L]], comp_truth = FALSE, is_with_SNVA = TRUE)
+```
+
+## Simulation Study (MLE Difference)
+```{r 3_SNVA_plot_mle_diff, echo = FALSE, warning = FALSE, fig.width = comp_fig_width}
+compare_element(comp_output[[3L]], comp_truth = FALSE, is_with_SNVA = TRUE)
+```
+
+## Lower Bound
+
+```{r 1_snva_use_plot_lb, echo = FALSE}
+plot_lb(comp_output[[1L]], with_snva = TRUE)
+```
+
+## Lower Bound
+
+```{r 2_snva_use_plot_lb, echo = FALSE}
+plot_lb(comp_output[[2L]], with_snva = TRUE)
+```
+
+## Lower Bound
+
+```{r 3_snva_use_plot_lb, echo = FALSE}
+plot_lb(comp_output[[3L]], with_snva = TRUE)
+```
+
+## Computation Time
+
+```{r, comp_time, echo = FALSE} 
+comp_time <- sapply(comp_output, function(link_res){
+  link_res <- link_res[names(link_res) != "link"]
+  comp_times <- sapply(link_res, function(res){
+    sapply(lapply(res, `[`, "time"), unlist)["time.user.self", ]
+  })
+  apply(comp_times, 1, function(x) 
+    c(mean = mean(x), SE = sd(x) / sqrt(length(x))))
+}, simplify = "array")["mean", , ]
+colnames(comp_time) <- get_pretty_link(colnames(comp_time))
+
+knitr::kable(comp_time)
+```
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Future work</h1>
+<!--/html_preserve-->
+
+## Multivariate Random Effects
+<div class = "w-small">
+Comparing $\bigO{mb^K}$ complexity to estimation of $\bigO{mK^2}$
+parameters
+<p class="smallish">
+if there are no restriction on $\vec\mu_k$s, $\mat\Lambda_k$s, and 
+$\vec\rho_k$s.</p>
+</div>
+
+<div class = "w-small fragment">
+Laplace approximation requires estimation of $mK$-dimensional mode
+<p class="smallish">
+and $m$ inversions of $K\times K$ matrices.</p>
+</div>
+
+<div class = "w-small fragment">
+Can consider other variational distributions
+<p class = "smallish">
+Multivariate (skew)-$t$-distribution, skew-Laplace distribution, 
+the four parameter skewed distributions shown in @Arnold02, and 
+other generalizations.</p>
+</div>
+
+## Joint Models
+<p>
+Observe biomarker $g(t)$ at time 
+$o_{k1}, \dots, o_{kl_k}$.<span class = "fragment" data-fragment-index=1> Assume </span>
+</p>
+
+<div class = "fragment" data-fragment-index=1>
+$$
+\begin{align*}
+g(o_{kj};\vec u_k) &= \bar g(o_{kj};\vec u_k) + \vec \epsilon_{ij} 
+  & \epsilon_{ij} &\sim N(0, \zeta^2) \\
+\bar g(s;\vec u_k) &= \vec d(s)^\top\vec\gamma + \vec r(s)^\top\vec u_k 
+  & \vec u_k &\sim N(0, \mat\Sigma)
+\end{align*}
+$$
+</div>
+
+<div class = "fragment">
+and a generalized PH survival sub-model
+
+$$
+\lambda\Cond{s}{\vec x_{ki}, \vec z_{ki}, \vec u_k}
+  = \lambda_0(s ;\vec x_{ki})
+  \exp\left(\alpha \bar g(s;\vec u_k)\right)
+$$
+</div>
+
+## Summary
+Variational approximation is a broad class of approximations.
+
+<p class = "fragment">
+The Gaussian variational approximation seems to work similar to a Laplace 
+approximation.</p>
+
+<p class = "fragment">
+The skew-normal variational approximation seems
+fast and precise.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="center final">
+<h1>Thank You!</h1>
+
+<div class="w-small">
+<p class="smallish">The presentation is at  
+<a href="http://rpubs.com/boennecd/MEB-Thursday-19">rpubs.com/boennecd/MEB-Thursday-19</a>.</p>
+<p class="smallish">The markdown and code is at  
+<a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
+<p class="smallish">References are on the next slide.</p>
+</div>
+
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<section>
+<h1>References</h1>
+
+<!--/html_preserve-->
