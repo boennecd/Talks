@@ -1,0 +1,150 @@
+.reveal .slides > section, .reveal .slides > section > section {
+  text-align: left;
+}
+
+.reveal .slides > section.center-horiz, 
+  .reveal .slides > section > section.center-horiz,
+  .reveal .slides > section > section.large-first {
+  text-align: center;
+}
+
+.reveal > div.large-first {
+  text-align: center;
+}
+
+/* front page formats */
+.reveal div.authors {
+  margin: 4vh 0 0 0;
+}
+
+.reveal div.authors > div {
+  margin: .2em 0;
+}
+
+.reveal section.front > h1 {
+    margin: 11vh 0 0 0;
+}
+
+h1.title + p { 
+  margin: 0 0 4vh 0;
+  font-size: 1.2em;
+}
+
+/* large first header */
+.reveal section.large-first > h1 {
+    font-size: 3em;
+}
+
+/* last slide */
+.reveal section.final > h1 {
+  margin: 15vh 0 0 0;;
+}
+
+.reveal h1 {
+    font-size: 1.5em;
+    font-weight: bold;
+    text-transform: none;
+}
+
+.reveal h2 {
+  border-bottom: 1.75px solid;
+  text-align: left;
+  padding-bottom: 0;
+  text-transform: none;
+}
+
+.reveal p, .reveal div.w-small {
+  margin: .7em 0;
+}
+
+.reveal div.w-small > p {
+  margin: 0;
+}
+
+.reveal div.w-small > p.smallish, .reveal p.smallish {
+  font-size: 70%;
+}
+
+.reveal section > img + div, .reveal section > img + div.w-small, .reveal section > img + p {
+  margin: .2em 0 .7em 0;
+}
+
+div.logo {
+  background: url(fig/ki_logo_neg.png);
+  position: absolute;
+  resize: both;
+  bottom: 3vh;
+  left: 16vh;
+  background-size: cover;
+  width: 20vh; /* 1701 / 850 */ 
+  height: 10vh;
+}
+
+div.logo-kth {
+  background: url(fig/KTH_Logotyp_RGB_2013.png);
+  position: absolute;
+  resize: both;
+  bottom: 3vh;
+  left: 3vh;
+  background-size: cover;
+  width: 10vh;
+  height: 10vh;
+}
+
+div.logo-cbs {
+  background: url(fig/cbs_logo_horizontal.png);
+  position: absolute;
+  resize: both;
+  bottom: 5.5vh;
+  left: 37.5vh;
+  background-size: cover;
+  width: 15vh;
+  height: 5vh;
+}
+
+.reveal div.references {
+  display: inline-block;
+  text-align: left;
+  overflow: auto;
+  overflow-x: hidden;
+  max-height: 40vh;
+  background-color: #d3d3d338;
+}
+
+.reveal section > img, .reveal section > p > img, div.column > p > img {
+  max-height: 40vh;
+  height: auto;
+  width: auto;
+  border: none;
+  margin: .2em 0;
+}
+
+.reveal span.gray, .reveal p.gray {
+  color: rgb(192,192,192);
+}
+
+.reveal section > img.tbl, .reveal section > img.tall-tbl {
+  box-shadow: none;
+}
+
+.reveal section > img.tall-tbl {
+  max-height: 50vh;
+}
+
+div.references > div > p {
+  font-size: 12px;
+  margin: 5px;
+}
+
+.reveal section > div.split-section {
+  display: flex;
+}
+
+.reveal section > div.split-section > div.column {
+  flex: 50%;
+}
+
+.MathJax, .MathJax_Display {
+  text-align: left !important;
+  font-size: 85% !important;
+}
