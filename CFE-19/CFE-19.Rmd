@@ -157,7 +157,7 @@ But is only the intercept time-varying?
 </p></div>
 
 <div class="w-small fragment">
-And are all the effects linear on the hazard scale?
+And are all the effects linear on the log hazard scale?
 <p class="smallish">Findings in @Daniel07, @Christoffersen18, and the ML 
 literature suggest not.</p>
 </div>
