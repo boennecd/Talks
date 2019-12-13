@@ -112,7 +112,7 @@ div.logo-cbs {
 }
 
 .reveal section > img, .reveal section > p > img, div.column > p > img {
-  max-height: 40vh;
+  max-height: 35vh;
   height: auto;
   width: auto;
   border: none;
