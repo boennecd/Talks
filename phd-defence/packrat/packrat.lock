@@ -1,12 +1,35 @@
 PackratFormat: 1.4
 PackratVersion: 0.5.0
-RVersion: 3.6.0
+RVersion: 3.6.1
 Repos: CRAN=https://cloud.r-project.org
+
+Package: PKI
+Source: CRAN
+Version: 0.1-5.1
+Hash: 8c194fb34ebaab38a13e43ce84feedee
+Requires: base64enc
+
+Package: RCurl
+Source: CRAN
+Version: 1.95-4.12
+Hash: 261163f9c66d2a2c7ef8028765ed2838
+Requires: bitops
+
+Package: RJSONIO
+Source: CRAN
+Version: 1.3-1.3
+Hash: 9c4ccb109609c4c185c9aa34d68be5d6
 
 Package: Rcpp
 Source: CRAN
 Version: 1.0.1
 Hash: 390ed5b5da840cec3e6f5c90c6ab23f7
+
+Package: askpass
+Source: CRAN
+Version: 1.1
+Hash: 6f6c430e3cd0dd7d48f447700f4d7e7f
+Requires: sys
 
 Package: backports
 Source: CRAN
@@ -28,6 +51,11 @@ Source: CRAN
 Version: 1.17.1.2
 Hash: 4e16b54f85b1a69e05021a81fda1aef1
 Requires: bitops
+
+Package: curl
+Source: CRAN
+Version: 4.3
+Hash: 3916ae5637dbaf5996dbde80ea92a047
 
 Package: digest
 Source: CRAN
@@ -82,6 +110,12 @@ Source: CRAN
 Version: 0.7
 Hash: 0d7563caf453c231b6f8c359c51eecc2
 
+Package: openssl
+Source: CRAN
+Version: 1.4.1
+Hash: b01fe6ae05ec2a30a777dc338af5bf69
+Requires: askpass
+
 Package: packrat
 Source: CRAN
 Version: 0.5.0
@@ -106,6 +140,17 @@ Version: 1.3-2
 Hash: a25c3f70c166fb3fbabc410eb32b6366
 Requires: backports
 
+Package: rsconnect
+Source: CRAN
+Version: 0.8.16
+Hash: 88c8ca5cd5688ce9dfa26be667cabff9
+Requires: curl, digest, jsonlite, openssl, packrat, rstudioapi, yaml
+
+Package: rstudioapi
+Source: CRAN
+Version: 0.10
+Hash: 63f43c6ff14d92e1d65ca6c21d45a1eb
+
 Package: stringi
 Source: CRAN
 Version: 1.4.3
@@ -116,6 +161,11 @@ Source: CRAN
 Version: 1.4.0
 Hash: 67da32dbb2a7a16f2ef124336358e54a
 Requires: glue, magrittr, stringi
+
+Package: sys
+Source: CRAN
+Version: 3.3
+Hash: d5a4afad9298f42aae77f6389713a066
 
 Package: tinytex
 Source: CRAN

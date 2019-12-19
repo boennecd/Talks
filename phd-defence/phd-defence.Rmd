@@ -1,5 +1,5 @@
 ---
-title: "Essays on Corporate Default Models"
+title: "Corporate Default Models"
 bibliography: ref.bib
 biblio-style: apa
 output: 
@@ -32,9 +32,15 @@ knitr::opts_chunk$set(echo = TRUE)
   front_div.classList.add("front");
   front_div.classList.add("center");
   
+  // add second header
+  var second_head = document.createElement("p");
+  var node = document.createTextNode("Empirical Evidence and Methodological Contributions");
+  second_head.appendChild(node);
+  front_div.appendChild(second_head);
+  
   // add author 
   var credit_div = document.createElement('div');
-  credit_div.innerHTML += "<div class='w-small'><p>Benjamin Christoffersen</p><p class='smallish'>Copenhagen Business School, Department of Finance, Center for Statistics, <a href='mailto:bch.fi@cbs.dk'>bch.fi@cbs.dk</p></div>";
+  credit_div.innerHTML += "<div style='font-size: 80%;'><div class='w-small'><p>Benjamin Christoffersen</p><p class='smallish'>Copenhagen Business School, Department of Finance, Center for Statistics</p></div><div class='w-small'><p>Supervisor: Søren Feodor Nielsen</p><p>Co-supervisor: David Lando</p></div></div>";
   credit_div.classList.add("authors");
   front_div.appendChild(credit_div);
 })();
@@ -65,8 +71,8 @@ $$
 ## Motivation
 
 <div class="w-small">
-Want to model loss distribution for a corporate debt portfolio. 
-<p class="smallish">E.g., a bank that provides loans to firms.
+Want to model the loss distribution for a corporate debt portfolio. 
+<p class="smallish">E.g. a bank that provides loans to firms.
 </p></div>
 
 <p class="fragment">
@@ -80,11 +86,11 @@ Will focus on whether the lenders default.
 ## Motivation: Concrete
 
 The portfolio consists of $n_t$ loans to firms 
-$R_t = \{i_{1t}, i_{2t}, \dots i_{n_{t}t}\}$. 
+$R_t = \{i_{1t}, i_{2t}, \dots, i_{n_{t}t}\}$. 
 
 <div class="w-small fragment">
 The exposure to each firm in interval $t$ is $E_{it}\in(0,\infty)$. 
-<p class="smallish">E.g., the current amount outstanding.
+<p class="smallish">E.g. the current amount outstanding.
 </p></div>
 
 <p class="fragment">
@@ -147,18 +153,18 @@ $$g(P(Y_{it} = 1 \mid \vec x_{it}, \vec m_t)) =
 
 <div class="w-small">
 where $g$ is a link function
-<p class="smallish">e.g., logit function. See e.g., @Shumway01, @Chava04, 
+<p class="smallish">e.g. logit function. See @Shumway01, @Chava04, 
 @Duffie07, and @Campbell08.
 </p></div></div>
 
 <p class="fragment" data-fragment-index="2">
-I.e., firms are only correlated through observable firm variables and 
+I.e. firms are only correlated through observable firm variables and 
 macro variables.</p>
 
 ## Add Random Effects
 <div class="w-small">
 May observe excess clustering of defaults. 
-<p class="smallish">E.g., an omitted macro variable.
+<p class="smallish">E.g. an omitted macro variable.
 </p></div>
 
 <div class="fragment">
@@ -171,7 +177,7 @@ g(P(Y_{it} = 1 \mid \vec x_{it}, \vec m_t, \alpha_t)) &=
   \alpha_t &= \theta \alpha_{t-1} + \epsilon_t \\ 
   \epsilon_t & \sim N(0, \sigma^2)
 \end{aligned}$$
-<p class="smallish">See e.g., @Duffie09, @Chen14, and @Qi14. @Koopman11, 
+<p class="smallish">See @Duffie09, @Chen14, and @Qi14. @Koopman11, 
 @Koopman12, and @Schwaab16 use a similar model with group specific 
 $\alpha_t$s or where groups load differently on $\alpha_t$. 
 </p></div>
@@ -197,7 +203,7 @@ Relax assumptions and focus on the firm-level and aggregate performance.</p>
 ## Contributions
 <div class="w-small">
 Assumption of constant coefficients may be violated.
-<p class="smallish">See e.g., @David13, @Filipe16, and @Jensen17. 
+<p class="smallish">See @David13, @Filipe16, and @Jensen17. 
 </p></div>
 
 $$g(P(Y_{it} = 1 \mid \vec x_{it}, \vec m_t, \alpha_t)) = 
@@ -235,6 +241,17 @@ Modeling Frailty Correlated Defaults with Multivariate Latent Factors
 <p class="smallish">
 Focus on time-varying effects with short and wide sample of US public companies.
 </p></div>
+</section>
+
+<section class = "center">
+<h1>Chapters</h1>
+<div class="w-small">
+Particle Methods in the dynamichazard Package
+<p class="smallish">
+Covers the particle based methods in the <code>dynamichazard</code> package 
+which are used in chapter 3.
+</p></div>
+<div style="height: 36vh;">
 
 </section>
 </section>
@@ -242,22 +259,30 @@ Focus on time-varying effects with short and wide sample of US public companies.
 <section>
 <section class="center">
 
-<h1>Chapter 1<br>
+<h1>Chapter 1 and 4<br>
 <div class="chapter">
 dynamichazard: Dynamic Hazard Models using State Space Models
 </div></h1>
-<div style="height: 5.5em;"></div>
+<h1><div class="chapter" style="height: 4.5em;">
+Particle Methods in the dynamichazard Package
+</div></h1>
 
 <!--/html_preserve-->
 
 ## R Packages
 
-One of six open source R packages I have authored or co-authored: 
-**dynamichazard**, **pre**, **mssm**, **rollRegres**, **parglm**, and **DtD**.
+<div class="w-small">
+One of 6½ open source R packages I have authored or co-authored: 
+**dynamichazard**, **pre**, **mssm**, **rollRegres**, **parglm**, and 
+**DtD**. 
+<p class="smallish">
+The **Oumuamua** package is almost finished.</p></div>
 
 <p class="fragment">
-Covers implementations of fast approximation methods to estimate discrete time 
-survival models.</p>
+Covers implementations of fast approximation methods.</p>
+
+<p class="fragment">
+Covers the implemented particle based methods.</p>
 
 ## Alternatives
 
@@ -318,14 +343,14 @@ Yields intractable integral.
 <div class="w-small">
 Contains implementations of extended Kalman filters and an unscented Kalman filter.
 <p class="smallish">The former is suggested by @Fahrmeir92 and @Fahrmeir94
-and for the latter see e.g., @Julier97 and @Wan00. 
+and for the latter see @Julier97 and @Wan00. 
 </p></div>
 
 <p class="fragment">
 The approximations are commonly used in engineering.</p>
 
 <p class="fragment">
-The implementations are in C++, very fast, and support parallel computing.</p>
+The implementations are in C++, very fast, and support computation in parallel.</p>
 
 ## Monte Carlo Methods
 The package also support 
@@ -334,8 +359,10 @@ The package also support
  - the particle smoothers suggested by @Briers2009 and @Fearnhead10.  
  - approximations methods suggested by @Cappe05 and @Poyiadjis11.
  
-<p class="fragment">The **mssm** contains a new implementation of some of the 
-above methods.</p>
+<div class = "fragment w-small">
+Covered in chapter 4.
+<p class="smallish">The **mssm** contains a new implementation of some of the 
+above methods.</p></div>
 
 <!--html_preserve-->
 </section>
@@ -369,10 +396,10 @@ firm-level.
 <p class="fragment">Suggests that previous model may be misspecified.</p>
 
 <div class="w-small fragment">
-Maybe some of the evidence of random effects is due to invalid assumptions of 
+Maybe some of the evidence of random effects are due to invalid assumptions of 
 partial associations. 
 <p class="smallish">
-E.g., due to co-movements in covariates.
+E.g. due to co-movements in covariates.
 </p></div>
 
 ## Findings 
@@ -437,6 +464,10 @@ a size measure of the firm.</p>
 <!--html_preserve-->
 </section>
 <section class="center-horiz">
+<h1 style = "font-size: 2.5em; margin-top: 20vh">Out-of-Sample</h1>
+
+</section>
+<section class="center-horiz">
 <h2>Firm-Level Performance (AUC)</h2>
 <!--/html_preserve-->
 
@@ -498,14 +529,16 @@ Due to evidence provided by @Lando10.
 Add additional random effects in a model that can directly be 
 used for forecasting. 
 <p class="smallish">
-Due to evidence provided by e.g., @David13. 
+Due to evidence provided by e.g. @David13. 
 </p></div>
 
 ## Findings
 <div class="w-small">
 Non-linear effect for
 <p class="smallish">
-the idiosyncratic stock volatility of the firm, the net income over total assets, and log market value over total liabilities.
+the idiosyncratic stock volatility of the firm, the net income over total 
+assets, and log market value over total liabilities. Two of them are related
+to distance-to-default.
 </p></div>
 
 <div class="w-small fragment">
@@ -546,10 +579,10 @@ $\mathcal{M_3}$: model with non-linear effects and an interaction.</p>
   background: white;
   -webkit-mask: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4) 81%, white 85%);">
 <div class="w-small" style="text-align: left;">
-<p>Large difference in log-likelihood.</p>
+<p>Large difference in the log-likelihood.</p>
 <p class="smallish">Similar to evidence by @Lando10 and @Bharath08.</p>
 
-## Adding Time-Varying Coefficient {data-transition="slide-in fade-out"}
+## Adding Time-Varying Coefficients {data-transition="slide-in fade-out"}
 
 $$\begin{aligned}
 \vec z_{it} &= (\vec x_{it}^\top, \vec m_t^\top, u_{it}, \alpha_t, b_t)^\top \\
@@ -580,33 +613,75 @@ $$\begin{aligned}
   \end{pmatrix}\right)
 \end{aligned}$$
 
+
 <!--html_preserve-->
 </section>
-<section class="center-horiz" data-transition="fade-out">
+<section class="center-horiz" data-transition="slide-in fade-out">
 <h2>Estimates with Random Effects</h2>
 
+<div style="display: flex; max-height = 50vh;">
+<div style="flex: 66%;">
 <!--/html_preserve-->
 <img src="fig/table-coef-w-frailty.png" class = "tall-tbl" style="background: white;">
+<!--html_preserve-->
+</div>
+<div style="flex: 34%;">
+<!--/html_preserve-->
 <p class="smallish" style="text-align: left;">The figures in the parentheses are Wald $\chi^2$ 
 statistics. $\mathcal{M_4}$: model with non-linear effects, an interaction, 
 and a random intercept and $\mathcal{M_5}$: same as $\mathcal{M_4}$ with a 
 random relative market size slope.</p>
 
 <!--html_preserve-->
-</section>
-<section class="center-horiz"  data-transition="fade-in">
-<h2>Estimates with Random Effects</h2>
-<!--/html_preserve-->
+</div></div>
 
+</section>
+<section class="center-horiz"  data-transition="fade-in fade-out">
+<h2>Estimates with Random Effects</h2>
+
+<div style="display: flex; max-height = 50vh;">
+<div style="flex: 66%;">
+<!--/html_preserve-->
 <img src="fig/table-coef-w-frailty.png" class = "tall-tbl" style="
   background: white;
   -webkit-mask: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4) 65%, white 69%);">
+<!--html_preserve-->
+</div>
+<div style="flex: 34%;">
+<!--/html_preserve-->
 <p class="smallish" style="text-align: left;">The figures in the parentheses are Wald $\chi^2$ 
 statistics. $\mathcal{M_4}$: model with non-linear effects, an interaction, 
 and a random intercept and $\mathcal{M_5}$: same as $\mathcal{M_4}$ with a 
 random relative market size slope.</p>
 
 <!--html_preserve-->
+</div></div>
+
+</section>
+<section class="center-horiz"  data-transition="fade-in slide-out">
+<h2>Estimates with Random Effects</h2>
+
+<div style="display: flex; max-height = 50vh;">
+<div style="flex: 66%;">
+<!--/html_preserve-->
+<img src="fig/table-coef-w-frailty.png" class = "tall-tbl" style="
+  background: white;
+  -webkit-mask: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4) 15%, white 17%, white 20%, rgba(0,0,0,0.4) 22%);">
+<!--html_preserve-->
+</div>
+<div style="flex: 34%;">
+<!--/html_preserve-->
+<p class="smallish" style="text-align: left;">The figures in the parentheses are Wald $\chi^2$ 
+statistics. $\mathcal{M_4}$: model with non-linear effects, an interaction, 
+and a random intercept and $\mathcal{M_5}$: same as $\mathcal{M_4}$ with a 
+random relative market size slope.</p>
+
+<!--html_preserve-->
+</div></div>
+</section>
+<section class="center-horiz">
+<h1 style = "font-size: 2.5em; margin-top: 20vh">Out-of-Sample</h1>
+
 </section>
 <section class="center-horiz" data-transition="slide-in fade-out">
 <h2>Firm-Level Performance (AUC)</h2>
@@ -639,7 +714,7 @@ Blue: lowest, black: highest.
     black 81%, 
     black 85%, 
     rgba(0,0,0,0.5) 86%);">
-
+    
 <p class="smallish" style="text-align: left;">
 Blue: lowest, black: highest. 
 ◇: model as in @Duffie07, 
@@ -692,6 +767,26 @@ Bars: 90% prediction interval. ○:  realized rate,
 
 <!--html_preserve-->
 </section>
+<section class="center-horiz">
+<h2>Partial Effect</h2>
+<!--/html_preserve-->
+
+<img src="fig/rng-effect-3D.gif">
+<p class="smallish">
+Predicted partial effect in the final model.</p>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Marginal Effect</h2>
+<!--/html_preserve-->
+
+<img src="fig/rng-effect-3D-marginal.gif">
+<p class="smallish">
+Estimated marginal effect from a generalized additive model.</p>
+
+<!--html_preserve-->
+</section>
 <!-- need extra end tag before next section -->
 </section>
 
@@ -701,9 +796,14 @@ Bars: 90% prediction interval. ○:  realized rate,
 <section class="center final">
 <h1>Thank You!</h1>
 
+
 <div class="w-small">
-<p class="smallish">The presentation is at  
+<p class="smallish">Slides are at  
+<a href="http://rpubs.com/boennecd/PhD-defence">rpubs.com/boennecd/PhD-defence</a>.</p>
+<p class="smallish">Markdown is at  
 <a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
+<p class="smallish">Most of the code is at 
+<a href="https://github.com/boennecd">github.com/boennecd</a>.</p>
 <p class="smallish">References on next slide.</p>
 </div>
 

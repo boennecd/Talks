@@ -103,7 +103,7 @@ div.logo {
 }
 
 .reveal section > img, .reveal section > p > img, div.column > p > img {
-  max-height: 40vh;
+  max-height: 35vh;
   height: auto;
   width: auto;
   border: none;
@@ -164,4 +164,9 @@ div.references > div > p {
   border-top-right-radius: .25em;
   border-bottom-right-radius: .25em;
   background-color: gray;
+}
+
+.MathJax, .MathJax_Display {
+  text-align: left !important;
+  font-size: 85% !important;
 }

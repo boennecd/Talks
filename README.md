@@ -1,3 +1,7 @@
+# PhD Defence
+[Code](/phd-defence/phd-defence.Rmd) and presentation at 
+[RPubs](http://rpubs.com/boennecd/phd-defence).
+
 # CFE 2019
 [Code](/CFE-19/CFE-19.Rmd) and presentation at 
 [RPubs](http://rpubs.com/boennecd/CFE-19).
