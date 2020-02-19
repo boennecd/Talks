@@ -1,0 +1,503 @@
+---
+title: "Approximation Methods"
+bibliography: ref.bib
+biblio-style: apa
+output: 
+  revealjs::revealjs_presentation:
+    css: styles.css
+    theme: black
+    center: false
+    transition: slide
+    highlight: monochrome
+    self_contained: true
+    reveal_options:
+      slideNumber: true
+    includes:
+      in_header: header.html
+      after_body: doc_suffix.html
+---
+
+## dummy slide
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.height = 5)
+.par_use <- list(cex = 1.33, cex.lab = 1.2)
+```
+
+<!--html_preserve-->
+<script>
+(function() {
+  document.getElementById("dummy-slide").remove(); 
+  
+  var front_div = document.getElementsByTagName("section")[0];
+  front_div.classList.add("front");
+  front_div.classList.add("center");
+  
+  // add second header
+  var second_head = document.createElement("h1");
+  var node = document.createTextNode("for Mixed Models with a Probit Link");
+  second_head.appendChild(node);
+  second_head.style.margin = "0";
+  front_div.appendChild(second_head);
+  
+  // add author 
+  var credit_div = document.createElement('div');
+  credit_div.innerHTML += "<div class='w-small'><p>Benjamin Christoffersen</p><p class='smallish'>KI, Department of Medical Epidemiology and Biostatistics, <a href='mailto:benjamin.christoffersen@ki.se'>benjamin.christoffersen@ki.se</a></p><p class='smallish'>KTH, Division of Robotics, Perception and Learning, <a href='mailto:benchr@kth.se'>benchr@kth.se</a></p></div>";
+  credit_div.classList.add("authors");
+  front_div.appendChild(credit_div);
+})();
+</script>
+<!--end dummy slide-->
+
+</section>
+
+<section>
+<section class="large-first center slide level2">
+<h1>Introduction</h1>
+<!--/html_preserve-->
+
+<div style="display: none;">
+$$
+\definecolor{gray}{RGB}{192,192,192}
+\renewcommand\vec{\boldsymbol}
+\def\bigO#1{\mathcal{O}(#1)}
+\def\Cond#1#2{\left(#1\,\middle|\, #2\right)}
+\def\mat#1{\boldsymbol{#1}}
+\def\der{{\mathop{}\!\mathrm{d}}}
+\def\argmax{\text{arg}\,\text{max}}
+\def\Prob{\text{P}}
+\def\diag{\text{diag}}
+$$
+</div>
+
+## Presentation Outline
+Introduction to mixed models with a probit link.
+
+<p class = "fragment">
+Discussion of available approximation methods.</p>
+
+<p class = "fragment">
+Simulation example.</p>
+
+<p class = "fragment">
+Real data example.</p>
+
+<p class = "fragment"> 
+Future work and alternatives.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Three Models</h1>
+<!--/html_preserve-->
+
+## Why
+Very similar marginal log-likelihood. 
+
+<p class = "fragment"> 
+Many options for approximating the marginal log-likelihood.</p>
+
+## Notation
+$$
+\begin{align*}
+\phi^{(p)}(\vec x;\vec\mu,\mat\Sigma) &= 
+  \frac 1{(2\pi)^{p/2}\lvert\mat\Sigma\rvert^{1/2}}\exp\left(
+  - \frac 12 (\vec x - \vec\mu)^\top\mat\Sigma^{-1}(\vec x - \vec\mu)
+  \right) \\
+\Phi^{(p)}(\vec x;\vec\mu,\mat\Sigma) &= 
+  \int_{-\infty}^{x_1} \cdots\int_{-\infty}^{x_p}
+  \phi^{(p)}(\vec z;\vec\mu,\mat\Sigma)\der z_1 \cdots \der z_p \\
+\phi^{(p)}(\vec x) &= \phi^{(p)}(\vec x;\vec 0,\mat I) \\
+\Phi^{(p)}(\vec x) &= \Phi^{(p)}(\vec x;\vec 0,\mat I) \\
+\phi(x; \mu, \sigma^2) &= \phi^{(1)}(x; \mu, \sigma^2) \\
+\Phi(x; \mu, \sigma^2) &= \Phi^{(1)}(x; \mu, \sigma^2)
+\end{align*}
+$$
+
+## Generalization of Skew-normal Dist.
+$$
+\begin{pmatrix}
+  \vec V_1 \\ \vec V_2
+\end{pmatrix} \sim 
+  N\left(
+  \begin{pmatrix}
+  \vec \xi_1 \\ \vec\xi_2
+  \end{pmatrix}, 
+  \begin{pmatrix}
+  \mat\Xi_{11} & \mat\Xi_{12} \\
+  \mat\Xi_{21} & \mat\Xi_{22}
+  \end{pmatrix}
+  \right)
+$$
+
+<div class = "fragment">
+then the density of $\vec V_1 = \vec v_1$ and $\vec V_2 \leq \vec v_2$ is
+
+$$
+\begin{align*}
+\phi^{(k_1)}(\vec v_1; \vec \xi_1, \mat\Xi_{11})
+  \Prob\left(\vec V_2 < \vec v_2 \,\middle\vert\,
+  \vec V_1 = \vec v_1
+  \right)\nonumber
+  \hspace{-140pt}& \\
+&= \phi^{(k_1)}(\vec v_1; \vec \xi_1, \mat\Xi_{11}) \\
+&\hspace{20pt}\cdot
+  \Phi^{(k_2)}\left(
+  \vec v_2
+   - \mat\Xi_{21}\mat\Xi_{11}^{-1}(\vec v_1 - \vec\xi_1);
+  \vec \xi_2, 
+  \mat\Xi_{22} - \mat\Xi_{21}\mat\Xi_{11}^{-1}\mat\Xi_{12}
+  \right)
+\end{align*}
+$$
+</div>
+
+## Generalization of Skew-normal Dist.
+... and the marignal is
+
+$$
+\begin{align*}
+\Prob(\vec V_2 \leq \vec v_2) &= 
+  \Phi^{(k_2)}(\vec v_2; \vec\xi_2, \mat\Xi_2) \\
+&= 
+  \int \phi^{(k_1)}(\vec v_1; \vec \xi_1, \mat\Xi_{11})
+  \Prob\left(\vec V_2 < \vec v_2 \,\middle\vert\,
+  \vec V_1 = \vec v_1
+  \right)\der v_{11} \cdots \der v_{1k_1}
+\end{align*}
+$$
+
+I.e. either $k_1$ or $k_2$-dimensional intractable integral.
+
+## Three Models
+We have $\vec Y = (Y_1,\dots,Y_n)^\top$ observed outcomes. 
+
+<div class = "fragment w-small">
+Mixed binomial
+<p class="smallish">
+Outcomes $Y_i \in \{0,\dots,m\}$ are conditionally 
+independent and binomially distributed.</p>
+</div>
+
+<div class = "fragment w-small">
+Mixed multinomial
+<p class="smallish">
+Outcomes $Y_i \in \{0,\dots,c\}$ are conditionally 
+independent and multinomially distributed.</p>
+</div>
+
+<div class = "fragment w-small">
+Mixed generalized survival model (GSM)
+<p class="smallish">
+Outcomes $Y_i\in (0,\infty)$ are
+conditionally independently drawn from a GSM and potentially right 
+censored.</p>
+</div>
+
+## Mixed Binomial
+Given random effect $\vec U \in \mathbb{R}^p$, each $Y_1, \dots, Y_n$ are
+
+$$
+Y_i \sim \text{Bin}(\Phi(\vec x_i^\top\vec\beta + \vec z_i^\top\vec u))
+$$
+
+with 
+
+$$\vec U \sim N(\vec 0, \mat\Sigma)$$
+
+<p class = "fragment">
+$\vec x_i$ and $\vec z_i$ are known covariates. $\vec x_i^\top\vec\beta$ is 
+the fixed effect. $\vec\beta$ and $\mat\Sigma$ are unkown parameters. 
+$\vec U$ is an unobservable random effect.</p>
+
+## Mixed Binomial Likelihood
+The complete data likelihood is
+
+$$
+\begin{align*}
+p(\vec u, \vec y) &= c(\vec y)  \phi^{(p)}(\vec u;\vec 0, \mat\Sigma) \\
+&\hspace{20pt}\cdot\prod_{i = 1}^n
+  \Phi(\vec x_i^\top\vec\beta + \vec z_i^\top\vec u)^{y_i}
+  \Phi(-\vec x_i^\top\vec\beta - \vec z_i^\top\vec u)^{m - y_i}\\
+c(\vec y) &= \prod_{i = 1}^n \begin{pmatrix}m \\ y_i\end{pmatrix}\nonumber
+\end{align*}
+$$
+
+The marignal log-likelihood is 
+
+$$
+l(\vec\beta,\mat\Sigma) = \log\int p(\vec u, \vec y) \der\vec u 
+$$
+
+## Mixed Binomial Likelihood
+Let $\mat X = (\vec x_1, \dots, \vec x_n)^\top$ and define 
+
+$$
+\begin{align*}
+\vec j_i &= (\underbrace{1, \dots, 1}_{y_i\text{ times}}, 
+       \underbrace{-1, \cdots, -1}_{m - y_i\text{ times}})^\top \\
+\widetilde{\mat X} &= 
+  \begin{pmatrix}
+    \vec j_1 & \vec 0  & \cdots & \vec 0 \\
+    \vec 0 & \vec j_2 & \ddots & \vec \vdots \\
+    \vdots & \ddots & \ddots  & \vec 0 \\
+    \vec 0 & \cdots & \vec 0 &  \vec j_n
+  \end{pmatrix}\mat X
+\end{align*}
+$$
+
+and similarly $\mat Z$ and $\widetilde{\mat Z}$.
+
+## Mixed Binomial Likelihood
+
+Then 
+
+$$
+\begin{align*}
+p(\vec u, \vec y) &= c(\vec y)  \phi^{(p)}(\vec u;\vec 0, \mat\Sigma) \\
+&\hspace{20pt}\cdot\prod_{i = 1}^n
+  \Phi(\vec x_i^\top\vec\beta + \vec z_i^\top\vec u)^{y_i}
+  \Phi(-\vec x_i^\top\vec\beta - \vec z_i^\top\vec u)^{m - y_i} \\
+&=  c(\vec y) \phi^{(K)}(\vec u;\vec 0, \mat\Sigma)
+  \Phi^{(nm)}(\widetilde{\mat X}\vec\beta + \widetilde{\mat Z}\vec u)
+\end{align*}
+$$
+
+I.e. we have a $K$ or $nm$-dimensional integral.
+
+## Mixed Multinomial
+We have $c$ categories. 
+
+<div class = "fragment">
+$\mat Z_i = (\vec z_{i1}, \dots, \vec z_{ic})^\top \in \mathbb{R}^{c\times K}$:
+known random effect covariates.
+
+$\mat B = (\vec \beta_1, \dots, \vec\beta_c)^\top$:
+fixed effect coefficients.
+</div>
+
+<div class = "fragment">
+We observe $Y_1,\dots Y_n \in \{1,\dots,c\}$ with
+
+$$Y_i = k \Leftrightarrow \forall k \neq k':\, A_{ik} > A_{ik'}, 
+  \qquad k,k'\in\{1,\dots,c\}$$
+where $\vec A_i$ is a latent variable.
+</div>
+
+## Mixed Multinomial Cont.
+
+Assume
+$$\vec A_i \mid \vec U = \vec u \sim N(\mat B\vec x_i + \mat Z_i \vec u, \mat I)$$
+<div class = "fragment">
+then
+$$
+\begin{align*}
+\mathcal{C}_{ik} &= \left\{
+  \vec A_i:\,\forall k' \neq k: A_{ik} > A_{ik'}
+  \right\} \\
+p(Y_i = k \mid \vec U = \vec u) &= 
+  \int_{\mathcal{C}_{ik}} \phi^{(c)}
+  (\vec a; \mat B\vec x_i + \mat Z_i \vec u, \mat I) 
+  \der \vec a \\
+&\hspace{-60pt}= \Phi^{(c - 1)}( 
+  \underbrace{(\vec 1\vec\beta_k^\top - \mat B_{(-k)})}_{
+  \widetilde{\mat B}_k}\vec x_i + 
+  \underbrace{(\vec 1\vec z_{ik}^\top - \mat Z_{i(-k)})}_{
+  \widetilde{\mat Z}_{ik}}\vec u;
+  \vec 0, \mat I + \vec 1\vec 1^\top)
+\end{align*}
+$$
+<div class = "w-small">
+with 
+$\mat B_{(-k)} = (\vec\beta_1, \dots, \vec\beta_{k-1}, \vec\beta_{k + 1}, \dots, \vec\beta_c)$
+<p class = "smallish">
+and similarly for $\mat Z_i$. See @McFadden84.
+</div></div>
+
+## Mixed Multinomial Likelihood
+<div class = "w-small">
+The complete data likelihood is
+
+$$
+\begin{align*}
+p(\vec u, \vec y) &= \phi^{(K)}(\vec u; \vec 0, \mat\Sigma)
+  \prod_{i = 1}^n
+  \Phi^{(c - 1)}( 
+  \widetilde{\mat B}_{y_i}\vec x_i + 
+  \widetilde{\mat Z}_{iy_i}\vec u;
+  \vec 0, \mat I + \vec 1\vec 1^\top) \\
+&= \phi^{(K)}(\vec u; \vec 0, \mat\Sigma) \\
+&\hspace{20pt}\cdot
+  \Phi^{(n(c - 1))}( 
+  \widetilde{\mat B}\vec x + 
+  \widetilde{\mat Z}\vec u;
+  \vec 0, \diag(\underbrace{
+  \mat I + \vec 1\vec 1^\top, \dots, \mat I + \vec 1\vec 1^\top}_{%
+  n\text{ times}}))
+\end{align*}
+$$
+<p class = "smallish">
+with 
+$\widetilde{\mat B} = \diag(\widetilde{\mat B}_{y_1}, \dots, \widetilde{\mat B}_{y_n})$, 
+$\vec x = (\vec x_1^\top, \dots, \vec x_n^\top)^\top$, and
+$\widetilde{\mat Z} = (\widetilde{\mat Z}_{1y_1}^\top \dots, \widetilde{\mat Z}_{ny_n}^\top)^\top$.</p>
+</div>
+
+I.e. we have a $K$ or $n(c-1)$-dimensional integral.
+
+## Mixed GSM
+The survival time is $Y_i^* \in (0, \infty)$. 
+
+<div class = "fragment w-small">
+Only observe $Y_i = \min (Y_i^*, C_i)$ where $C_i$ is an independent 
+censoring time and let $D_i = 1_{\{Y_i^* < C_i\}}$ be an event indicator.
+<p class = "smallish">
+Censoring e.g. due to drop out.</p>
+</div>
+
+## Mixed GSM Cont.
+Let 
+$S(y\mid \vec x, \vec z, \vec u) = \Prob(Y^* > y \mid \vec x, \vec z, \vec u)$
+be the conditional survival function.
+
+<div class = "fragment">
+Assume that 
+
+$$-\Phi^{-1}(S(y\mid\vec x, \vec z, \vec u)) = 
+  \vec x^\top(t)\vec\beta
+  + \vec z^\top\vec u$$
+</div>
+
+## Mixed GSM Cont.
+
+Define the sets of indices of cenosred and observed events 
+$$
+\begin{align*}
+\mathcal{C} &= \{i\in \{1,\dots,n\}:\, d_i = 0\} \\
+\mathcal{O} &= \{i\in \{1,\dots,n\}:\, d_i = 1\} = 
+  \{1,\dots,n\}\setminus\mathcal{C}
+\end{align*}
+$$
+
+<div class = "fragment w-small">
+and 
+$$\mat X^o(\vec Y^o) = (\vec x_j(Y_j))_{j\in\mathcal{O}}^\top$$
+<p class = "smallish">
+Similarly define $\mat X^{\prime o}(\vec Y^o)$, $\mat Z^o$, $\vec Y^o$, 
+$\mat X^c(\vec Y^c)$, $\mat Z^c$, and $\vec Y^c$.
+Derivatives are applied element wise.</p>
+</div>
+
+## Mixed GSM Likelihood
+The complete data likelihood is
+
+$$
+\begin{align*}
+p(\vec u, \vec y, \vec d) &= 
+  \phi^{(K)}(\vec u; \vec 0, \mat\Sigma)
+  c(\vec y^o, \mat X^o, \vec\beta)
+  \phi^{(\lvert \mathcal{O}\rvert)}(-\mat X^o(\vec y^o)\vec\beta - \mat Z^o\vec u) \\
+&\hspace{20pt}\cdot 
+  \Phi^{(\lvert \mathcal{C}\rvert)}(-\mat X^c(\vec y^c)\vec\beta - \mat Z^c\vec u) \\
+c(\vec y^o, \mat X^o, \vec\beta) &= -\mat X^{\prime o}(\vec y^o)\vec\beta
+\end{align*}
+$$
+
+## Mixed GSM Marginal Log-likelihood
+We can show that 
+
+$$
+\begin{align*}
+l(\vec\beta, \mat\Sigma) &= 
+  \log\int p(\vec u, \vec y, \vec d)
+  \der u_1\cdots\der u_p \\ 
+&= \log k(\vec t^o, \mat X^o, \mat Z^o, \mat\Sigma) \\
+&\hspace{20pt}+
+    \log\int 
+    \phi^{(K)}(\vec u; \vec h, \mat H^{-1}) \\
+&\hspace{60pt}\cdot
+  \Phi^{(\lvert \mathcal{C}\rvert)}(-\mat X^c(\vec t^c)\vec\beta - \mat Z^c\vec u)
+  \der u_1\cdots\der u_p 
+\end{align*}
+$$
+
+<div class = "w-small fragment">
+I.e. we have a $K$ or $\lvert \mathcal{C}\rvert$-dimensional integral.
+<p class = "smallish">
+See one of the next slides for the definitions of $k$, $\vec h$, 
+and $\mat H$.</p>
+</div>
+
+## Mixed GSM Remarks 
+Mixed Tobit model is a special case. 
+
+<p class = "fragment">
+Similar to a mixed version of the linear transformation model discussed by 
+@Hothorn18.</p>
+
+<div class = "fragment w-small">
+A discrete time survival submodel is suggested by @Barrett15. 
+<p class = "smallish">
+Similar to the mixed binomial model.</p>
+</div>
+
+## Mixed GSM Marginal Log-likelihood Cont.
+
+$$
+\begin{align*}
+\mat H(\mat Z^o, \mat\Sigma) &= 
+  \mat H = 
+  \mat Z^{o\top}\mat Z^o + \mat\Sigma^{-1} \\
+\vec h(\vec y^o, \mat X^o, \mat Z^o, \mat\Sigma) &=
+  \vec h =  
+  \mat H^{-1}
+  \mat Z^{o\top}\left(- \mat X^o(\vec y^o)\vec\beta
+  \right)\\
+k(\vec y^o, \mat X^o, \mat Z^o, \mat\Sigma) &=  \\
+&\hspace{-40pt}
+  c(\vec y^o, \mat X^o, \vec\beta) 
+  (2\pi)^{-\lvert\mathcal O\rvert/2}\lvert\mat\Sigma\mat H\rvert^{-1/2}  
+  \\
+&\hspace{-20pt}
+  \cdot\exp\left( -\frac 12
+  (- \mat X^o\vec\beta(\vec y^o))^\top
+  (- \mat X^o\vec\beta(\vec y^o)) 
+  +\frac 12\vec h^\top\mat H\vec h\right)
+\end{align*}
+$$
+
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="center final">
+<h1>Thank You!</h1>
+
+<div class="w-small">
+<p class="smallish">The presentation is at  
+<a href="TODO">rpubs.com/boennecd/TODO</a>.</p>
+<p class="smallish">The markdown is at  
+<a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
+<p class="smallish">References are on the next slide.</p>
+</div>
+
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<section>
+<h1>References</h1>
+
+<!--/html_preserve-->
