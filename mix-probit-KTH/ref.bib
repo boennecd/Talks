@@ -1,0 +1,360 @@
+@Manual{mvtnorm,
+    title = {{mvtnorm}: Multivariate Normal and t Distributions},
+    author = {Alan Genz and Frank Bretz and Tetsuhisa Miwa and Xuefei Mi and Friedrich Leisch and Fabian Scheipl and Torsten Hothorn},
+    year = {2020},
+    note = {R package version 1.0-12},
+    url = {https://CRAN.R-project.org/package=mvtnorm},
+  }
+  
+  @Manual{R19,
+    title = {R: A Language and Environment for Statistical Computing},
+    author = {{R Core Team}},
+    organization = {R Foundation for Statistical Computing},
+    address = {Vienna, Austria},
+    year = {2019},
+    url = {https://www.R-project.org/},
+  }
+
+@article{Hothorn18,
+author = {Hothorn, Torsten and Möst, Lisa and Bühlmann, Peter},
+title = {Most Likely Transformations},
+journal = {Scandinavian Journal of Statistics},
+volume = {45},
+number = {1},
+pages = {110-134},
+keywords = {censoring, conditional distribution function, conditional quantile function, distribution regression, transformation model, truncation},
+doi = {10.1111/sjos.12291},
+url = {https://onlinelibrary.wiley.com/doi/abs/10.1111/sjos.12291},
+eprint = {https://onlinelibrary.wiley.com/doi/pdf/10.1111/sjos.12291},
+abstract = {Abstract We propose and study properties of maximum likelihood estimators in the class of conditional transformation models. Based on a suitable explicit parameterization of the unconditional or conditional transformation function, we establish a cascade of increasingly complex transformation models that can be estimated, compared and analysed in the maximum likelihood framework. Models for the unconditional or conditional distribution function of any univariate response variable can be set up and estimated in the same theoretical and computational framework simply by choosing an appropriate transformation function and parameterization thereof. The ability to evaluate the distribution function directly allows us to estimate models based on the exact likelihood, especially in the presence of random censoring or truncation. For discrete and continuous responses, we establish the asymptotic normality of the proposed estimators. A reference software implementation of maximum likelihood-based estimation for conditional transformation models that allows the same flexibility as the theory developed here was employed to illustrate the wide range of possible applications.},
+year = {2018}
+}
+
+@article{Liu17,
+author = {Liu, Xing-Rong and Pawitan, Yudi and Clements, Mark S.},
+title = {Generalized survival models for correlated time-to-event data},
+journal = {Statistics in Medicine},
+
+volume = {36},
+number = {29},
+pages = {4743-4762},
+keywords = {adaptive Gauss-Hermite quadrature, correlated survival data, generalized survival models, link functions, random effects, tensor product},
+doi = {10.1002/sim.7451},
+url = {https://onlinelibrary.wiley.com/doi/abs/10.1002/sim.7451},
+eprint = {https://onlinelibrary.wiley.com/doi/pdf/10.1002/sim.7451},
+abstract = {Our aim is to develop a rich and coherent framework for modeling correlated time-to-event data, including (1) survival regression models with different links and (2) flexible modeling for time-dependent and nonlinear effects with rich postestimation. We extend the class of generalized survival models, which expresses a transformed survival in terms of a linear predictor, by incorporating a shared frailty or random effects for correlated survival data. The proposed approach can include parametric or penalized smooth functions for time, time-dependent effects, nonlinear effects, and their interactions. The maximum (penalized) marginal likelihood method is used to estimate the regression coefficients and the variance for the frailty or random effects. The optimal smoothing parameters for the penalized marginal likelihood estimation can be automatically selected by a likelihood-based cross-validation criterion. For models with normal random effects, Gauss-Hermite quadrature can be used to obtain the cluster-level marginal likelihoods. The Akaike Information Criterion can be used to compare models and select the link function. We have implemented these methods in the R package rstpm2. Simulating for both small and larger clusters, we find that this approach performs well. Through 2 applications, we demonstrate (1) a comparison of proportional hazards and proportional odds models with random effects for clustered survival data and (2) the estimation of time-varying effects on the log-time scale, age-varying effects for a specific treatment, and two-dimensional splines for time and age.},
+year = {2017}
+}
+
+@article{Liu16,
+author = {Xing-Rong Liu and Yudi Pawitan and Mark Clements},
+title ={Parametric and penalized generalized survival models},
+journal = {Statistical Methods in Medical Research},
+volume = {27},
+number = {5},
+pages = {1531-1546},
+year = {2016},
+doi = {10.1177/0962280216664760},
+    note ={PMID: 27587596},
+
+URL = { 
+        https://doi.org/10.1177/0962280216664760
+    
+},
+eprint = { 
+        https://doi.org/10.1177/0962280216664760
+    
+}
+,
+    abstract = { We describe generalized survival models, where g(S(t|z)), for link function g, survival S, time t, and covariates z, is modeled by a linear predictor in terms of covariate effects and smooth time effects. These models include proportional hazards and proportional odds models, and extend the parametric Royston–Parmar models. Estimation is described for both fully parametric linear predictors and combinations of penalized smoothers and parametric effects. The penalized smoothing parameters can be selected automatically using several information criteria. The link function may be selected based on prior assumptions or using an information criterion. We have implemented the models in R. All of the penalized smoothers from the mgcv package are available for smooth time effects and smooth covariate effects. The generalized survival models perform well in a simulation study, compared with some existing models. The estimation of smooth covariate effects and smooth time-dependent hazard or odds ratios is simplified, compared with many non-parametric models. Applying these models to three cancer survival datasets, we find that the proportional odds model is better than the proportional hazards model for two of the datasets. }
+}
+
+@article{Barrett15,
+author = {Barrett, Jessica and Diggle, Peter and Henderson, Robin and Taylor-Robinson, David},
+title = {Joint modelling of repeated measurements and time-to-event outcomes: flexible model specification and exact likelihood inference},
+journal = {Journal of the Royal Statistical Society: Series B (Statistical Methodology)},
+
+volume = {77},
+number = {1},
+pages = {131-148},
+keywords = {Cystic fibrosis, Dropout, Joint modelling, Repeated measurements, Skew normal distribution, Survival analysis},
+doi = {10.1111/rssb.12060},
+url = {https://rss.onlinelibrary.wiley.com/doi/abs/10.1111/rssb.12060},
+eprint = {https://rss.onlinelibrary.wiley.com/doi/pdf/10.1111/rssb.12060},
+abstract = {Summary Random effects or shared parameter models are commonly advocated for the analysis of combined repeated measurement and event history data, including dropout from longitudinal trials. Their use in practical applications has generally been limited by computational cost and complexity, meaning that only simple special cases can be fitted by using readily available software. We propose a new approach that exploits recent distributional results for the extended skew normal family to allow exact likelihood inference for a flexible class of random-effects models. The method uses a discretization of the timescale for the time-to-event outcome, which is often unavoidable in any case when events correspond to dropout. We place no restriction on the times at which repeated measurements are made. An analysis of repeated lung function measurements in a cystic fibrosis cohort is used to illustrate the method.},
+year = {2015}
+}
+
+@article{ormerod11,
+  title={Skew-normal variational approximations for Bayesian inference},
+  author={Ormerod, JT},
+  journal={Unpublished article},
+  year={2011}
+}
+
+@article{Ormerod10,
+author = {J. T. Ormerod and M. P. Wand},
+title = {Explaining Variational Approximations},
+journal = {The American Statistician},
+volume = {64},
+number = {2},
+pages = {140-153},
+year  = {2010},
+publisher = {Taylor & Francis},
+doi = {10.1198/tast.2010.09058},
+
+URL = { 
+        https://doi.org/10.1198/tast.2010.09058
+    
+},
+eprint = { 
+        https://doi.org/10.1198/tast.2010.09058
+    
+}
+
+}
+
+@Book{Genz09,
+    title = {Computation of Multivariate Normal and t Probabilities},
+    author = {Alan Genz and Frank Bretz},
+    series = {Lecture Notes in Statistics},
+    year = {2009},
+    publisher = {Springer-Verlag},
+    address = {Heidelberg},
+    isbn = {978-3-642-01688-2},
+  }
+
+@article{Arnold09,
+title = "Flexible univariate and multivariate models based on hidden truncation",
+journal = "Journal of Statistical Planning and Inference",
+volume = "139",
+number = "11",
+pages = "3741 - 3749",
+year = "2009",
+note = "Special Issue: The 8th Tartu Conference on Multivariate Statistics \& The 6th Conference on Multivariate Distributions with Fixed Marginals",
+issn = "0378-3758",
+doi = "https://doi.org/10.1016/j.jspi.2009.05.013",
+url = "http://www.sciencedirect.com/science/article/pii/S0378375809001384",
+author = "Barry C. Arnold",
+keywords = "Skew-normal distribution, Conditional specification, Weighted distribution, Multivariate normal, Normal conditionals, Exponential conditionals, Pareto distribution",
+abstract = "A broad spectrum of flexible univariate and multivariate models can be constructed by using a hidden truncation paradigm. Such models can be viewed as being characterized by a basic marginal density, a family of conditional densities and a specified hidden truncation point, or points. The resulting class of distributions includes the basic marginal density as a special case (or as a limiting case), but also includes an array of models that may unexpectedly include many well known densities. Most of the well known skew-normal models (developed from the seed distribution popularized by Azzalini [(1985). A class of distributions which includes the normal ones. Scand. J. Statist. 12(2), 171–178]) can be viewed as being products of such a hidden truncation construction. However, the many hidden truncation models with non-normal component densities undoubtedly deserve further attention."
+}
+
+@article{Consonni07,
+title = "Mean-field variational approximate Bayesian inference for latent variable models",
+journal = "Computational Statistics \& Data Analysis",
+volume = "52",
+number = "2",
+pages = "790 - 798",
+year = "2007",
+issn = "0167-9473",
+doi = "https://doi.org/10.1016/j.csda.2006.10.028",
+url = "http://www.sciencedirect.com/science/article/pii/S0167947306003951",
+author = "Guido Consonni and Jean-Michel Marin",
+keywords = "Bayesian inference, Bayesian probit model, Gibbs sampling, Latent variable models, Marginal distribution, Mean-field variational methods",
+abstract = "The ill-posed nature of missing variable models offers a challenging testing ground for new computational techniques. This is the case for the mean-field variational Bayesian inference. The behavior of this approach in the setting of the Bayesian probit model is illustrated. It is shown that the mean-field variational method always underestimates the posterior variance and, that, for small sample sizes, the mean-field variational approximation to the posterior location could be poor."
+}
+
+@ARTICLE{Girolami06,
+author={M. {Girolami} and S. {Rogers}},
+journal={Neural Computation},
+title={Variational Bayesian Multinomial Probit Regression with Gaussian Process Priors},
+year={2006},
+volume={18},
+number={8},
+pages={1790-1817},
+keywords={},
+doi={10.1162/neco.2006.18.8.1790},
+ISSN={0899-7667},
+month={Aug},}
+
+@article{Azzalini05,
+author = {Azzalini, ADELCHI},
+title = {The Skew-normal Distribution and Related Multivariate Families},
+journal = {Scandinavian Journal of Statistics},
+
+volume = {32},
+number = {2},
+pages = {159-188},
+keywords = {flexible parametric family, graphical models, heavy tails, hidden truncation model, selective sampling, skew-elliptical distribution, skew-normal distribution, skew-t distribution, stochastic frontier models},
+doi = {10.1111/j.1467-9469.2005.00426.x},
+url = {https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1467-9469.2005.00426.x},
+eprint = {https://onlinelibrary.wiley.com/doi/pdf/10.1111/j.1467-9469.2005.00426.x},
+abstract = {Abstract.  This paper provides an introductory overview of a portion of distribution theory which is currently under intense development. The starting point of this topic has been the so-called skew-normal distribution, but the connected area is becoming increasingly broad, and its branches include now many extensions, such as the skew-elliptical families, and some forms of semi-parametric formulations, extending the relevance of the field much beyond the original theme of ‘skewness’. The final part of the paper illustrates connections with various areas of application, including selective sampling, models for compositional data, robust methods, some problems in econometrics, non-linear time series, especially in connection with financial data, and more.},
+year = {2005}
+}
+
+@article{Lai03,
+ ISSN = {00063444},
+ URL = {http://www.jstor.org/stable/30042093},
+ abstract = {A hybrid method that combines Laplace's approximation and Monte Carlo simulations to evaluate integrals in the likelihood function is proposed for estimation of the parameters in nonlinear mixed effects models that assume a normal parametric family for the random effects. Simulations show that these parametric estimates of fixed effects are close to the nonparametric estimates even though the mixing distribution is far from the assumed normal parametric family. An asymptotic theory of this hybrid method for parametric estimation without requiring the true mixing distribution to belong to the assumed parametric family is developed to explain these results. This hybrid method and its asymptotic theory are also extended to generalised linear mixed effects models.},
+ author = {Tze Leung Lai and Mei-Chiung Shih},
+ journal = {Biometrika},
+ number = {4},
+ pages = {859--879},
+ publisher = {[Oxford University Press, Biometrika Trust]},
+ title = {A Hybrid Estimator in Nonlinear and Generalised Linear Mixed Effects Models},
+ volume = {90},
+ year = {2003}
+}
+
+@article{Royston02,
+author = {Royston, Patrick and Parmar, Mahesh K. B.},
+title = {Flexible parametric proportional-hazards and proportional-odds models for censored survival data, with application to prognostic modelling and estimation of treatment effects},
+journal = {Statistics in Medicine},
+
+volume = {21},
+number = {15},
+pages = {2175-2197},
+keywords = {survival analysis, proportional hazards, proportional odds, splines, parametric models},
+doi = {10.1002/sim.1203},
+url = {https://onlinelibrary.wiley.com/doi/abs/10.1002/sim.1203},
+eprint = {https://onlinelibrary.wiley.com/doi/pdf/10.1002/sim.1203},
+abstract = {Abstract Modelling of censored survival data is almost always done by Cox proportional-hazards regression. However, use of parametric models for such data may have some advantages. For example, non-proportional hazards, a potential difficulty with Cox models, may sometimes be handled in a simple way, and visualization of the hazard function is much easier. Extensions of the Weibull and log-logistic models are proposed in which natural cubic splines are used to smooth the baseline log cumulative hazard and log cumulative odds of failure functions. Further extensions to allow non-proportional effects of some or all of the covariates are introduced. A hypothesis test of the appropriateness of the scale chosen for covariate effects (such as of treatment) is proposed. The new models are applied to two data sets in cancer. The results throw interesting light on the behaviour of both the hazard function and the hazard ratio over time. The tools described here may be a step towards providing greater insight into the natural history of the disease and into possible underlying causes of clinical events. We illustrate these aspects by using the two examples in cancer. Copyright © 2002 John Wiley \& Sons, Ltd.},
+year = {2002}
+}
+
+@article{Genz99,
+title = "A stochastic algorithm for high-dimensional integrals over unbounded regions with Gaussian weight",
+journal = "Journal of Computational and Applied Mathematics",
+volume = "112",
+number = "1",
+pages = "71 - 81",
+year = "1999",
+issn = "0377-0427",
+doi = "https://doi.org/10.1016/S0377-0427(99)00214-9",
+url = "http://www.sciencedirect.com/science/article/pii/S0377042799002149",
+author = "Alan Genz and John Monahan",
+keywords = "High-dimensional integral, Monte Carlo, Gaussian weight",
+abstract = "Details are given for a Fortran implementation of an algorithm that uses stochastic spherical–radial rules for the numerical computation of multiple integrals over unbounded regions with Gaussian weight. The implemented rules are suitable for high-dimensional problems. A high-dimensional example from a computational finance application is used to illustrate the use of the rules."
+}
+
+@article{Hajivassiliou96,
+title = "Simulation of multivariate normal rectangle probabilities and their derivatives theoretical and computational results",
+journal = "Journal of Econometrics",
+volume = "72",
+number = "1",
+pages = "85 - 134",
+year = "1996",
+issn = "0304-4076",
+doi = "https://doi.org/10.1016/0304-4076(94)01716-6",
+url = "http://www.sciencedirect.com/science/article/pii/0304407694017166",
+author = "Vassilis Hajivassiliou and Daniel McFadden and Paul Ruud",
+keywords = "Simulation estimation, Monte Carlo integration, Discrete choice models, Multinomial probit models, Importance sampling, Acceptance/rejection, Gibbs resampling",
+abstract = "An extensive literature in econometrics and in numerical analysis has considered the problem of evaluating the multiple integral P(B; μ, Ω) = ∝ab n(v − μ, Ω)dv ≡ Ev1(V ϵ B), where V is a m-dimensional normal vector with mean μ, covariance matrix Ω, and density n(v − μ, Ω), and 1(V ϵ B) is an indicator for the event B = (V¦a < V < b). A leading case of such an integral is the negative orthant probability, where B = (V ¦V < 0). The problem is computationally difficult except in very special cases. The multinomial probit (MNP) model used in econometrics and biometrics has cell probabilities that are negative orthant probabilities, with μ and Ω depending on unknown parameters (and, in general, on covariates). Estimation of this model requires, for each trial parameter vector and each observation in a sample, evaluation of P(B; μ, Ω) and of its derivatives with respect to μ and Ω. This paper surveys Monte Carlo techniques that have been developed for approximations of P(B; μ, Ω) and its linear and logarithmic derivatives, that limit computation while possessing properties that facilitate their use in iterative calculations for statistical inference: the Crude Frequency Simulator (CFS), Normal Importance Sampling (NIS), a Kernel-Smoothed Frequency Simulator (KFS), Stern's Decomposition Simulator (SDS), the Geweke-Hajivassiliou-Keane Simulator (GHK), a Parabolic Cylinder Function Simulator (PCF), Deák's Chi-squared Simulator (DCS), an Acceptance/Rejection Simulator (ARS), the Gibbs Sampler Simulator (GSS), a Sequentially Unbiased Simulator (SUS), and an Approximately Unbiased Simulator (AUS). We also discuss Gauss and FORTRAN implementations of these algorithms and present our computational experience with them. We find that GHK is overall the most reliable method."
+}
+
+@article{Pinheiro95,
+ ISSN = {10618600},
+ URL = {http://www.jstor.org/stable/1390625},
+ abstract = {Nonlinear mixed-effects models have received a great deal of attention in the statistical literature in recent years because of the flexibility they offer in handling the unbalanced repeated-measures data that arise in different areas of investigation, such as pharmacokinetics and economics. Several different methods for estimating the parameters in nonlinear mixed-effects model have been proposed. We concentrate here on two of them--maximum likelihood and restricted maximum likelihood. A rather complex numerical issue for (restricted) maximum likelihood estimation in nonlinear mixed-effects models is the evaluation of the log-likelihood function of the data, because it involves the evaluation of a multiple integral that, in most cases, does not have a closed-form expression. We consider here four different approximations to the log-likelihood, comparing their computational and statistical properties. We conclude that the linear mixed-effects (LME) approximation suggested by Lindstrom and Bates, the Laplacian approximation, and Gaussian quadrature centered at the conditional modes of the random effects are quite accurate and computationally efficient. Gaussian quadrature centered at the expected value of the random effects is quite inaccurate for a smaller number of abscissas and computationally inefficient for a larger number of abscissas. Importance sampling is accurate, but quite inefficient computationally.},
+ author = {José C. Pinheiro and Douglas M. Bates},
+ journal = {Journal of Computational and Graphical Statistics},
+ number = {1},
+ pages = {12--35},
+ publisher = {American Statistical Association, Taylor \& Francis, Ltd., Institute of Mathematical Statistics, Interface Foundation of America},
+ title = {Approximations to the Log-Likelihood Function in the Nonlinear Mixed-Effects Model},
+ volume = {4},
+ year = {1995}
+}
+
+@article{Liu94,
+ ISSN = {00063444},
+ URL = {http://www.jstor.org/stable/2337136},
+ abstract = {For Gauss-Hermite quadrature, we consider a systematic method for transforming the variable of integration so that the integrand is sampled in an appropriate region. The effectiveness of the quadrature then depends on the ratio of the integrand to some Gaussian density being a smooth function, well approximated by a low-order polynomial. It is pointed out that, in this approach, order one Gauss-Hermite quadrature becomes the Laplace approximation. Thus the quadrature as implemented here can be thought of as a higher-order Laplace approximation.},
+ author = {Qing Liu and Donald A. Pierce},
+ journal = {Biometrika},
+ number = {3},
+ pages = {624--629},
+ publisher = {[Oxford University Press, Biometrika Trust]},
+ title = {A Note on Gauss-Hermite Quadrature},
+ volume = {81},
+ year = {1994}
+}
+
+@article{Genz92,
+author = { Alan   Genz },
+title = {Numerical Computation of Multivariate Normal Probabilities},
+journal = {Journal of Computational and Graphical Statistics},
+volume = {1},
+number = {2},
+pages = {141-149},
+year  = {1992},
+publisher = {Taylor & Francis},
+doi = {10.1080/10618600.1992.10477010},
+
+URL = { 
+        https://amstat.tandfonline.com/doi/abs/10.1080/10618600.1992.10477010
+    
+},
+eprint = { 
+        https://amstat.tandfonline.com/doi/pdf/10.1080/10618600.1992.10477010
+    
+}
+
+}
+
+@incollection{McFadden84,
+title = "Chapter 24 Econometric analysis of qualitative response models",
+series = "Handbook of Econometrics",
+publisher = "Elsevier",
+volume = "2",
+pages = "1395 - 1457",
+year = "1984",
+issn = "1573-4412",
+doi = "https://doi.org/10.1016/S1573-4412(84)02016-X",
+url = "http://www.sciencedirect.com/science/article/pii/S157344128402016X",
+author = "Daniel L. McFadden",
+abstract = "Publisher Summary
+This chapter has surveyed the current state of econometric models and methods for the analysis of qualitative dependent variables. It discusses that the models of economic optimization that are presumed to govern conventional continuous decisions are equally appropriate for the analysis of discrete response. While the intensive marginal conditions associated with many continuous decisions are not applicable, the characterization of economic agents as optimizers implies conditions at the extensive margin and substantive restrictions on functional form. Unless the tenets of the behavioral theory are themselves under test, it is good econometric practice to impose these restrictions as maintained hypotheses in the construction of discrete response models. As a formulation in terms of latent variable models makes clear, qualitative response models share many of the features of conventional econometric systems. Thus the problems and methods arising in the main stream of econometric analysis mostly transfer directly to discrete response. Divergences from the properties of the standard linear model arise from nonlinearity rather than from discreteness of the dependent variable. Thus, most developments in the analysis of nonlinear econometric systems apply to qualitative response models. In summary, methods for the analysis of qualitative dependent variables are part of the continuing development of econometric technique to match the real characteristics of economic behavior and data."
+}
+
+@article{Cranley76,
+ ISSN = {00361429},
+ URL = {http://www.jstor.org/stable/2156452},
+ abstract = {A procedure is discussed for randomization of the number theoretic methods of the Korobov type producing stochastic families of multi-dimensional integration rules. These randomized rules have the advantage that confidence intervals can be given for the magnitude of error. The practical implementation is considered.},
+ author = {R. Cranley and T. N. L. Patterson},
+ journal = {SIAM Journal on Numerical Analysis},
+ number = {6},
+ pages = {904--914},
+ publisher = {Society for Industrial and Applied Mathematics},
+ title = {Randomization of Number Theoretic Methods for Multiple Integration},
+ volume = {13},
+ year = {1976}
+}
+
+@article{Keast73,
+author = {Keast, P.},
+title = {Optimal Parameters for Multidimensional Integration},
+journal = {SIAM Journal on Numerical Analysis},
+volume = {10},
+number = {5},
+pages = {831-838},
+year = {1973},
+doi = {10.1137/0710068},
+
+URL = { 
+        https://doi.org/10.1137/0710068
+    
+},
+eprint = { 
+        https://doi.org/10.1137/0710068
+    
+}
+
+}
+
+@Article{Niederreiter1972,
+author="Niederreiter, H.",
+title="On a number-theoretical integration method",
+journal="aequationes mathematicae",
+year="1972",
+month="Oct",
+day="01",
+volume="8",
+number="3",
+pages="304--311",
+issn="1420-8903",
+doi="10.1007/BF01844507",
+url="https://doi.org/10.1007/BF01844507"
+}
