@@ -20,8 +20,9 @@ output:
 ## dummy slide
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, fig.height = 5)
+knitr::opts_chunk$set(echo = TRUE, fig.height = 5, cache.path = "cache/")
 .par_use <- list(cex = 1.33, cex.lab = 1.2)
+options(digits = 4)
 ```
 
 <!--html_preserve-->
@@ -58,7 +59,6 @@ knitr::opts_chunk$set(echo = TRUE, fig.height = 5)
 
 <div style="display: none;">
 $$
-\definecolor{gray}{RGB}{192,192,192}
 \renewcommand\vec{\boldsymbol}
 \def\bigO#1{\mathcal{O}(#1)}
 \def\Cond#1#2{\left(#1\,\middle|\, #2\right)}
@@ -83,7 +83,7 @@ Simulation example.</p>
 Real data example.</p>
 
 <p class = "fragment"> 
-Future work and alternatives.</p>
+Next steps and alternatives.</p>
 
 <!--html_preserve-->
 </section>
@@ -106,19 +106,30 @@ Many options for approximating the marginal log-likelihood.</p>
 ## Notation
 $$
 \begin{align*}
-\phi^{(p)}(\vec x;\vec\mu,\mat\Sigma) &= 
-  \frac 1{(2\pi)^{p/2}\lvert\mat\Sigma\rvert^{1/2}}\exp\left(
+\phi^{(K)}(\vec x;\vec\mu,\mat\Sigma) &= 
+  \frac 1{(2\pi)^{K/2}\lvert\mat\Sigma\rvert^{1/2}}\exp\left(
   - \frac 12 (\vec x - \vec\mu)^\top\mat\Sigma^{-1}(\vec x - \vec\mu)
   \right) \\
-\Phi^{(p)}(\vec x;\vec\mu,\mat\Sigma) &= 
-  \int_{-\infty}^{x_1} \cdots\int_{-\infty}^{x_p}
-  \phi^{(p)}(\vec z;\vec\mu,\mat\Sigma)\der z_1 \cdots \der z_p \\
-\phi^{(p)}(\vec x) &= \phi^{(p)}(\vec x;\vec 0,\mat I) \\
-\Phi^{(p)}(\vec x) &= \Phi^{(p)}(\vec x;\vec 0,\mat I) \\
+\Phi^{(K)}(\vec x;\vec\mu,\mat\Sigma) &= 
+  \int_{-\infty}^{x_1} \cdots\int_{-\infty}^{x_K}
+  \phi^{(p)}(\vec z;\vec\mu,\mat\Sigma)\der z_1 \cdots \der z_K \\
+\end{align*}
+$$
+The standard case
+$$
+\begin{align*}
+\phi^{(K)}(\vec x) &= \phi^{(K)}(\vec x;\vec 0,\mat I) \\
+\Phi^{(K)}(\vec x) &= \Phi^{(K)}(\vec x;\vec 0,\mat I) \\
+\end{align*}
+$$
+The univariate case
+$$
+\begin{align*}
 \phi(x; \mu, \sigma^2) &= \phi^{(1)}(x; \mu, \sigma^2) \\
 \Phi(x; \mu, \sigma^2) &= \Phi^{(1)}(x; \mu, \sigma^2)
 \end{align*}
 $$
+
 
 ## Generalization of Skew-normal Dist.
 $$
@@ -159,14 +170,15 @@ $$
 </div>
 
 ## Generalization of Skew-normal Dist.
-... and the marignal is
+... and the marginal is
 
 $$
 \begin{align*}
 \Prob(\vec V_2 \leq \vec v_2) &= 
   \Phi^{(k_2)}(\vec v_2; \vec\xi_2, \mat\Xi_2) \\
 &= 
-  \int \phi^{(k_1)}(\vec v_1; \vec \xi_1, \mat\Xi_{11})
+  \int \phi^{(k_1)}(\vec v_1; \vec \xi_1, \mat\Xi_{11}) \\
+&\hspace{30pt}\cdot
   \Prob\left(\vec V_2 < \vec v_2 \,\middle\vert\,
   \vec V_1 = \vec v_1
   \right)\der v_{11} \cdots \der v_{1k_1}
@@ -201,10 +213,10 @@ censored.</p>
 </div>
 
 ## Mixed Binomial
-Given random effect $\vec U \in \mathbb{R}^p$, each $Y_1, \dots, Y_n$ are
+Given random effect $\vec U \in \mathbb{R}^K$, each $Y_1, \dots, Y_n$ are
 
 $$
-Y_i \sim \text{Bin}(\Phi(\vec x_i^\top\vec\beta + \vec z_i^\top\vec u))
+Y_i \sim \text{Bin}(\Phi(\vec x_i^\top\vec\beta + \vec z_i^\top\vec u), m)
 $$
 
 with 
@@ -213,7 +225,7 @@ $$\vec U \sim N(\vec 0, \mat\Sigma)$$
 
 <p class = "fragment">
 $\vec x_i$ and $\vec z_i$ are known covariates. $\vec x_i^\top\vec\beta$ is 
-the fixed effect. $\vec\beta$ and $\mat\Sigma$ are unkown parameters. 
+the fixed effect. $\vec\beta$ and $\mat\Sigma$ are unknown parameters. 
 $\vec U$ is an unobservable random effect.</p>
 
 ## Mixed Binomial Likelihood
@@ -221,7 +233,7 @@ The complete data likelihood is
 
 $$
 \begin{align*}
-p(\vec u, \vec y) &= c(\vec y)  \phi^{(p)}(\vec u;\vec 0, \mat\Sigma) \\
+p(\vec u, \vec y) &= c(\vec y)  \phi^{(K)}(\vec u;\vec 0, \mat\Sigma) \\
 &\hspace{20pt}\cdot\prod_{i = 1}^n
   \Phi(\vec x_i^\top\vec\beta + \vec z_i^\top\vec u)^{y_i}
   \Phi(-\vec x_i^\top\vec\beta - \vec z_i^\top\vec u)^{m - y_i}\\
@@ -229,7 +241,7 @@ c(\vec y) &= \prod_{i = 1}^n \begin{pmatrix}m \\ y_i\end{pmatrix}\nonumber
 \end{align*}
 $$
 
-The marignal log-likelihood is 
+The marginal log-likelihood is 
 
 $$
 l(\vec\beta,\mat\Sigma) = \log\int p(\vec u, \vec y) \der\vec u 
@@ -260,7 +272,7 @@ Then
 
 $$
 \begin{align*}
-p(\vec u, \vec y) &= c(\vec y)  \phi^{(p)}(\vec u;\vec 0, \mat\Sigma) \\
+p(\vec u, \vec y) &= c(\vec y)  \phi^{(K)}(\vec u;\vec 0, \mat\Sigma) \\
 &\hspace{20pt}\cdot\prod_{i = 1}^n
   \Phi(\vec x_i^\top\vec\beta + \vec z_i^\top\vec u)^{y_i}
   \Phi(-\vec x_i^\top\vec\beta - \vec z_i^\top\vec u)^{m - y_i} \\
@@ -269,7 +281,13 @@ p(\vec u, \vec y) &= c(\vec y)  \phi^{(p)}(\vec u;\vec 0, \mat\Sigma) \\
 \end{align*}
 $$
 
-I.e. we have a $K$ or $nm$-dimensional integral.
+<div class = "w-small">
+I.e. we have a $K$ or $nm$-dimensional integral
+<p class = "smallish">
+as shown by @Pawitan04 in the binary case and @Ochi84 in a more restricted 
+case.</p>
+</div>
+
 
 ## Mixed Multinomial
 We have $c$ categories. 
@@ -283,7 +301,7 @@ fixed effect coefficients.
 </div>
 
 <div class = "fragment">
-We observe $Y_1,\dots Y_n \in \{1,\dots,c\}$ with
+We observe $Y_1,\dots, Y_n \in \{1,\dots,c\}$ with
 
 $$Y_i = k \Leftrightarrow \forall k \neq k':\, A_{ik} > A_{ik'}, 
   \qquad k,k'\in\{1,\dots,c\}$$
@@ -304,7 +322,7 @@ $$
 p(Y_i = k \mid \vec U = \vec u) &= 
   \int_{\mathcal{C}_{ik}} \phi^{(c)}
   (\vec a; \mat B\vec x_i + \mat Z_i \vec u, \mat I) 
-  \der \vec a \\
+  \der a_1\cdots\der a_c \\
 &\hspace{-60pt}= \Phi^{(c - 1)}( 
   \underbrace{(\vec 1\vec\beta_k^\top - \mat B_{(-k)})}_{
   \widetilde{\mat B}_k}\vec x_i + 
@@ -338,7 +356,7 @@ p(\vec u, \vec y) &= \phi^{(K)}(\vec u; \vec 0, \mat\Sigma)
   \widetilde{\mat B}\vec x + 
   \widetilde{\mat Z}\vec u;
   \vec 0, \diag(\underbrace{
-  \mat I + \vec 1\vec 1^\top, \dots, \mat I + \vec 1\vec 1^\top}_{%
+  \mat I + \vec 1\vec 1^\top, \dots, \mat I + \vec 1\vec 1^\top}_{
   n\text{ times}}))
 \end{align*}
 $$
@@ -369,14 +387,17 @@ be the conditional survival function.
 <div class = "fragment">
 Assume that 
 
-$$-\Phi^{-1}(S(y\mid\vec x, \vec z, \vec u)) = 
-  \vec x^\top(t)\vec\beta
-  + \vec z^\top\vec u$$
+$$S(y\mid\vec x, \vec z, \vec u) = 
+  \Phi(-\vec x^\top(t)\vec\beta
+  - \vec z^\top\vec u)$$
+  
+<p class = "smallish">
+See @Royston02, @Liu16, and @Liu17.</p>
 </div>
 
 ## Mixed GSM Cont.
 
-Define the sets of indices of cenosred and observed events 
+Define the sets of indices of censored and observed events 
 $$
 \begin{align*}
 \mathcal{C} &= \{i\in \{1,\dots,n\}:\, d_i = 0\} \\
@@ -401,7 +422,8 @@ $$
 \begin{align*}
 p(\vec u, \vec y, \vec d) &= 
   \phi^{(K)}(\vec u; \vec 0, \mat\Sigma)
-  c(\vec y^o, \mat X^o, \vec\beta)
+  c(\vec y^o, \mat X^o, \vec\beta)\\
+&\hspace{20pt}\cdot 
   \phi^{(\lvert \mathcal{O}\rvert)}(-\mat X^o(\vec y^o)\vec\beta - \mat Z^o\vec u) \\
 &\hspace{20pt}\cdot 
   \Phi^{(\lvert \mathcal{C}\rvert)}(-\mat X^c(\vec y^c)\vec\beta - \mat Z^c\vec u) \\
@@ -416,14 +438,14 @@ $$
 \begin{align*}
 l(\vec\beta, \mat\Sigma) &= 
   \log\int p(\vec u, \vec y, \vec d)
-  \der u_1\cdots\der u_p \\ 
+  \der u_1\cdots\der u_K \\ 
 &= \log k(\vec t^o, \mat X^o, \mat Z^o, \mat\Sigma) \\
 &\hspace{20pt}+
     \log\int 
     \phi^{(K)}(\vec u; \vec h, \mat H^{-1}) \\
 &\hspace{60pt}\cdot
   \Phi^{(\lvert \mathcal{C}\rvert)}(-\mat X^c(\vec t^c)\vec\beta - \mat Z^c\vec u)
-  \der u_1\cdots\der u_p 
+  \der u_1\cdots\der u_K
 \end{align*}
 $$
 
@@ -472,6 +494,111 @@ k(\vec y^o, \mat X^o, \mat Z^o, \mat\Sigma) &=  \\
 \end{align*}
 $$
 
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Approximation Methods</h1>
+<!--/html_preserve-->
+
+## Recall 
+
+$$
+\begin{align*}
+\Prob(\vec V_2 \leq \vec v_2) &= 
+  \Phi^{(k_2)}(\vec v_2; \vec\xi_2, \mat\Xi_2) \\
+&= 
+  \int \phi^{(k_1)}(\vec v_1; \vec \xi_1, \mat\Xi_{11}) \\
+&\hspace{30pt}\cdot
+  \Prob\left(\vec V_2 < \vec v_2 \,\middle\vert\,
+  \vec V_1 = \vec v_1
+  \right)\der v_{11} \cdots \der v_{1k_1}
+\end{align*}
+$$
+
+Either approximate the $k_2$-dimensional CDF or the $k_1$-dimensional 
+Gaussian weighted integral.
+
+<div class = "fragment w-small">
+We focus in the mixed binary model with $k_2 = n$ and $k_1 = K$.
+<p class = "smallish">
+I.e. the mixed binomial model with $m = 1$.</p>
+</div>
+
+## Will Consider
+The CDF approximation suggested by @Genz92. 
+
+<p class = "fragment">
+(Adaptive) Gauss–Hermite Quadrature ([A]GHQ).</p>
+
+<p class = "fragment">
+Monte Carlo method implemented by @Genz99.</p>
+
+
+## Approximating the CDF
+<div class = "w-small">
+Use approximation shown by @Genz92 
+<p class = "smallish">
+or similarly and seemingly 
+independently developed GHK method used by @Hajivassiliou96.</p>
+</div>
+
+<div class="fragment w-small">
+Use the `pmvtnorm` package implementation 
+<p class = "smallish">
+[@Genz09;@mvtnorm] in Fortran.<br>Uses randomized Korobov rules
+[@Niederreiter1972;@Keast73;@Cranley76]. Have seen a more than ten-fold 
+reduction compared to C++ implementation of the MC estimator suggested by 
+@Genz92.</p>
+</div>
+
+<div class = "fragment w-small">
+$\bigO{n^3 + n^2K + nK^2}$,
+<p class = "smallish">
+and typically $\bigO{n}$ in practical examples it seems.</p>
+</div>
+
+## Gauss–Hermite Quadrature
+Approximate the $K$-dimensional integral.
+
+<p class = "fragment">
+Recursive application of quadrature rule using $b$ values for each $K$.</p>
+
+<p class = "fragment">
+$\bigO{nb^K}$.</p>
+
+<div class = "fragment w-small">
+Adaptive method may require much smaller $b$
+<p class = "smallish">
+[@Pinheiro95;@Liu94]. Requires estimation of $K$-dimensional mode and 
+inversion of $K\times K$ dimensional matrix.</p>
+</div>
+
+## Monte Carlo Estimate
+<div class = "w-small">
+Approximate the $K$-dimensional integral using the method described by 
+@Genz99.
+<p class = "smallish">
+@Genz99 provide a Fortran implementation for a generic integrand.</p>
+</div>
+
+<div class = "fragment w-small">
+$\bigO{K^3 + s(nK + K^2)}$ where $s$ is the number of samples
+<p class = "smallish">
+and the $\bigO{snk}$-term is typically dominating.</p>
+</div>
+
+<div class = "fragment w-small">
+Adaptive method may require fewer samples, $s$,
+<p class = "smallish">
+Requires estimation of $K$-dimensional mode and inversion of $K\times K$ 
+dimensional matrix.</p>
+</div>
 
 <!--html_preserve-->
 </section>
@@ -481,14 +608,1147 @@ $$
 
 
 <section>
+<section class="large-first center slide level2">
+<h1>Simulation Example</h1>
+<!--/html_preserve-->
+
+## Details
+Use a mixed binomial model in the binary case, $m = 1$. 
+
+<p class = "fragment"> 
+The unconditional variance of 
+$\vec x_i^\top\vec\beta + \vec z_i^\top\vec u$ is 2. 
+</p>
+
+<p class = "fragment">
+Let $\eta_i = \vec x_i^\top\vec\beta \sim N(0, 1)$ and draw $\mat\Sigma$ 
+from a Wishart distribution.
+</p>
+
+<div class = "fragment w-small">
+Focus on the evaluation of marginal log-likelihood
+<p class = "smallish">
+where we fix the relative error of each method.</p>
+</div>
+
+```{r load_pkg, echo = FALSE}
+library(mixprobit)
+```
+
+```{r def_func, cache = 1, echo = FALSE}
+aprx <- within(list(), {
+  #####
+  # returns a function to perform Gaussian Hermite quadrature (GHQ).
+  #
+  # Args:
+  #   y: n length logical vector with for whether the observation has an 
+  #      event.
+  #   eta: n length numeric vector with offset on z-scale.
+  #   Z: p by n matrix with random effect covariates. 
+  #   S: n by n matrix with random effect covaraites.
+  #   b: number of nodes to use with GHQ.
+  get_GHQ_R <- function(y, eta, Z, S, b){
+    library(fastGHQuad)
+    library(compiler)
+    rule <- gaussHermiteData(b)
+    S_chol <- chol(S)
+    
+    # integrand
+    f <- function(x)
+      sum(mapply(pnorm, q = eta + sqrt(2) * drop(x %*% S_chol %*% Z),
+               lower.tail = y, log.p = TRUE))
+    
+    # get all permutations of weights and values
+    idx <- do.call(expand.grid, replicate(p, 1:b, simplify = FALSE))
+    xs <- local({
+      args <- list(FUN = c, SIMPLIFY = FALSE)
+      do.call(mapply, c(args, lapply(idx, function(i) rule$x[i])))
+    })
+    ws_log <- local({
+      args <- list(FUN = prod)
+      log(do.call(mapply, c(args, lapply(idx, function(i) rule$w[i]))))
+    })
+    
+    # final function to return
+    out <- function()
+      sum(exp(ws_log + vapply(xs, f, numeric(1L)))) / pi^(p / 2)
+    f   <- cmpfun(f)
+    out <- cmpfun(out)
+    out
+  }
+  
+  #####
+  # returns a function to perform Gaussian Hermite quadrature (GHQ) using 
+  # the C++ implemtation.
+  # 
+  # Args:
+  #   y: n length logical vector with for whether the observation has an 
+  #      event.
+  #   eta: n length numeric vector with offset on z-scale.
+  #   Z: p by n matrix with random effect covariates. 
+  #   S: n by n matrix with random effect covaraites.
+  #   b: number of nodes to use with GHQ.
+  #   is_adaptive: logical for whether to use adaptive GHQ.
+  get_GHQ_cpp <- function(y, eta, Z, S, b, is_adaptive = FALSE){
+    mixprobit:::set_GH_rule_cached(b)
+    function()
+      mixprobit:::aprx_binary_mix_ghq(y = y, eta = eta, Z = Z, Sigma = S,
+                                      b = b, is_adaptive = is_adaptive)
+  }
+  get_AGHQ_cpp <- get_GHQ_cpp
+  formals(get_AGHQ_cpp)$is_adaptive <- TRUE
+  
+  #####
+  # returns a function that returns the CDF approximation like in Pawitan 
+  # et al. (2004).
+  #
+  # Args:
+  #   y: n length logical vector with for whether the observation has an 
+  #      event.
+  #   eta: n length numeric vector with offset on z-scale.
+  #   Z: p by n matrix with random effect covariates. 
+  #   S: n by n matrix with random effect covaraites.
+  #   maxpts: maximum number of function values as integer. 
+  #   abseps: absolute error tolerance.
+  #   releps: relative error tolerance.
+  get_cdf_R <- function(y, eta, Z, S, maxpts, abseps = 1e-5, releps = -1){
+    library(compiler)
+    library(mvtnorm)
+    p <- NROW(Z)
+    
+    out <- function(){
+      dum_vec <- ifelse(y, 1, -1)
+      Z_tilde <- Z * rep(dum_vec, each = p)
+      SMat <- crossprod(Z_tilde , S %*% Z_tilde)
+      diag(SMat) <- diag(SMat) + 1
+      pmvnorm(upper = dum_vec * eta, mean = rep(0, n), sigma = SMat,
+              algorithm = GenzBretz(maxpts = maxpts, abseps = abseps, 
+                                    releps = releps))
+    }
+    out <- cmpfun(out)
+    out
+  }
+  
+  #####
+  # returns a function that returns the CDF approximation like in Pawitan 
+  # et al. (2004) using the C++ implementation.
+  #
+  # Args:
+  #   y: n length logical vector with for whether the observation has an 
+  #      event.
+  #   eta: n length numeric vector with offset on z-scale.
+  #   Z: p by n matrix with random effect covariates. 
+  #   S: n by n matrix with random effect covaraites.
+  #   maxpts: maximum number of function values as integer. 
+  #   abseps: bsolute error tolerance.
+  #   releps: relative error tolerance.
+  get_cdf_cpp <- function(y, eta, Z, S, maxpts, abseps = -1, 
+                          releps = 1e-3)
+    function()
+      mixprobit:::aprx_binary_mix_cdf(
+        y = y, eta = eta, Z = Z, Sigma = S, maxpts = maxpts,
+        abseps = abseps, releps = releps)
+  
+  #####
+  # returns a function that uses the method from Genz & Monahan (1999).
+  #
+  # Args:
+  #   y: n length logical vector with for whether the observation has an 
+  #      event.
+  #   eta: n length numeric vector with offset on z-scale.
+  #   Z: p by n matrix with random effect covariates. 
+  #   S: n by n matrix with random effect covaraites.
+  #   maxpts: maximum number of function values as integer. 
+  #   abseps: bsolute error tolerance.
+  #   releps: relative error tolerance.
+  #   is_adaptive: logical for whether to use adaptive method.
+  get_sim_mth <- function(y, eta, Z, S, maxpts, abseps = 1e-5, releps = -1, 
+                          is_adaptive = FALSE)
+    # Args: 
+    #   key: integer which determines degree of integration rule.
+    function(key)
+      mixprobit:::aprx_binary_mix(
+        y = y, eta = eta, Z = Z, Sigma = S, maxpts = maxpts, key = key, 
+        abseps = abseps, releps = releps, is_adaptive = is_adaptive)
+  get_Asim_mth <- get_sim_mth
+  formals(get_Asim_mth)$is_adaptive <- TRUE
+})
+```
+
+```{r assign_sim_func, cache = 1, echo = FALSE}
+#####
+# returns a simulated data set from one cluster in a mixed probit model 
+# with binary outcomes.
+# 
+# Args:
+#   n: cluster size.
+#   p: number of random effects.
+get_sim_dat <- function(n, p){
+  out <- list(n = n, p = p)
+  within(out, {
+    Z <- do.call(                        # random effect design matrix
+      rbind, c(list(sqrt(1/p)), 
+               list(replicate(n, rnorm(p - 1L, sd = sqrt(1/p))))))
+    eta <- rnorm(n)                      # fixed offsets/fixed effects
+    n <- NCOL(Z)                         # number of individuals
+    p <- NROW(Z)                         # number of random effects
+    S <- drop(                           # covariance matrix of random effects
+      rWishart(1, p, diag(1 / p, p)))
+    S_chol <- chol(S)
+    u <- drop(rnorm(p) %*% S_chol)       # random effects
+    y <- runif(n) < pnorm(drop(u %*% Z)) # observed outcomes
+  })
+}
+```
+
+```{r default_params, cache = 1, echo = FALSE}
+# default parameters
+ex_params <- list(
+  streak_length = 4L, 
+  max_b = 30L, 
+  max_maxpts = 1000000L, 
+  releps = 5e-4,
+  min_releps = 5e-6,
+  key_use = 2L, 
+  n_reps = 5L, 
+  n_runs = 10L, 
+  n_brute = 1e8)
+```
+
+```{r def_sim_experiment, cache = 1, dependson = "default_params", echo = FALSE}
+# perform a simulations run for a given number of observations and random 
+# effects. First we fix the relative error of each method such that it is
+# below a given threshold. Then we run each method a number of times to 
+# measure the computation time. 
+# 
+# Args:
+#   n: number of observations in the cluster.
+#   p: number of random effects. 
+#   releps: required relative error. 
+#   key_use: integer which determines degree of integration rule for the 
+#            method from Genz and Monahan (1999).
+sim_experiment <- function(n, p, releps = ex_params$releps, 
+                           key_use = ex_params$key_use){
+  # in some cases we may not want to run the simulation experiment
+  do_not_run <- FALSE
+  
+  # simulate data
+  dat <- get_sim_dat(n = n, p = p)
+  
+  # shorter than calling `with(dat, ...)`
+  wd <- function(expr)
+    eval(bquote(with(dat, .(substitute(expr)))), parent.frame())
+  
+  # get the assumed ground truth
+  truth <- if(do_not_run)
+    NA
+  else wd(mixprobit:::aprx_binary_mix_brute(
+    y = y, eta = eta, Z = Z, Sigma = S, n_sim = ex_params$n_brute))
+  
+  # function to test whether the value is ok
+  is_ok_func <- function(vals)
+    abs((log(vals) - log(truth)) / log(truth)) < releps
+  
+  # get function to use with GHQ
+  get_b <- function(meth){
+    if(do_not_run)
+      NA_integer_
+    else local({
+      apx_func <- function(b)
+        wd(meth(y = y, eta = eta, Z = Z, S = S, b = b))()
+      
+      # length of node values which have a relative error below the threshold
+      streak_length <- ex_params$streak_length
+      vals <- rep(NA_real_, streak_length)
+      
+      b <- streak_length
+      for(i in 1:(streak_length - 1L))
+        vals[i + 1L] <- apx_func(b - streak_length + i)
+      repeat({
+        vals[1:(streak_length - 1L)] <- vals[-1]
+        vals[streak_length] <- apx_func(b)
+        
+        if(all(is_ok_func(vals)))
+          break
+        
+        b <- b + 1L
+        if(b > ex_params$max_b){
+          warning("found no node value")
+          b <- NA_integer_
+          break
+        }
+      })
+      b
+    })
+  }
+  
+  b_use <- get_b(aprx$get_GHQ_cpp)
+  ghq_func <- if(!is.na(b_use))
+    wd(aprx$get_GHQ_cpp(y = y, eta = eta, Z = Z, S = S, b = b_use))
+  else
+    NA
+  
+  # get function to use with AGHQ
+  b_use_A <- get_b(aprx$get_AGHQ_cpp)
+  aghq_func <- if(!is.na(b_use_A))
+    wd(aprx$get_AGHQ_cpp(y = y, eta = eta, Z = Z, S = S, b = b_use_A))
+  else
+    NA
+  
+  # get function to use with CDF method
+  cdf_releps <- if(do_not_run)
+    NA_integer_
+  else local({
+    releps_use <- releps * 100
+    repeat {
+      func <- wd(aprx$get_cdf_cpp(y = y, eta = eta, Z = Z, S = S, 
+                                  maxpts = ex_params$max_maxpts, 
+                                  abseps = -1, releps = releps_use))
+      vals <- replicate(ex_params$n_reps, func())
+      if(all(is_ok_func(vals)))
+        break
+      
+      releps_use <- releps_use / 2
+      if(releps_use < ex_params$min_releps){
+        warning("found no releps for CDF method")
+        releps_use <- NA_integer_
+        break
+      }
+    }
+    releps_use
+  })
+  
+  cdf_func <- if(!is.na(cdf_releps))
+    wd(aprx$get_cdf_cpp(y = y, eta = eta, Z = Z, S = S, 
+                        maxpts = ex_params$max_maxpts, abseps = -1, 
+                        releps = cdf_releps))
+  else 
+    NA
+  
+  # get function to use with Genz and Monahan method
+  get_sim_maxpts <- function(meth){
+    if(do_not_run)
+      NA_integer_
+    else local({
+      maxpts <- 100L
+      repeat {
+        func <- wd(meth(y = y, eta = eta, Z = Z, S = S, maxpts = maxpts, 
+                        abseps = -1, releps = releps / 10))
+        vals <- replicate(ex_params$n_reps, func(key_use))
+        if(all(is_ok_func(vals)))
+          break
+        
+        maxpts <- maxpts * 2L
+        if(maxpts > ex_params$max_maxpts){
+          warning("found no maxpts for sim method")
+          maxpts <- NA_integer_
+          break
+        }
+      }
+      maxpts
+    })
+  }
+  
+  sim_maxpts_use <- get_sim_maxpts(aprx$get_sim_mth)
+  sim_func <- if(!is.na(sim_maxpts_use))
+    wd(aprx$get_sim_mth(y = y, eta = eta, Z = Z, S = S, 
+                        maxpts = sim_maxpts_use, abseps = -1, 
+                        releps = releps / 10))
+  else 
+    NA
+  if(is.function(sim_func))
+    formals(sim_func)$key <- key_use
+  
+  # do the same with the adaptive version
+  Asim_maxpts_use <- get_sim_maxpts(aprx$get_Asim_mth)
+  Asim_func <- if(!is.na(Asim_maxpts_use))
+    wd(aprx$get_Asim_mth(y = y, eta = eta, Z = Z, S = S, 
+                         maxpts = Asim_maxpts_use, abseps = -1, 
+                         releps = releps / 10))
+  else 
+    NA
+  if(is.function(Asim_func))
+    formals(Asim_func)$key <- key_use
+  
+  # perform the comparison
+  out <- sapply(
+    list(GHQ = ghq_func, AGHQ = aghq_func, CDF = cdf_func, 
+         GenzMonahan = sim_func, GenzMonahanA = Asim_func), 
+    function(func){
+      if(!is.function(func) && is.na(func)){
+        out <- rep(NA_real_, 6L)
+        names(out) <- c("mean", "sd", "mse", "user.self", 
+                        "sys.self", "elapsed")
+        return(out)
+      }
+      
+      # number of runs used to estimate the computation time, etc.
+      n_runs <- ex_params$n_runs
+      
+      # perform the computations
+      ti <- system.time(vals <- replicate(n_runs, func()))
+      
+      c(mean = mean(vals), sd = sd(vals), mse = mean((vals - truth)^2), 
+        ti[1:3] / n_runs)            
+    })
+  
+  list(b_use = b_use, b_use_A = b_use_A, cdf_releps = cdf_releps, 
+       sim_maxpts_use = sim_maxpts_use, Asim_maxpts_use = Asim_maxpts_use, 
+       vals_n_comp_time = out)
+}
+```
+
+```{r run_larger_sim_ex, message = FALSE, warning = FALSE, echo = FALSE}
+# number of observations in the cluster
+n_vals <- 2^(1:5)
+# number of random effects
+p_vals <- 2:6
+# grid with all configurations
+gr_vals <- expand.grid(n = n_vals, p = p_vals)
+# number of replications per configuration
+n_runs <- 20L
+
+ex_output <- (function(){
+  # setup directory to store data
+  cache_dir <- file.path("cache", "experiment")
+  if(!dir.exists(cache_dir))
+    dir.create(cache_dir)
+  
+  # setup cluster to use
+  library(parallel)
+  cl <- makeCluster(4L)
+  on.exit(stopCluster(cl))
+  clusterExport(cl, c("aprx", "get_sim_dat", "sim_experiment", "ex_params"))
+  
+  # run the experiment
+  mapply(function(n, p){
+    cache_file <- file.path(cache_dir, sprintf("n-%03d-p-%03d.Rds", n, p))
+    if(!file.exists(cache_file)){
+      message(sprintf("Running setup with   n %3d and p %3d", n, p))
+      
+      set.seed(71771946)
+      clusterExport(cl, c("n", "p"), envir = environment())    
+      clusterSetRNGStream(cl)
+      
+      sim_out <- parLapply(cl, 1:n_runs, function(...){
+        seed <- .Random.seed
+        out <- sim_experiment(n = n, p = p)
+        attr(out, "seed") <- seed
+        out
+      })
+      
+      sim_out[c("n", "p")] <- list(n = n, p = p)
+      saveRDS(sim_out, cache_file)
+    } else
+      message(sprintf ("Loading results with n %3d and p %3d", n, p))
+      
+    
+    readRDS(cache_file)
+  }, n = gr_vals$n, p = gr_vals$p, SIMPLIFY = FALSE)
+})()
+```
+
+```{r meta_create_table, echo = FALSE}
+comp_time_mult <- 1000 # millisecond
+err_mult <- 1e5
+```
+
+```{r create_table, echo = FALSE}
+#####
+# table with computation times
+# function to create the computation time table
+show_run_times <- function(remove_nas = FALSE){
+  # get mean computations time for the methods and the configurations pairs
+  comp_times <- sapply(ex_output, function(x)
+    sapply(x[!names(x) %in% c("n", "p")], `[[`, "vals_n_comp_time", 
+           simplify = "array"), 
+    simplify = "array")
+  comp_times <- comp_times["elapsed", , , ]
+  
+  is_complete <- t(apply(comp_times, 2, function(x){
+    if(remove_nas)
+      apply(!is.na(x), 2, all)
+    else 
+      rep(TRUE, NCOL(x))
+  }))
+  dim(is_complete) <- dim(comp_times)[2:3]
+  
+  comp_times <- lapply(1:dim(comp_times)[3], function(i){
+    x <- comp_times[, , i]
+    x[, is_complete[, i]]
+  })
+  comp_times <- sapply(comp_times, rowMeans) * comp_time_mult
+  comp_times[is.nan(comp_times)] <- NA_real_
+  
+  # flatten the table. Start by getting the row labels
+  meths <- rownames(comp_times)
+  n_labs <- sprintf("%2d", n_vals)
+  rnames <- expand.grid(
+    Method = meths, n = n_labs, stringsAsFactors = FALSE)
+  rnames[2:1] <- rnames[1:2]
+  nvs <- rnames[[1L]]
+  rnames[[2L]] <- gsub(
+    "^GenzMonahan$", "Genz & Monahan", rnames[[2L]])
+  rnames[[2L]] <- gsub(
+    "^GenzMonahanA$", "Adaptive Genz & Monahan", rnames[[2L]])
+  # fix stupid typo at one point
+  rnames[[2L]] <- gsub(
+    "^ADHQ$", "AGHQ", rnames[[2L]])
+  
+  # then flatten
+  comp_times <- matrix(c(comp_times), nrow = NROW(rnames))
+  na_idx <- is.na(comp_times)
+  comp_times[] <- sprintf("%.2f", comp_times[])
+  comp_times[na_idx] <- NA_character_
+  
+  # combine computation times and row labels
+  table_out <- cbind(as.matrix(rnames), comp_times)
+  
+  # add header 
+  p_labs <- sprintf("%d", p_vals)
+  colnames(table_out) <- c("n", "Method/K", p_labs)
+  
+  table_out
+}
+
+tbl_dat <- show_run_times(TRUE)
+```
+
+## Average Computation Times (n = 2)
+
+```{r show_2_tbl, echo = FALSE}
+local({
+  keep <- tbl_dat[as.integer(tbl_dat[, "n"]) == 2, -1L]
+  stopifnot(NROW(keep) > 0)
+  knitr::kable(keep, align = c("l", rep("r", NCOL(keep) - 1L)))
+})
+```
+
+Average computation times in milliseconds.
+
+## Average Computation Times (n = 4)
+
+```{r show_4_tbl, echo = FALSE}
+local({
+  keep <- tbl_dat[as.integer(tbl_dat[, "n"]) == 4, -1L]
+  stopifnot(NROW(keep) > 0)
+  knitr::kable(keep, align = c("l", rep("r", NCOL(keep) - 1L)))
+})
+```
+
+Average computation times in milliseconds.
+
+## Average Computation Times (n = 8)
+
+```{r show_8_tbl, echo = FALSE}
+local({
+  keep <- tbl_dat[as.integer(tbl_dat[, "n"]) == 8, -1L]
+  stopifnot(NROW(keep) > 0)
+  knitr::kable(keep, align = c("l", rep("r", NCOL(keep) - 1L)))
+})
+```
+
+Average computation times in milliseconds.
+
+## Average Computation Times (n = 16)
+
+```{r show_16_tbl, echo = FALSE}
+local({
+  keep <- tbl_dat[as.integer(tbl_dat[, "n"]) == 16, -1L]
+  stopifnot(NROW(keep) > 0)
+  knitr::kable(keep, align = c("l", rep("r", NCOL(keep) - 1L)))
+})
+```
+
+Average computation times in milliseconds.
+
+## Average Computation Times (n = 32)
+
+```{r show_32_tbl, echo = FALSE}
+local({
+  keep <- tbl_dat[as.integer(tbl_dat[, "n"]) == 32, -1L]
+  stopifnot(NROW(keep) > 0)
+  knitr::kable(keep, align = c("l", rep("r", NCOL(keep) - 1L)))
+})
+```
+
+Average computation times in milliseconds.
+
+
+
+```{r get_RMSE_table, echo = FALSE}
+#####
+# mean scaled RMSE table
+show_scaled_mean_rmse <- function(remove_nas){
+  # get mean scaled RMSE for the methods and the configurations pairs
+  res <- sapply(ex_output, function(x)
+    sapply(x[!names(x) %in% c("n", "p")], `[[`, "vals_n_comp_time", 
+           simplify = "array"), 
+    simplify = "array")
+  err <- sqrt(res["mse", , , ])
+  
+  # scale by mean integral value
+  mean_integral <- apply(res["mean", , , ], 2:3, mean, na.rm = TRUE)
+  n_meth <- dim(err)[1]
+  err <- err / rep(mean_integral, each = n_meth)
+  
+  is_complete <- t(apply(err, 2, function(x){
+    if(remove_nas)
+      apply(!is.na(x), 2, all)
+    else 
+      rep(TRUE, NCOL(x))
+  }))
+  dim(is_complete) <- dim(err)[2:3]
+  
+  err <- lapply(1:dim(err)[3], function(i){
+    x <- err[, , i]
+    x[, is_complete[, i]]
+  })
+  
+  err <- sapply(err, rowMeans) * err_mult
+  err[is.nan(err)] <- NA_real_
+  
+  # flatten the table. Start by getting the row labels
+  meths <- rownames(err)
+  n_labs <- sprintf("%2d", n_vals)
+  rnames <- expand.grid(
+    Method = meths, n = n_labs, stringsAsFactors = FALSE)
+  rnames[2:1] <- rnames[1:2]
+  nvs <- rnames[[1L]]
+  rnames[[2L]] <- gsub(
+    "^GenzMonahan$", "Genz & Monahan", rnames[[2L]])
+  rnames[[2L]] <- gsub(
+    "^GenzMonahanA$", "Adaptive Genz & Monahan", rnames[[2L]])
+  # fix stupid typo at one point
+  rnames[[2L]] <- gsub(
+    "^ADHQ$", "AGHQ", rnames[[2L]])
+  
+  # then flatten
+  err <- matrix(c(err), nrow = NROW(rnames))
+  na_idx <- is.na(err)
+  err[] <- sprintf("%.2f", err[])
+  err[na_idx] <- NA_character_
+  
+  # combine mean mse and row labels
+  table_out <- cbind(as.matrix(rnames), err)
+  
+  # add header 
+  p_labs <- sprintf("%d", p_vals)
+  colnames(table_out) <- c("n", "Method/K", p_labs)
+  
+  table_out
+}
+
+rmse_tbl <- show_scaled_mean_rmse(TRUE)
+```
+
+## Average Scaled RMSE (n = 2)
+
+```{r rmse_show_2_tbl, echo = FALSE}
+local({
+  keep <- rmse_tbl[as.integer(rmse_tbl[, "n"]) == 2, -1L]
+  stopifnot(NROW(keep) > 0)
+  knitr::kable(keep, align = c("l", rep("r", NCOL(keep) - 1L)))
+})
+```
+
+<div class = "w-small">
+Average scaled RMSE are multiplied by $`r err_mult`$.
+<p class = "smallish"> 
+RMSE of (A)GHQ is computed with `r ex_params$streak_length` consecutive 
+values of $b$.</p>
+</div>
+
+## Average Scaled RMSE (n = 4)
+
+```{r rmse_show_4_tbl, echo = FALSE}
+local({
+  keep <- rmse_tbl[as.integer(rmse_tbl[, "n"]) == 4, -1L]
+  stopifnot(NROW(keep) > 0)
+  knitr::kable(keep, align = c("l", rep("r", NCOL(keep) - 1L)))
+})
+```
+
+<div class = "w-small">
+Average scaled RMSE are multiplied by $`r err_mult`$.
+<p class = "smallish"> 
+RMSE of (A)GHQ is computed with `r ex_params$streak_length` consecutive 
+values of $b$.</p>
+</div>
+
+## Average Scaled RMSE (n = 8)
+
+```{r rmse_show_8_tbl, echo = FALSE}
+local({
+  keep <- rmse_tbl[as.integer(rmse_tbl[, "n"]) == 8, -1L]
+  stopifnot(NROW(keep) > 0)
+  knitr::kable(keep, align = c("l", rep("r", NCOL(keep) - 1L)))
+})
+```
+
+<div class = "w-small">
+Average scaled RMSE are multiplied by $`r err_mult`$.
+<p class = "smallish"> 
+RMSE of (A)GHQ is computed with `r ex_params$streak_length` consecutive 
+values of $b$.</p>
+</div>
+
+## Average Scaled RMSE (n = 16)
+
+```{r rmse_show_16_tbl, echo = FALSE}
+local({
+  keep <- rmse_tbl[as.integer(rmse_tbl[, "n"]) == 16, -1L]
+  stopifnot(NROW(keep) > 0)
+  knitr::kable(keep, align = c("l", rep("r", NCOL(keep) - 1L)))
+})
+```
+
+<div class = "w-small">
+Average scaled RMSE are multiplied by $`r err_mult`$.
+<p class = "smallish"> 
+RMSE of (A)GHQ is computed with `r ex_params$streak_length` consecutive 
+values of $b$.</p>
+</div>
+
+## Average Scaled RMSE (n = 32)
+
+```{r rmse_show_32_tbl, echo = FALSE}
+local({
+  keep <- rmse_tbl[as.integer(rmse_tbl[, "n"]) == 32, -1L]
+  stopifnot(NROW(keep) > 0)
+  knitr::kable(keep, align = c("l", rep("r", NCOL(keep) - 1L)))
+})
+```
+
+<div class = "w-small">
+Average scaled RMSE are multiplied by $`r err_mult`$.
+<p class = "smallish"> 
+RMSE of (A)GHQ is computed with `r ex_params$streak_length` consecutive 
+values of $b$.</p>
+</div>
+
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Real Data Example</h1>
+<!--/html_preserve-->
+
+## Salamander Data Set
+Two types of salamanders: whiteside and roughbutt. 
+
+<div class = "fragment w-small">
+How successful is mating depending on type of male and female.
+<p class = "smallish">
+$Y_i = 1$ if the $i$th mating pair is successful.</p>
+</div>
+
+<div class = "fragment">
+Model is 
+$$
+\begin{align*}
+\vec U &= (\vec U_f, \vec U_m) 
+  \sim N(\vec 0, \diag(\sigma_f^2\mat I, \sigma_m^2\mat I))\\
+Y_i \mid \vec U = \vec u
+  &\sim \text{Bin}(\Phi(z_i), 1) \\
+z_i &= \beta_{ww}I_{ww}(i) + \beta_{wr}I_{wr}(i) + \beta_{rw}I_{rw}(i) \\
+&\hspace{20pt} + \beta_{rr}I_{rr}(i) + u_{ff_i} + u_{mm_i} 
+\end{align*}
+$$
+</div>
+
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz" data-transition="slide-in fade-out">
+<h2>Crossed Random Effects</h2>
+<!--/html_preserve-->
+
+```{r load_sala, echo = FALSE}
+sala <- read.csv("salamander.csv", header = TRUE, sep = "")
+sala <- within(sala, {
+  female <- as.factor(female)
+  male   <- as.factor(male) 
+})
+```
+
+```{r asg_cluster, echo = FALSE}
+sala$cl <- with(sala, {
+  cl <- rep(NA_integer_, length(female))
+  
+  grp <- 0L
+  repeat {
+    # take first NA
+    grp <- grp + 1L
+    cur <- which(is.na(cl))
+    if(length(cur) == 0L)
+      # not any left. Thus return
+      break
+    
+    new_members <- cur[1L]
+    repeat {
+      cl[new_members] <- grp
+      male_in_grp    <- male  [new_members]
+      females_in_grp <- female[new_members]
+      
+      # find mates of the new members
+      new_members <- which(
+        ((male %in% male_in_grp) | (female %in% females_in_grp)) & 
+          is.na(cl))
+      if(length(new_members) == 0L)
+        break
+    }
+  }
+  
+  cl
+})
+
+# turns out that the data was already sorted...
+stopifnot(!is.unsorted(sala$cl))
+with(sala, {
+  female <- as.integer(female)
+  male   <- as.integer(male)
+  
+  p <- length(unique(female))
+  stopifnot(length(unique(male)) == p)
+  
+  X <- matrix(0L, p, p)
+  for(i in 1:length(female))
+    X[female[i], male[i]] <- 1L
+  
+  # show plot of males and females that mate
+  par(mar = c(3, 3, 1, 1))
+  par(.par_use)
+  image(X, xlab = "Female id", ylab = "Male id", xaxt = "n", yaxt = "n",  
+        col = gray.colors(10, 1, 0), mgp = c(1, 1, 0))
+})
+```
+<div class = "w-small">
+$n = 60$ and $K = 20$ in each cluster.
+<p class = "smallish">
+There is a square if a male and female mates.</p>
+</div>
+
+## MCMC Estimate
+
+```{r load_rstan, echo = FALSE, message = FALSE}
+library(rstan)
+options(mc.cores = parallel::detectCores(logical = FALSE))
+rstan_options(auto_write = TRUE)
+```
+
+```{r MCMC_est, cache = 1, echo = FALSE, cache.lazy = FALSE}
+stan_fit <- within(list(), {
+  sala <- as.list(sala)
+  sala <- within(sala, {
+    J <- length(y)
+    K <- length(unique(female))
+    female <- as.integer(female)
+    male   <- as.integer(male)
+  })
+  stopifnot(sala$K == length(unique(sala$male)))
+  
+  warmup <-  20000L
+  iter   <- 100000L
+  
+  fit <- stan(
+    file = "salamander.stan", # Stan program
+    data = sala,              # named list of data
+    chains = 6L,              # number of Markov chains
+    warmup = warmup,          # number of warmup iterations per chain
+    iter = iter,            # total number of iterations per chain
+    cores = 6L,               # number of cores (could use one per chain)
+    refresh = 0L,             # no progress shown
+    seed = 91154163L)
+  
+  print(fit, pars = c("beta", "sigma_f", "sigma_m"))
+})
+```
+
+```{r rstan_check, eval = FALSE, echo = FALSE}
+stan_diag(stan_fit$fit)
+traceplot(stan_fit$fit, 
+          pars = c("beta[1]", "beta[2]", "beta[3]", "beta[4]", 
+                   "sigma_m", "sigma_f"), 
+          window = c(stan_fit$warmup, stan_fit$warmup + 1000L))
+traceplot(stan_fit$fit, 
+          pars = c("beta[1]", "beta[2]", "beta[3]", "beta[4]", 
+                   "sigma_m", "sigma_f"), 
+          window = c(stan_fit$iter - 1000L, stan_fit$iter))
+```
+
+
+## Laplace Approximation
+Requires estimation of $K$-dimensional mode and inversion of a $K\times K$
+matrix. 
+
+<p class = "fragment">
+Very fast and scale well but heavily biased in some cases.</p>
+
+## Laplace Approximation Cont.
+
+```{r load_lme4, echo = FALSE}
+library(lme4)
+```
+
+```{r fit_w_Laplace, echo = FALSE, cache = 1}
+glmer_fit <- within(list(), {
+  frm_use <- y ~ wsm * wsf + (1 | female) + (1 | male)
+  fit_laplace <- glmer(frm_use, sala, binomial("probit"))
+
+  print(fit_laplace)
+})
+```
+
+
+## CDF Approximation
+<div class = "w-small">
+C++ implementation with computation in parallel.
+<p class = "smallish">
+Run on an Intel® Core™ i7-8750H CPU compiled with gcc 8.3.0.</p>
+</div>
+
+<p class = "fragment">
+Uses the `mvkbrv` Fortran subroutine from the `mvtnorm` package to 
+approximate the gradient.</p>
+
+<p class = "fragment">
+Uses BFGS implementation in R's [@R19] `optim` function.</p>
+
+## CDF Approximation Result (Large Relative Error)
+
+```{r load_mixprobit, echo = FALSE}
+library(mixprobit)
+```
+
+```{r fit_w_mixprobit, echo = FALSE, cache = 1}
+# Elements: 
+#   X: fixed effect formula.
+#   Z: random effect formula.
+frm <- list(X = ~ wsm * wsf, Z = ~ female + male - 1)
+
+mix_prob_fit <- within(list(), {
+  # setup cluster
+  n_threads <- 6L
+  
+  # run fit to get starting values
+  pre_fit <- glm(update(frm$X, y ~ .), family = binomial("probit"), sala)
+  X_terms <- delete.response(terms(pre_fit))
+  
+  # get data for each cluster
+  dat <- lapply(split(sala, sala$cl), function(cl_dat)
+    within(list(), {
+      cl_dat$female <- droplevels(cl_dat$female)
+      cl_dat$male   <- droplevels(cl_dat$male)
+      
+      y <- cl_dat$y 
+      Z <- t(model.matrix(frm$Z, cl_dat))
+      X <-   model.matrix(X_terms, cl_dat)
+      
+      p <- NROW(Z)
+      is_male <- which(grepl("^male", rownames(Z)))
+      var_idx <- as.integer(grepl("^male", rownames(Z)))
+  }))
+  
+  # starting values
+  beta <- pre_fit$coefficients
+  fnscale <- abs(c(logLik(pre_fit)))
+  q <- length(beta)
+  par <- c(beta, log(c(.1, .1)))
+  
+  # C++ version
+  cpp_ptr     <- mixprobit:::aprx_binary_mix_cdf_get_ptr(
+    data = dat, n_threads = n_threads)
+  cpp_ptr_grad <- mixprobit:::aprx_binary_mix_cdf_get_ptr(
+    data = dat, n_threads = n_threads, gradient = TRUE)
+  
+  ll_cpp <- function(par, seed = 1L, maxpts = 100000L, abseps = -1, 
+                     releps = 1e-2, gradient = FALSE){
+    if(!is.null(seed))
+      set.seed(seed)
+    
+    beta    <- head(par,  q)
+    log_sds <- tail(par, -q)
+    
+    out <- mixprobit:::aprx_binary_mix_cdf_eval(
+      ptr = if(gradient) cpp_ptr_grad else cpp_ptr, beta = beta, 
+      log_sds = log_sds, maxpts = maxpts, abseps = abseps, releps = releps)
+    
+    if(gradient)
+      -out[-1L] else -out
+  }
+  ll_cpp_grad <- ll_cpp
+  formals(ll_cpp_grad)$gradient <- TRUE
+  
+  # use the methods to find the optimal parameters
+  take_time <- function(expr){
+    ti <- eval(bquote(system.time(out <- .(substitute(expr)))), 
+               parent.frame())
+    stopifnot(is.list(out) && is.null(out$time))
+    out$time <- ti
+    out$used_gr <- !is.null(substitute(expr)$gr)
+    out
+  }
+  
+  # set formals on optim
+  opt_use <- optim
+  formals(opt_use)[c("method", "control")] <- list(
+    "BFGS", list(trace = 0L, fnscale = fnscale))
+  
+  # first make a few quick fits with a low error or number of samples
+  fit_CDF_cpp_fast <- take_time(opt_use(
+    par, ll_cpp , maxpts = 5000L, releps = .1, gr = ll_cpp_grad))
+  
+  # then use a lower error or more samples starting from the previous 
+  # estimate
+  cdf_par <- fit_CDF_cpp_fast$par
+  fit_CDF_cpp <- take_time(opt_use(
+    cdf_par, ll_cpp , maxpts = 100000L, releps = 1e-3, gr = ll_cpp_grad))
+  
+  # add q to output
+  fit_CDF_cpp_fast$q <- fit_CDF_cpp$q <- q
+})
+```
+
+```{r fast_show_mixprobit_fit, echo = FALSE}
+show_res <- function(fit){
+  nam <- deparse(substitute(fit))
+  cat("\n", nam, "\n", rep("-", nchar(nam)), "\n", sep = "")
+  
+  cat("\nFixed effects\n")
+  q <- fit$q
+  print(head(fit$par,  q))
+  
+  cat("\nRandom effect standard deviations")
+  print(exp(tail(fit$par, -q)))
+  
+  fit_time <- fit$time["elapsed"]
+  used_gr <- fit$used_gr
+  fit_per_eval <- if(used_gr)
+    fit_time / fit$counts["function"] else 
+      fit_time / (fit$counts["function"] + fit$counts["gradient"] * 2L * 
+                    length(fit$par))
+  fit_per_grad <- if(used_gr)
+    fit_time / fit$counts["gradient"] else NA_real_
+    
+  cat(sprintf("\nLog-likelihood estimate %.2f\nComputation time %.2f/%.2f/%.2f (seconds total/per func./per grad.)\n", 
+              -fit$value, fit_time, fit_per_eval, fit_per_grad))
+}
+with(mix_prob_fit, show_res(fit_CDF_cpp_fast))
+```
+
+## CDF Approximation Result (Small Relative Error)
+
+```{r slow_show_mix_probit_fit, echo = FALSE}
+with(mix_prob_fit, show_res(fit_CDF_cpp))
+```
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Next Steps</h1>
+<!--/html_preserve-->
+
+## Hybrid Method
+@Lai03 suggest a Hybrid Laplace and Monte Carlo method. 
+
+<p class = "fragment">
+May be very fast when combined with methods from @Genz92 and @Genz99.</p>
+
+## Variational Approximation (VA)
+@Girolami06 and @Consonni07 suggest a VA [@Ormerod10]. 
+
+<p class = "fragment">
+@Consonni07 shows that it works poorly in some cases.</p>
+
+## Conditional Density
+$$
+\begin{align*}
+p(\vec v_1\mid \vec V_2 \leq \vec v_2) &=   
+  \phi^{(k_1)}(\vec v_1; \vec \xi_1, \mat\Xi_{11})
+  \frac
+  {\Prob(\vec V_2 \leq\vec v_2 \mid \vec V_1 = \vec v_1)}
+  {\Prob(\vec V_2 \leq\vec v_2)}\\
+&= \phi^{(k_1)}(\vec v_1; \vec \xi_1, \mat\Xi_{11}) \\
+&\hspace{20pt}\cdot
+  \frac
+  {\Phi^{(k_2)}\left(
+  \vec v_2
+   - \mat\Xi_{21}\mat\Xi_{11}^{-1}(\vec v_1 - \vec\xi_1);
+  \vec \xi_2, 
+  \mat\Xi_{22} - \mat\Xi_{21}\mat\Xi_{11}^{-1}\mat\Xi_{12}
+  \right)}
+  {\Phi^{(k_2)}\left(
+  \vec v_2; \vec \xi_2, \mat\Xi_{22}
+  \right)}
+\end{align*}
+$$
+<div class = "w-small">
+Suggests that a skew-normal VA will work well.
+<p class = "smallish">
+@ormerod11.</p>
+</div>
+
+<p class = "fragment">
+Requires estimation of $\bigO{K^2}$ variational parameters.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Conclusion</h1>
+<!--/html_preserve-->
+
+## Summary
+Showed three classes of mixed models with very similar marginal 
+log-likelihoods.
+
+<p class = "fragment">
+A variety of approximations are available.</p>
+
+<div class = "fragment w-small">
+Best choice depends on the setting. 
+<p class = "smallish">
+Hybrid method may be useful.</p>
+</div> 
+
+<p class = "fragment">
+One variational approximation seems unexplored.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<section>
 <section class="center final">
 <h1>Thank You!</h1>
 
 <div class="w-small">
 <p class="smallish">The presentation is at  
-<a href="TODO">rpubs.com/boennecd/TODO</a>.</p>
+<a href="https://rpubs.com/boennecd/mix-probit-KTH">rpubs.com/boennecd/mix-probit-KTH</a>.</p>
 <p class="smallish">The markdown is at  
 <a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
+<p class="smallish">Code and more examples at  
+<a href="https://github.com/boennecd/mixprobit">github.com/boennecd/mixprobit</a>.</p>
 <p class="smallish">References are on the next slide.</p>
 </div>
 

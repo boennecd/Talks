@@ -82,12 +82,22 @@ h1.title + p {
   margin: .2em 0 .7em 0;
 }
 
+div.bg-logo-kth {
+  background: #FFFFFF;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 36vh;
+  height: 14vh;
+  border-top-right-radius: 8vh;
+}
+
 div.logo {
-  background: url(fig/ki_logo_neg.png);
+  background: url(fig/ki_logo_rgb.png);
   position: absolute;
   resize: both;
-  bottom: 3vh;
-  left: 16vh;
+  bottom: 2vh;
+  left: 14vh;
   background-size: cover;
   width: 20vh; /* 1701 / 850 */ 
   height: 10vh;
@@ -97,8 +107,8 @@ div.logo-kth {
   background: url(fig/KTH_Logotyp_RGB_2013.png);
   position: absolute;
   resize: both;
-  bottom: 3vh;
-  left: 3vh;
+  bottom: 2vh;
+  left: 2vh;
   background-size: cover;
   width: 10vh;
   height: 10vh;
@@ -148,34 +158,25 @@ div.references > div > p {
 
 
 
-/* survival line */
-.reveal section > div.sline {
-  margin: 1em 0;
-  width: 100%;
-  display: table;
+/* table format */
+.reveal thead > tr:first-child, .reveal tbody > tr:last-child {
+  border-width: medium;
+  border-style: none none solid none;
+  border-color: white;
 }
-.reveal section > div.sline > div.srow {
-  display: table-row;
-  width: 100%;
+
+.reveal table {
+  border-style: none;
 }
-.reveal section > div.sline > div.srow > div.tcell {
-  display: table-cell;
-  font-size: 70%;
-  padding: 0 .25em;
-  vertical-align: top;
+
+.reveal td:first-child {
+  font-weight: bold;
 }
-.reveal section > div.sline > div.srow > div.sobs {
-  display: table-cell;
-  background-color: white;
-  border-top-left-radius: .25em;
-  border-bottom-left-radius: .25em;
+
+.reveal table td, .reveal table th  {
+  border-style: none;
 }
-.reveal section > div.sline > div.srow > div.snobs {
-  display: table-cell;
-  border-top-right-radius: .25em;
-  border-bottom-right-radius: .25em;
-  background-color: gray;
-}
+
 
 .MathJax, .MathJax_Display {
   font-size: 80% !important;
