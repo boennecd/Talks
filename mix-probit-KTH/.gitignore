@@ -1,3 +1,9 @@
 packrat/lib*/
 .Rproj.user
 packrat/src/
+cache/*
+!cache/experiment
+cache/experiment/*
+!cache/experiment/.placeholder
+*.rds
+rsconnect
