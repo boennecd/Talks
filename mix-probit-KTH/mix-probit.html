@@ -547,7 +547,7 @@ Many options for approximating the marginal log-likelihood.
   \right) \\
 \Phi^{(K)}(\vec x;\vec\mu,\mat\Sigma) &amp;= 
   \int_{-\infty}^{x_1} \cdots\int_{-\infty}^{x_K}
-  \phi^{(p)}(\vec z;\vec\mu,\mat\Sigma)\der z_1 \cdots \der z_K \\
+  \phi^{(K)}(\vec z;\vec\mu,\mat\Sigma)\der z_1 \cdots \der z_K \\
 \end{align*}
 \]</span> The standard case <span class="math display">\[
 \begin{align*}
@@ -627,7 +627,7 @@ Outcomes <span class="math inline">\(Y_i \in \{0,\dots,m\}\)</span> are conditio
 <div class="fragment w-small">
 Mixed multinomial
 <p class="smallish">
-Outcomes <span class="math inline">\(Y_i \in \{0,\dots,c\}\)</span> are conditionally independent and multinomially distributed.
+Outcomes <span class="math inline">\(Y_i \in \{1,\dots,c\}\)</span> are conditionally independent and multinomially distributed.
 </p>
 </div>
 <div class="fragment w-small">
@@ -663,7 +663,8 @@ c(\vec y) &amp;= \prod_{i = 1}^n \begin{pmatrix}m \\ y_i\end{pmatrix}\nonumber
 \]</span></p>
 <p>The marginal log-likelihood is</p>
 <p><span class="math display">\[
-l(\vec\beta,\mat\Sigma) = \log\int p(\vec u, \vec y) \der\vec u 
+l(\vec\beta,\mat\Sigma) = \log\int p(\vec u, \vec y) 
+  \der u_1\cdots \der u_K
 \]</span></p>
 </section>
 <section id="mixed-binomial-likelihood-1" class="slide level2">
@@ -789,7 +790,7 @@ Censoring e.g. due to drop out.
 <div class="fragment">
 <p>Assume that</p>
 <p><span class="math display">\[S(y\mid\vec x, \vec z, \vec u) = 
-  \Phi(-\vec x^\top(t)\vec\beta
+  \Phi(-\vec x^\top(y)\vec\beta
   - \vec z^\top\vec u)\]</span></p>
 <p class="smallish">
 See <span class="citation" data-cites="Royston02">Royston and Parmar (2002)</span>, <span class="citation" data-cites="Liu16">X.-R. Liu, Pawitan, and Clements (2016)</span>, and <span class="citation" data-cites="Liu17">X.-R. Liu, Pawitan, and Clements (2017)</span>.
@@ -950,7 +951,7 @@ Use the <code>pmvtnorm</code> package implementation
 <div class="fragment w-small">
 <span class="math inline">\(\bigO{n^3 + n^2K + nK^2}\)</span>,
 <p class="smallish">
-and typically <span class="math inline">\(\bigO{n}\)</span> in practical examples it seems.
+and typically not <span class="math inline">\(\bigO{n^3}\)</span> in practical examples it seems.
 </p>
 </div>
 </section>
@@ -958,7 +959,7 @@ and typically <span class="math inline">\(\bigO{n}\)</span> in practical example
 <h2>Gauss–Hermite Quadrature</h2>
 <p>Approximate the <span class="math inline">\(K\)</span>-dimensional integral.</p>
 <p class="fragment">
-Recursive application of quadrature rule using <span class="math inline">\(b\)</span> values for each <span class="math inline">\(K\)</span>.
+Recursive application of quadrature rule using <span class="math inline">\(b\)</span> values for each of the <span class="math inline">\(K\)</span> dimensions.
 </p>
 <p class="fragment">
 <span class="math inline">\(\bigO{nb^K}\)</span>.
@@ -981,7 +982,7 @@ Approximate the <span class="math inline">\(K\)</span>-dimensional integral usin
 <div class="fragment w-small">
 <span class="math inline">\(\bigO{K^3 + s(nK + K^2)}\)</span> where <span class="math inline">\(s\)</span> is the number of samples
 <p class="smallish">
-and the <span class="math inline">\(\bigO{snk}\)</span>-term is typically dominating.
+and the <span class="math inline">\(\bigO{snK}\)</span>-term is typically dominating.
 </p>
 </div>
 <div class="fragment w-small">
@@ -1715,7 +1716,7 @@ Very fast and scale well but heavily biased in some cases.
 <section id="cdf-approximation" class="slide level2">
 <h2>CDF Approximation</h2>
 <div class="w-small">
-C++ implementation with computation in parallel.
+C++ implementation which supports computation in parallel.
 <p class="smallish">
 Run on an Intel® Core™ i7-8750H CPU compiled with gcc 8.3.0.
 </p>
@@ -1772,7 +1773,7 @@ Uses BFGS implementation in R’s <span class="citation" data-cites="R19">(R Cor
 </section>
 <section id="hybrid-method" class="slide level2">
 <h2>Hybrid Method</h2>
-<p><span class="citation" data-cites="Lai03">Lai and Shih (2003)</span> suggest a Hybrid Laplace and Monte Carlo method.</p>
+<p><span class="citation" data-cites="Lai03">Lai and Shih (2003)</span> suggest a hybrid Laplace and Monte Carlo method.</p>
 <p class="fragment">
 May be very fast when combined with methods from <span class="citation" data-cites="Genz92">Genz (1992)</span> and <span class="citation" data-cites="Genz99">Genz and Monahan (1999)</span>.
 </p>
@@ -1793,8 +1794,8 @@ p(\vec v_1\mid \vec V_2 \leq \vec v_2) &amp;=
   \frac
   {\Prob(\vec V_2 \leq\vec v_2 \mid \vec V_1 = \vec v_1)}
   {\Prob(\vec V_2 \leq\vec v_2)}\\
-&amp;= \phi^{(k_1)}(\vec v_1; \vec \xi_1, \mat\Xi_{11}) \\
-&amp;\hspace{20pt}\cdot
+&amp;\hspace{-60pt}= \phi^{(k_1)}(\vec v_1; \vec \xi_1, \mat\Xi_{11}) \\
+&amp;\hspace{-20pt}\cdot
   \frac
   {\Phi^{(k_2)}\left(
   \vec v_2
