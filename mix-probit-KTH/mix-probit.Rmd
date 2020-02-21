@@ -112,7 +112,7 @@ $$
   \right) \\
 \Phi^{(K)}(\vec x;\vec\mu,\mat\Sigma) &= 
   \int_{-\infty}^{x_1} \cdots\int_{-\infty}^{x_K}
-  \phi^{(p)}(\vec z;\vec\mu,\mat\Sigma)\der z_1 \cdots \der z_K \\
+  \phi^{(K)}(\vec z;\vec\mu,\mat\Sigma)\der z_1 \cdots \der z_K \\
 \end{align*}
 $$
 The standard case
@@ -200,7 +200,7 @@ independent and binomially distributed.</p>
 <div class = "fragment w-small">
 Mixed multinomial
 <p class="smallish">
-Outcomes $Y_i \in \{0,\dots,c\}$ are conditionally 
+Outcomes $Y_i \in \{1,\dots,c\}$ are conditionally 
 independent and multinomially distributed.</p>
 </div>
 
@@ -244,7 +244,8 @@ $$
 The marginal log-likelihood is 
 
 $$
-l(\vec\beta,\mat\Sigma) = \log\int p(\vec u, \vec y) \der\vec u 
+l(\vec\beta,\mat\Sigma) = \log\int p(\vec u, \vec y) 
+  \der u_1\cdots \der u_K
 $$
 
 ## Mixed Binomial Likelihood
@@ -388,7 +389,7 @@ be the conditional survival function.
 Assume that 
 
 $$S(y\mid\vec x, \vec z, \vec u) = 
-  \Phi(-\vec x^\top(t)\vec\beta
+  \Phi(-\vec x^\top(y)\vec\beta
   - \vec z^\top\vec u)$$
   
 <p class = "smallish">
@@ -560,14 +561,15 @@ reduction compared to C++ implementation of the MC estimator suggested by
 <div class = "fragment w-small">
 $\bigO{n^3 + n^2K + nK^2}$,
 <p class = "smallish">
-and typically $\bigO{n}$ in practical examples it seems.</p>
+and typically not $\bigO{n^3}$ in practical examples it seems.</p>
 </div>
 
 ## Gauss–Hermite Quadrature
 Approximate the $K$-dimensional integral.
 
 <p class = "fragment">
-Recursive application of quadrature rule using $b$ values for each $K$.</p>
+Recursive application of quadrature rule using $b$ values for each of 
+the $K$ dimensions.</p>
 
 <p class = "fragment">
 $\bigO{nb^K}$.</p>
@@ -590,7 +592,7 @@ Approximate the $K$-dimensional integral using the method described by
 <div class = "fragment w-small">
 $\bigO{K^3 + s(nK + K^2)}$ where $s$ is the number of samples
 <p class = "smallish">
-and the $\bigO{snk}$-term is typically dominating.</p>
+and the $\bigO{snK}$-term is typically dominating.</p>
 </div>
 
 <div class = "fragment w-small">
@@ -1509,7 +1511,7 @@ glmer_fit <- within(list(), {
 
 ## CDF Approximation
 <div class = "w-small">
-C++ implementation with computation in parallel.
+C++ implementation which supports computation in parallel.
 <p class = "smallish">
 Run on an Intel® Core™ i7-8750H CPU compiled with gcc 8.3.0.</p>
 </div>
@@ -1662,7 +1664,7 @@ with(mix_prob_fit, show_res(fit_CDF_cpp))
 <!--/html_preserve-->
 
 ## Hybrid Method
-@Lai03 suggest a Hybrid Laplace and Monte Carlo method. 
+@Lai03 suggest a hybrid Laplace and Monte Carlo method. 
 
 <p class = "fragment">
 May be very fast when combined with methods from @Genz92 and @Genz99.</p>
@@ -1681,8 +1683,8 @@ p(\vec v_1\mid \vec V_2 \leq \vec v_2) &=
   \frac
   {\Prob(\vec V_2 \leq\vec v_2 \mid \vec V_1 = \vec v_1)}
   {\Prob(\vec V_2 \leq\vec v_2)}\\
-&= \phi^{(k_1)}(\vec v_1; \vec \xi_1, \mat\Xi_{11}) \\
-&\hspace{20pt}\cdot
+&\hspace{-60pt}= \phi^{(k_1)}(\vec v_1; \vec \xi_1, \mat\Xi_{11}) \\
+&\hspace{-20pt}\cdot
   \frac
   {\Phi^{(k_2)}\left(
   \vec v_2
