@@ -1,3 +1,7 @@
+### KTH Group Meeting September 2020: Imputation Using Gaussian Copulas
+[Code](/Gaussian-copula-KTH/Gaussian-copula.Rmd) and presentation at 
+[RPubs](https://rpubs.com/boennecd/Gaussian-copula-KTH).
+
 ### KTH Group Meeting February 2020: Approximation Methods for Mixed Models with a Probit Link
 [Code](/mix-probit-KTH/mix-probit.Rmd) and presentation at 
 [RPubs](http://rpubs.com/boennecd/mix-probit-KTH).
