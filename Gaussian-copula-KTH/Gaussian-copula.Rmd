@@ -369,7 +369,7 @@ L(\mat V) &= \sum_{i = 1}^n L_i(\mat V)
 $$
 <p class="smallish">
 where $\phi^{(s)}$ is a $s$-dimensional multivariate normal density and 
-$\Phi^{(s)}$ is a $s$-dimensional multivariate normal density CDF over a 
+$\Phi^{(s)}$ is a $s$-dimensional multivariate normal CDF over a 
 hypercube.</p>
 </div>
 
@@ -391,7 +391,7 @@ Need an approximation for the CDF.</p>
 Want an approximation of 
 
 $$
-\log \Phi^{(h)}(\mathcal P; \vec\mu, \mat\Sigma) = 
+\Phi^{(h)}(\mathcal P; \vec\mu, \mat\Sigma) = 
   \int_{a_1}^{b_1}\cdots\int_{a_h}^{b_h}
   \phi^{(h)}(\vec z; \vec\mu,\mat\Sigma)\der\vec z
 $$
@@ -410,7 +410,7 @@ use $\mat S\vec y + \vec \mu = \vec z$:
 
 $$
 \begin{align*}
-\log \Phi^{(h)}(\mathcal P; \vec\mu, \mat\Sigma) = 
+\Phi^{(h)}(\mathcal P; \vec\mu, \mat\Sigma) = 
   \int_{\tilde a_1}^{\tilde b_1}\phi(y_1)
   \int_{\tilde a_2(y_1)}^{\tilde b_2(y_1)}\phi(y_2)
   \cdots\int_{\tilde a_h(y_1, \dots, y_{h-1})}^{
@@ -431,7 +431,7 @@ Use $\Phi^{-1}(u_j) = y_j$:
 
 $$
 \begin{align*}
-\log \Phi^{(h)}(\mathcal P; \vec\mu, \mat\Sigma) = 
+\Phi^{(h)}(\mathcal P; \vec\mu, \mat\Sigma) = 
   \int_{\Phi(\tilde a_1)}^{\Phi(\tilde b_1)}
   \int_{\Phi(\tilde a_2(\Phi^{-1}(u_1)))}^{\Phi(\tilde b_2(\Phi^{-1}(u_1)))}
   \cdots\int_{\Phi(\tilde a_h(\Phi^{-1}(u_1), \dots, \Phi^{-1}(u_{h-1})))}^{
@@ -450,7 +450,7 @@ $$
   \Phi(\tilde a_h(\Phi^{-1}(u_1), \dots, \Phi^{-1}(u_{j-1}))) \\
 \bar b_j(w_1, \dots, w_{j -1}) &= 
   \Phi(\tilde b_h(\Phi^{-1}(u_1), \dots, \Phi^{-1}(u_{j-1}))) \\
-\log \Phi^{(h)}(\mathcal P; \vec\mu, \mat\Sigma) &= 
+\Phi^{(h)}(\mathcal P; \vec\mu, \mat\Sigma) &= 
   (\bar b_1 - \bar a_1)
   \int_0^1(\bar b_2(w_1) - \bar a_2(w_1))\cdots \\
 &\hspace{20pt}
@@ -1113,6 +1113,138 @@ likelihood and to perform imputations.</p>
 <p class = "fragment">
 Showed that the method is efficient and fast even for larger problems
 with $p = 60$ variables.</p>
+
+## Extensions
+Like @zhao20, we can use a low rank approximation:
+
+$$
+\mat C = \mat W\mat W^\top + \sigma^2\mat I
+$$
+
+where $\mat W\in\mathbb{R}^{p\times k}$ with $k < p$. 
+
+<p class = "fragment">
+Easy to add prediction intervals. Probabilities of each 
+level is already provided.</p>
+
+## Extensions
+$x_{ij}$ is multinomial with $k_j$-categories.
+
+Suppose
+
+$$
+\begin{align*}
+\vec A_{ij} &\sim N^{(k_j)}(\vec \mu_j, 2^{-1}\mat I) \\
+x_{ij} &= l\Leftrightarrow A_{ijl} > A_{ijl'} \quad \forall l'\neq l  
+\end{align*}
+$$
+
+$\vec\mu_j$ is given by the marginal distribution. 
+
+
+## Identity
+
+Let 
+
+$$
+\Phi^{(k)}(\vec a, \vec b;\vec\mu,\mat\Sigma) = 
+  \int_{a_1}^{b_1}\cdots\int_{a_k}^{b_k}
+  \phi^{(k)}(\vec x;\vec\mu,\mat\Sigma)\der\vec x
+$$
+
+Then
+
+$$
+\begin{align*}
+\int\phi^{(k_1)}(\vec z_1; \vec\mu_1, \mat\Sigma_1)
+  \Phi^{(k_2)}(\vec a + \mat K\vec z_1, \vec b + \mat K\vec z_1; 
+  \vec\mu_2,\mat\Sigma_2)\der\vec z_1 & \\
+&\hspace{-200pt}=
+  \Phi^{(k_2)}(\vec a, \vec b; \vec\mu_2 - \mat K\vec\mu_1, 
+  \mat\Sigma_2 + \mat K\mat\Sigma_1\mat K^\top)
+\end{align*}
+$$
+
+## Marginal Distribution
+
+$$
+\begin{align*}
+\Prob(X_{ij} = l) &= \int \phi(a;\mu_{jl},2^{-1})
+  \Phi^{(k_j - 1)}(-\vec\infty, \vec 1a;\vec\mu_{j(-l)}, 2^{-1}\mat I)\der a \\
+&= \Phi^{(k_j - 1)}(-\vec\infty, \vec 1\mu_{jl} - \vec\mu_{j(-l)}; \vec 0, 
+  2^{-1}\mat I + 2^{-1}\vec 1\vec 1 ^\top)
+\end{align*}
+$$
+
+where $\vec\mu_{j(-l)} = (\mu_{j1}, \dots, \mu_{j,l - 1}, \mu_{j,l + 1}, \dots \mu_{jk_j})$. 
+
+## Marginal Distribution (2D)
+$$
+\begin{align*}
+\Prob(X_{ij} = 1) &= \Phi(\mu_{j1} - \mu_{j2}; 0, 1) = \Phi(\mu_{j1} - \mu_{j2}) \\
+\Prob(X_{ij} = 2) &= \Phi(\mu_{j2} - \mu_{j1}; 0, 1) = \Phi(\mu_{j2} - \mu_{j1})
+\end{align*}
+$$
+
+<div class = "fragment">
+Select $\mu_{j2} = 0$ for identifiability:
+
+$$
+\begin{align*}
+\Prob(X_{ij} = 1) &= \Phi( \mu_{j1}) \\
+\Prob(X_{ij} = 2) &= \Phi(-\mu_{j1})
+\end{align*}
+$$
+
+I.e. a binary variable with borders $0 < \Phi(\mu_{j1}) < 1$.
+</div>
+
+## Using the Identity 
+
+Suppose $x_{ij} = l$ and write:
+
+$$
+\vec V_i = (A_{ijl}, \vec A_{ij(-l)}^\top, \vec z_{i\mathcal O_i}^\top)^\top
+$$
+
+where $\vec z_{i\mathcal O_i}$ are the remaining variables (ordinal/binary). 
+
+<div class = "fragment">
+Denote:
+
+$$
+\vec V_i \sim N^{(h)}\left(
+  \begin{pmatrix} \mu_{g} \\ \vec\mu_{(-g)}\end{pmatrix},
+  \begin{pmatrix} \sigma^2_{gg} & \vec\sigma_{g(-g)} \\ 
+                  \vec\sigma_{(-g)g} & \mat\Sigma_{(-g)(-g)}\end{pmatrix}
+\right)
+$$
+</div>
+
+## Using the Identity 
+The marginal likelihood factor is:
+
+$$
+\begin{align*}
+\int \phi(z;\mu_g;\sigma_{gg}^2) \Phi^{(h - 1)}\bigg(&\vec a + \vec dz - \mat K(z - \mu_g), \vec b + \vec dz - \mat K(z - \mu_g); \\
+& \vec\mu_{(-g)}, \mat\Sigma_{(-g)(-g)} - \frac{\vec\sigma_{(-g)g}\vec\sigma_{(-g)g}^\top}{\sigma_{gg}^2}\bigg)\der z \\
+\end{align*}
+$$
+
+with $\mat K = \vec\sigma_{(-g)g}/\sigma_{gg}^2$ and 
+
+$$\vec d = (\underbrace{\,\,\,\vec 1^\top\,\,\,}_{k_j - 1\text{ times}}, \vec 0^\top)^\top$$
+
+## Using the Identity 
+Thus, we get:
+
+$$
+\Phi^{(h - 1)}\bigg(\vec a, \vec b; 
+        \vec\mu_{(-g)} - \vec d\mu_g, \mat\Sigma_{(-g)(-g)} + \vec d\vec d^\top\sigma_{gg}^2\bigg)
+$$
+
+<p class = "fragment">
+Easy to extend to multiple multinomial variables.</p>
 
 <!--html_preserve-->
 </section>
