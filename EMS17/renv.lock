@@ -1,0 +1,82 @@
+{
+  "R": {
+    "Version": "3.6.3",
+    "Repositories": [
+      {
+        "Name": "BioCsoft",
+        "URL": "https://bioconductor.org/packages/3.4/bioc"
+      },
+      {
+        "Name": "BioCann",
+        "URL": "https://bioconductor.org/packages/3.4/data/annotation"
+      },
+      {
+        "Name": "BioCexp",
+        "URL": "https://bioconductor.org/packages/3.4/data/experiment"
+      },
+      {
+        "Name": "BioCextra",
+        "URL": "https://bioconductor.org/packages/3.4/extra"
+      },
+      {
+        "Name": "CRAN",
+        "URL": "https://cran.rstudio.com"
+      },
+      {
+        "Name": "CRANextra",
+        "URL": "https://www.stats.ox.ac.uk/pub/RWin"
+      }
+    ]
+  },
+  "Packages": {
+    "curl": {
+      "Package": "curl",
+      "Version": "2.7",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "0f83186a0d6324ada92f5ae743fb35c9"
+    },
+    "digest": {
+      "Package": "digest",
+      "Version": "0.6.12",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "f2b721d06c322a54aee4135737cba9f1"
+    },
+    "jsonlite": {
+      "Package": "jsonlite",
+      "Version": "1.5",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "c9638b684f25fd947082b729e8e8d2f1"
+    },
+    "openssl": {
+      "Package": "openssl",
+      "Version": "0.9.6",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "6e774e4b7e01b8107cb056cbc72b028f"
+    },
+    "packrat": {
+      "Package": "packrat",
+      "Version": "0.4.8-1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "4f5733a2a8901fc49c81e980405997e3"
+    },
+    "renv": {
+      "Package": "renv",
+      "Version": "0.12.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "7340c71f46a0fd16506cfa804e224e44"
+    },
+    "yaml": {
+      "Package": "yaml",
+      "Version": "2.1.14",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "030794f326de26f95351dfa00adce7ca"
+    }
+  }
+}
