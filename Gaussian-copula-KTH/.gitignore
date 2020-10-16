@@ -1,6 +1,7 @@
 packrat/lib*/
 .Rproj.user
 packrat/src/
-cache/*
 *.rds
 rsconnect
+*_cache/*
+cache/*
