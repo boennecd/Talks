@@ -147,7 +147,7 @@ The auto-regressive frailty, $A_k$, captures excess clustering.
 
 ## Remarks
 
-<div class="w-small fragment">
+<div class="w-small">
 Only time-varying intercept? 
 <p class="smallish">Findings in @David13, @Filipe16, and @Jensen17 suggest not.
 </p></div>
@@ -325,9 +325,10 @@ As shown by @Lando10.
 performance.</p>
 
 ## Data Source
-From? 
+Default data from Moody’s Default Risk Service Database. 
 
-Like? 
+<p class = "fragment">
+Covariates from Compustat and CRSP.</p>
 
 ## Additions
 
@@ -371,7 +372,38 @@ $\mathcal{M_3}$: model with non-linear effects and an interaction.</p>
 <p>Large difference in log-likelihood.</p>
 <p class="smallish">Similar to evidence by @Lando10 and @Bharath08.</p>
 
-## Splines
+<!--html_preserve-->
+</section>
+<section class="center-horiz slide level2"">
+<h2>Estimated Splines</h2>
+
+<!--/html_preserve-->
+<img src="fig/spline_plots_w_interact_001.jpg">
+<p class="smallish" style="text-align: left;">Estimated partial effect.
+A histogram is shown at the bottom. The heights of the bars are unrelated to 
+the y-axis.</p>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz slide level2"">
+<h2>Estimated Splines</h2>
+
+<!--/html_preserve-->
+<img src="fig/spline_plots_w_interact_002.jpg">
+<p class="smallish" style="text-align: left;">Estimated partial effect.
+A histogram is shown at the bottom. The heights of the bars are unrelated to 
+the y-axis.</p>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz slide level2"">
+<h2>Estimated Splines</h2>
+
+<!--/html_preserve-->
+<img src="fig/spline_plots_w_interact_003.jpg">
+<p class="smallish" style="text-align: left;">Estimated partial effect.
+A histogram is shown at the bottom. The heights of the bars are unrelated to 
+the y-axis.</p>
 
 ## Adding Time-Varying Coefficient {data-transition="slide-in fade-out"}
 
@@ -475,9 +507,9 @@ random relative market size slope.</p>
 <!--/html_preserve-->
 
 <img src="fig/rng-inter-smooth-state-w-size_002.jpg">
-
+<p class="smallish" style="text-align: left;">
 Log market size is as in @Shumway01. This is just the zero-mean random 
-effect $b_t$.
+effect $b_t$.</p>
 
 <!--html_preserve-->
 </section>
@@ -487,7 +519,7 @@ effect $b_t$.
 
 <img src="fig/auc-out-sample-monthly.jpg">
 
-<p class="smallish">
+<p class="smallish" style="text-align: left;">
 Blue: lowest, black: highest. 
 ◇: model as in @Duffie07, 
 ▽: + covariates and non-linear effects, 
@@ -513,7 +545,7 @@ Blue: lowest, black: highest.
     black 85%, 
     rgba(0,0,0,0.5) 86%);">
 
-<p class="smallish">
+<p class="smallish" style="text-align: left;">
 Blue: lowest, black: highest. 
 ◇: model as in @Duffie07, 
 ▽: + covariates and non-linear effects, 
@@ -529,7 +561,7 @@ Blue: lowest, black: highest.
 
 <img src="fig/default-rate-out-sample-monthly.jpg">
 
-<p class="smallish">
+<p class="smallish" style="text-align: left;">
 Bars: 90% prediction interval, ○:  realized rate, other points: median,
 ◇: model as in @Duffie07, 
 ▽: + covariates and non-linear effects, 
@@ -555,7 +587,7 @@ Bars: 90% prediction interval, ○:  realized rate, other points: median,
     black 96%, 
     rgba(0,0,0,0.5) 97%);">
 
-<p class="smallish">
+<p class="smallish" style="text-align: left;">
 Bars: 90% prediction interval, ○:  realized rate, other points: median.
 ◇: model as in @Duffie07, 
 ▽: + covariates and non-linear effects, 
@@ -581,12 +613,10 @@ Argued for random effects and non-linear effects.
 <div class="w-small fragment">
 Gave rough overview of `dynamichazard` and `mssm` package.
 <p class="smallish">
-More details are available in the packages' vignettes or `README` and in 
-my PhD thesis.
-</p></div>
+More details are available in the packages' vignettes or `README`.</p></div>
 
 <div class="w-small fragment">
-Gave an example of a corporate default model with multivariate latent 
+Showed an application corporate default model with multivariate latent 
 factors
 <p class="smallish">
 and provided evidence of non-linear associations.
@@ -604,15 +634,13 @@ and provided evidence of non-linear associations.
 <h1>Thank You!</h1>
 
 <div class="w-small">
-<p class="smallish">Paper is at  
-<a href="https://ssrn.com/abstract=3339981">ssrn.com/abstract=3339981</a>.</p>
-<p class="smallish">Slides are at  
-<a href="http://rpubs.com/boennecd/CFE-19">rpubs.com/boennecd/CFE-19</a>.</p>
-<p class="smallish">Markdown is at  
-<a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
-<p class="smallish">More examples at  
-<a href="https://github.com/boennecd/dynamichazard/tree/master/examples">
-github.com/boennecd/dynamichazard/tree/master/examples</a>.</p>
+<p class="smallish">Slides are at
+<a href="http://rpubs.com/boennecd/CSCR-20">rpubs.com/boennecd/CSCR-20</a>.</p>
+<!-- <p class="smallish">Markdown is at   -->
+<!-- <a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p> -->
+<!-- <p class="smallish">More examples at   -->
+<!-- <a href="https://github.com/boennecd/dynamichazard/tree/master/examples"> -->
+<!-- github.com/boennecd/dynamichazard/tree/master/examples</a>.</p> -->
 <p class="smallish">References on next slide.</p>
 </div>
 
