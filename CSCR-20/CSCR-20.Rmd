@@ -33,14 +33,14 @@ knitr::opts_chunk$set(echo = TRUE)
   
   // add second header
   var second_head = document.createElement("p");
-  var node = document.createTextNode("with multivariate latent factors");
+  var node = document.createTextNode("with Multivariate Latent Factors");
   second_head.appendChild(node);
   second_head.style.lineHeight = "1.02em";
   front_div.appendChild(second_head);
   
   // add author 
   var credit_div = document.createElement('div');
-  credit_div.innerHTML += "<div class='w-small'><p>Benjamin Christoffersen</p><p class='smallish'>KI, Department of Medical Epidemiology and Biostatistics, <a href='mailto:benjamin.christoffersen@ki.se'>benjamin.christoffersen@ki.se</a></p><p class='smallish'>KTH, Division of Robotics, Perception and Learning, <a href='mailto:benchr@kth.se'>benchr@kth.se</a></p><br><p>Rastin Matin</p><p class='smallish'>Danmarks Nationalbank</p></div>";
+  credit_div.innerHTML += "<div class='w-small'><p>Benjamin Christoffersen</p><p class='smallish'>KI, Department of Medical Epidemiology and Biostatistics, <a href='mailto:benjamin.christoffersen@ki.se'>benjamin.christoffersen@ki.se</a></p><p class='smallish'>KTH, Division of Robotics, Perception and Learning, <a href='mailto:benchr@kth.se'>benchr@kth.se</a></p><br><p>Rastin Matin</p><p class='smallish'>Danmarks Nationalbank, <a href='mailto:rma@nationalbanken.dk'>rma@nationalbanken.dk</a></p></div>";
   credit_div.classList.add("authors");
   front_div.appendChild(credit_div);
 })();
@@ -611,12 +611,12 @@ Bars: 90% prediction interval, ○:  realized rate, other points: median.
 Argued for random effects and non-linear effects. 
 
 <div class="w-small fragment">
-Gave rough overview of `dynamichazard` and `mssm` package.
+Gave rough overview of the `dynamichazard` and `mssm` package.
 <p class="smallish">
 More details are available in the packages' vignettes or `README`.</p></div>
 
 <div class="w-small fragment">
-Showed an application corporate default model with multivariate latent 
+Showed an application of a corporate default model with multivariate latent 
 factors
 <p class="smallish">
 and provided evidence of non-linear associations.
@@ -638,10 +638,12 @@ and provided evidence of non-linear associations.
 <a href="http://rpubs.com/boennecd/CSCR-20">rpubs.com/boennecd/CSCR-20</a>.</p>
 <!-- <p class="smallish">Markdown is at   -->
 <!-- <a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p> -->
-<!-- <p class="smallish">More examples at   -->
-<!-- <a href="https://github.com/boennecd/dynamichazard/tree/master/examples"> -->
-<!-- github.com/boennecd/dynamichazard/tree/master/examples</a>.</p> -->
-<p class="smallish">References on next slide.</p>
+<p class="smallish">Packages are at
+<a href="https://github.com/boennecd/dynamichazard">
+github.com/boennecd/dynamichazard</a> and 
+<a href="https://github.com/boennecd/mssm">
+github.com/boennecd/mssm</a> and CRAN.</p>
+<p class="smallish">References are on the next slide.</p>
 </div>
 
 <!-- there is a end tag from the previous slide -->
