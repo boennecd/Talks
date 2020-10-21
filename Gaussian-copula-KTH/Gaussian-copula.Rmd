@@ -1196,7 +1196,7 @@ $$
 \end{align*}
 $$
 
-I.e. a binary variable with borders $0 < \Phi(\mu_{j1}) < 1$.
+I.e. a binary variable with a border at $0 < \Phi(\mu_{j1}) < 1$.
 </div>
 
 ## Using the Identity 
@@ -1215,7 +1215,7 @@ Denote:
 $$
 \vec V_i \sim N^{(h)}\left(
   \begin{pmatrix} \mu_{g} \\ \vec\mu_{(-g)}\end{pmatrix},
-  \begin{pmatrix} \sigma^2_{gg} & \vec\sigma_{g(-g)} \\ 
+  \begin{pmatrix} \sigma_{gg} & \vec\sigma_{g(-g)} \\ 
                   \vec\sigma_{(-g)g} & \mat\Sigma_{(-g)(-g)}\end{pmatrix}
 \right)
 $$
@@ -1226,12 +1226,12 @@ The marginal likelihood factor is:
 
 $$
 \begin{align*}
-\int \phi(z;\mu_g;\sigma_{gg}^2) \Phi^{(h - 1)}\bigg(&\vec a + \vec dz - \mat K(z - \mu_g), \vec b + \vec dz - \mat K(z - \mu_g); \\
-& \vec\mu_{(-g)}, \mat\Sigma_{(-g)(-g)} - \frac{\vec\sigma_{(-g)g}\vec\sigma_{(-g)g}^\top}{\sigma_{gg}^2}\bigg)\der z \\
+\int \phi(z;\mu_g;\sigma_{gg}^2) \Phi^{(h - 1)}\bigg(&\vec a_{(-g)} + \vec dz - \mat K(z - \mu_g), \vec b_{(-g)} + \vec dz - \mat K(z - \mu_g); \\
+& \vec\mu_{(-g)}, \mat\Sigma_{(-g)(-g)} - \frac{\vec\sigma_{(-g)g}\vec\sigma_{(-g)g}^\top}{\sigma_{gg}}\bigg)\der z \\
 \end{align*}
 $$
 
-with $\mat K = \vec\sigma_{(-g)g}/\sigma_{gg}^2$ and 
+with $\mat K = \vec\sigma_{(-g)g}/\sigma_{gg}$ and 
 
 $$\vec d = (\underbrace{\,\,\,\vec 1^\top\,\,\,}_{k_j - 1\text{ times}}, \vec 0^\top)^\top$$
 
@@ -1239,12 +1239,64 @@ $$\vec d = (\underbrace{\,\,\,\vec 1^\top\,\,\,}_{k_j - 1\text{ times}}, \vec 0^
 Thus, we get:
 
 $$
-\Phi^{(h - 1)}\bigg(\vec a, \vec b; 
-        \vec\mu_{(-g)} - \vec d\mu_g, \mat\Sigma_{(-g)(-g)} + \vec d\vec d^\top\sigma_{gg}^2\bigg)
+\Phi^{(h - 1)}\bigg(\vec a_{(-g)}, \vec b_{(-g)}; 
+        \vec\mu_{(-g)} - \vec d\mu_g, \mat\Sigma_{(-g)(-g)} + \vec d\vec d^\top\sigma_{gg}\bigg)
 $$
 
 <p class = "fragment">
 Easy to extend to multiple multinomial variables.</p>
+
+## Extending 
+We have $G$ categorical variables. The latent variables for the 
+$l = 1,\dots, G$ categorical variable
+is at indices $r_l + 1, \dots, r_l + k_l$. 
+
+<p class = "fragment">
+Suppose that we observe the category for the $l$th categorical variable
+which latent variable is at index $c_l$ and let 
+$\mathcal C = \{c_1,\dots, c_G\}$.</p>
+
+## Extending 
+Let $\mat D = (\vec d_1, \dots \vec d_G)_{(\mathcal -C)\cdot}$,
+the matrix which columns are $\vec d_1, \dots, \vec d_G$ without the rows 
+in $\mathcal C$. 
+
+<p class = "fragment">
+Define a vector 
+$\vec d_l = (\vec 0^\top, \underbrace{\,\,\,\vec 1^\top\,\,\,}_{k_l\text{ times}}, \vec 0^\top)^\top$
+which has ones at indices $r_l + 1, \dots, r_l + k_l$.</p>
+
+## Extending 
+Then intractable integral is:
+
+$$
+\begin{align*}
+\int \phi^{(G)}(\vec z;\vec \mu_{\mathcal C};\mat\Sigma_{\mathcal C\mathcal C}) 
+  \Phi^{(h - G)}\bigg(\hspace{-75pt}& \\
+& \vec a_{(-\mathcal C)} + \mat D\vec z - 
+  \mat K(\vec z - \vec\mu_{\mathcal C}), \vec b_{(-\mathcal C)} + 
+  \mat D\vec z - \mat K(\vec z - \vec \mu_{\mathcal C}); \\
+& \vec\mu_{(-\mathcal C)}, \mat\Sigma_{(-\mathcal C)(-\mathcal C)} - 
+  \mat\Sigma_{(-\mathcal C)\mathcal C}\mat\Sigma_{\mathcal C\mathcal C}^{-1}\mat\Sigma_{\mathcal C(-\mathcal C)}\bigg)
+  \der \vec z \\
+\end{align*}
+$$
+
+with $\mat K = \mat\Sigma_{(-\mathcal C)\mathcal C}\mat\Sigma_{\mathcal C\mathcal C}^{-1}$.
+
+
+## Extending 
+Applying the identity yields:
+
+$$
+\Phi^{(h - G)}\bigg(\vec a_{(-\mathcal C)}, \vec b_{(-\mathcal C)}; 
+        \vec\mu_{(-\mathcal C)} - \mat D\vec\mu_{\mathcal C}, 
+        \mat\Sigma_{(-\mathcal C)(-\mathcal C)} + 
+        \mat D\mat\Sigma_{\mathcal C\mathcal C}\mat D^\top)
+$$
+
+
+
 
 <!--html_preserve-->
 </section>

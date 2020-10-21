@@ -2825,7 +2825,7 @@ x_{ij} &amp;= l\Leftrightarrow A_{ijl} &gt; A_{ijl'} \quad \forall l'\neq l
 \Prob(X_{ij} = 2) &amp;= \Phi(-\mu_{j1})
 \end{align*}
 \]</span></p>
-<p>I.e. a binary variable with borders <span class="math inline">\(0 &lt; \Phi(\mu_{j1}) &lt; 1\)</span>.</p>
+<p>I.e. a binary variable with a border at <span class="math inline">\(0 &lt; \Phi(\mu_{j1}) &lt; 1\)</span>.</p>
 </div>
 </section>
 <section id="using-the-identity" class="slide level2">
@@ -2840,7 +2840,7 @@ x_{ij} &amp;= l\Leftrightarrow A_{ijl} &gt; A_{ijl'} \quad \forall l'\neq l
 <p><span class="math display">\[
 \vec V_i \sim N^{(h)}\left(
   \begin{pmatrix} \mu_{g} \\ \vec\mu_{(-g)}\end{pmatrix},
-  \begin{pmatrix} \sigma^2_{gg} &amp; \vec\sigma_{g(-g)} \\ 
+  \begin{pmatrix} \sigma_{gg} &amp; \vec\sigma_{g(-g)} \\ 
                   \vec\sigma_{(-g)g} &amp; \mat\Sigma_{(-g)(-g)}\end{pmatrix}
 \right)
 \]</span></p>
@@ -2851,23 +2851,64 @@ x_{ij} &amp;= l\Leftrightarrow A_{ijl} &gt; A_{ijl'} \quad \forall l'\neq l
 <p>The marginal likelihood factor is:</p>
 <p><span class="math display">\[
 \begin{align*}
-\int \phi(z;\mu_g;\sigma_{gg}^2) \Phi^{(h - 1)}\bigg(&amp;\vec a + \vec dz - \mat K(z - \mu_g), \vec b + \vec dz - \mat K(z - \mu_g); \\
-&amp; \vec\mu_{(-g)}, \mat\Sigma_{(-g)(-g)} - \frac{\vec\sigma_{(-g)g}\vec\sigma_{(-g)g}^\top}{\sigma_{gg}^2}\bigg)\der z \\
+\int \phi(z;\mu_g;\sigma_{gg}^2) \Phi^{(h - 1)}\bigg(&amp;\vec a_{(-g)} + \vec dz - \mat K(z - \mu_g), \vec b_{(-g)} + \vec dz - \mat K(z - \mu_g); \\
+&amp; \vec\mu_{(-g)}, \mat\Sigma_{(-g)(-g)} - \frac{\vec\sigma_{(-g)g}\vec\sigma_{(-g)g}^\top}{\sigma_{gg}}\bigg)\der z \\
 \end{align*}
 \]</span></p>
-<p>with <span class="math inline">\(\mat K = \vec\sigma_{(-g)g}/\sigma_{gg}^2\)</span> and</p>
+<p>with <span class="math inline">\(\mat K = \vec\sigma_{(-g)g}/\sigma_{gg}\)</span> and</p>
 <p><span class="math display">\[\vec d = (\underbrace{\,\,\,\vec 1^\top\,\,\,}_{k_j - 1\text{ times}}, \vec 0^\top)^\top\]</span></p>
 </section>
 <section id="using-the-identity-2" class="slide level2">
 <h2>Using the Identity</h2>
 <p>Thus, we get:</p>
 <p><span class="math display">\[
-\Phi^{(h - 1)}\bigg(\vec a, \vec b; 
-        \vec\mu_{(-g)} - \vec d\mu_g, \mat\Sigma_{(-g)(-g)} + \vec d\vec d^\top\sigma_{gg}^2\bigg)
+\Phi^{(h - 1)}\bigg(\vec a_{(-g)}, \vec b_{(-g)}; 
+        \vec\mu_{(-g)} - \vec d\mu_g, \mat\Sigma_{(-g)(-g)} + \vec d\vec d^\top\sigma_{gg}\bigg)
 \]</span></p>
 <p class="fragment">
 Easy to extend to multiple multinomial variables.
 </p>
+</section>
+<section id="extending" class="slide level2">
+<h2>Extending</h2>
+<p>We have <span class="math inline">\(G\)</span> categorical variables. The latent variables for the <span class="math inline">\(l = 1,\dots, G\)</span> categorical variable is at indices <span class="math inline">\(r_l + 1, \dots, r_l + k_l\)</span>.</p>
+<p class="fragment">
+Suppose that we observe the category for the <span class="math inline">\(l\)</span>th categorical variable which latent variable is at index <span class="math inline">\(c_l\)</span> and let <span class="math inline">\(\mathcal C = \{c_1,\dots, c_G\}\)</span>.
+</p>
+</section>
+<section id="extending-1" class="slide level2">
+<h2>Extending</h2>
+<p>Let <span class="math inline">\(\mat D = (\vec d_1, \dots \vec d_G)_{(\mathcal -C)\cdot}\)</span>, the matrix which columns are <span class="math inline">\(\vec d_1, \dots, \vec d_G\)</span> without the rows in <span class="math inline">\(\mathcal C\)</span>.</p>
+<p class="fragment">
+Define a vector <span class="math inline">\(\vec d_l = (\vec 0^\top, \underbrace{\,\,\,\vec 1^\top\,\,\,}_{k_l\text{ times}}, \vec 0^\top)^\top\)</span> which has ones at indices <span class="math inline">\(r_l + 1, \dots, r_l + k_l\)</span>.
+</p>
+</section>
+<section id="extending-2" class="slide level2">
+<h2>Extending</h2>
+<p>Then intractable integral is:</p>
+<p><span class="math display">\[
+\begin{align*}
+\int \phi^{(G)}(\vec z;\vec \mu_{\mathcal C};\mat\Sigma_{\mathcal C\mathcal C}) 
+  \Phi^{(h - G)}\bigg(\hspace{-75pt}&amp; \\
+&amp; \vec a_{(-\mathcal C)} + \mat D\vec z - 
+  \mat K(\vec z - \vec\mu_{\mathcal C}), \vec b_{(-\mathcal C)} + 
+  \mat D\vec z - \mat K(\vec z - \vec \mu_{\mathcal C}); \\
+&amp; \vec\mu_{(-\mathcal C)}, \mat\Sigma_{(-\mathcal C)(-\mathcal C)} - 
+  \mat\Sigma_{(-\mathcal C)\mathcal C}\mat\Sigma_{\mathcal C\mathcal C}^{-1}\mat\Sigma_{\mathcal C(-\mathcal C)}\bigg)
+  \der \vec z \\
+\end{align*}
+\]</span></p>
+<p>with <span class="math inline">\(\mat K = \mat\Sigma_{(-\mathcal C)\mathcal C}\mat\Sigma_{\mathcal C\mathcal C}^{-1}\)</span>.</p>
+</section>
+<section id="extending-3" class="slide level2">
+<h2>Extending</h2>
+<p>Applying the identity yields:</p>
+<p><span class="math display">\[
+\Phi^{(h - G)}\bigg(\vec a_{(-\mathcal C)}, \vec b_{(-\mathcal C)}; 
+        \vec\mu_{(-\mathcal C)} - \mat D\vec\mu_{\mathcal C}, 
+        \mat\Sigma_{(-\mathcal C)(-\mathcal C)} + 
+        \mat D\mat\Sigma_{\mathcal C\mathcal C}\mat D^\top)
+\]</span></p>
 
 </section>
 <!-- need extra end tag before next section -->
