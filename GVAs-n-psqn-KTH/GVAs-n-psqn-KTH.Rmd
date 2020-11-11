@@ -1,0 +1,668 @@
+---
+title: "Gaussian Variational Approximation"
+bibliography: ref.bib
+biblio-style: apa
+output: 
+  revealjs::revealjs_presentation:
+    css: styles.css
+    theme: black
+    center: false
+    transition: slide
+    highlight: monochrome
+    self_contained: true
+    reveal_options:
+      slideNumber: true
+    includes:
+      in_header: header.html
+      after_body: doc_suffix.html
+---
+
+## dummy slide
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.height = 5, cache.path = "cache/")
+.par_use <- list(cex = 1.33, cex.lab = 1.2)
+options(digits = 3)
+```
+
+<!--html_preserve-->
+<script>
+(function() {
+  document.getElementById("dummy-slide").remove(); 
+  
+  var front_div = document.getElementsByTagName("section")[0];
+  front_div.classList.add("front");
+  front_div.classList.add("center");
+  
+  // add second header
+  var second_head = document.createElement("p");
+  var node = document.createTextNode("for GLMMs: An Application of the psqn Package");
+  second_head.appendChild(node);
+  second_head.style.margin = "0";
+  front_div.appendChild(second_head);
+  
+  // add author 
+  var credit_div = document.createElement('div');
+  credit_div.innerHTML += "<div class='w-small'><p>Benjamin Christoffersen</p><p class='smallish'>KI, Department of Medical Epidemiology and Biostatistics, <a href='mailto:benjamin.christoffersen@ki.se'>benjamin.christoffersen@ki.se</a></p><p class='smallish'>KTH, Division of Robotics, Perception and Learning, <a href='mailto:benchr@kth.se'>benchr@kth.se</a></p></div>";
+  credit_div.classList.add("authors");
+  front_div.appendChild(credit_div);
+})();
+</script>
+<!--end dummy slide-->
+
+</section>
+
+<section>
+<section class="large-first center slide level2">
+<h1>Introduction</h1>
+<!--/html_preserve-->
+
+<div style="display: none;">
+$$
+\renewcommand\vec{\boldsymbol}
+\def\bigO#1{\mathcal{O}(#1)}
+\def\Cond#1#2{\left(#1\,\middle|\, #2\right)}
+\def\mat#1{\boldsymbol{#1}}
+\def\der{{\mathop{}\!\mathrm{d}}}
+\def\argmax{\text{arg}\,\text{max}}
+\def\Prob{\text{P}}
+\def\Expec{\text{E}}
+\def\logit{\text{logit}}
+\def\diag{\text{diag}}
+$$
+</div>
+
+## Introduction Example
+
+Suppose we have $i = 1,\dots,n$ twin pairs. 
+
+<p class = "fragment">
+For each twin we observe a vector of variables $\vec x_{ij}$ for $j = 1,2$.</p>
+
+<p class = "fragment">
+We have some outcome $Y_{ij} \in \{0, 1\}$ for $j = 1,2$.</p>
+
+## Introduction Example (cont.)
+We suppose that there is an association between $\vec x_{ij}$ and $Y_{ij}$. 
+A simple model is:
+
+$$\logit(\Prob(Y_{ij} = 1)) = \vec\beta^\top\vec x_{ij}$$
+
+## Exponential Family
+This model is in the exponential family. 
+That is, the density is:
+
+$$
+\begin{align*}
+f_{ij}(y) &= \exp(y \eta_{ij}(\vec\beta) - b(\eta_{ij}(\vec\beta))
+  + c(y)) \\
+\eta_{ij}(\vec\beta) &= \vec\beta^\top\vec x_{ij}
+\end{align*}
+$$
+
+<p class = "smallish">
+where $b$ is a log-partition function. This is only the canonical form.</p>
+
+<p class = "fragment">
+The rest of the talk equally applies for the general exponential family.</p>
+
+## Adding Random effects
+There may be genetic effects or environmental effects that change the 
+association between $\vec x_{ij}$ and $Y_{ij}$. 
+
+<div class = "fragment">
+We can model this with some unknown random effect $\vec U_i$ and 
+suppose that:
+
+$$\logit(\Prob(Y_{ij} = 1 \mid \vec U_i = \vec u)) 
+   = (\vec u + \vec\beta)^\top\vec x_{ij}$$
+</div>
+
+## Marginal Likelihood
+
+$$
+\begin{align*}
+f_i(\vec y_i) &= \int g_i(\vec u;\vec\theta)\prod_{j = 1}^2
+  f_{ij}(y_{ij}\mid \vec u)
+  \der\vec u \\
+f_{ij}(y_{ij}\mid \vec u) &= \exp\bigg(y_{ij} \eta_{ij}(\vec\beta,\vec u) 
+  + b(\eta_{ij}(\vec\beta,\vec u))
+  + c(y_{ij})\bigg) \\
+\eta_{ij}(\vec\beta,\vec u) &= (\vec u + \vec\beta)^\top\vec x_{ij}
+\end{align*}
+$$
+
+where $g_i$ is the density of $\vec U_i$ given model parameters 
+$\vec\theta$. Generally Intractable.
+
+<div class = "fragment w-small">
+This is a generalized linear mixed model (GLMM).
+<p class = "smallish">
+Data is referred to as clustered data.</p>
+</div>
+
+## Remarks 
+Typically, one works with:
+
+$$\logit(\Prob(Y_{ij} = 1 \mid \vec U_i = \vec u)) 
+   = \vec\beta^\top\vec x_{ij} + \vec u^\top\vec z_{ij}$$
+  
+
+where $\vec z_{ij}$ contains a subset of $\vec x_{ij}$.
+
+<div class = "fragment">
+Typically, we assume that
+
+$$\vec U_i \sim N(\vec 0, \mat\Sigma_i(\vec\theta))$$
+</div>
+
+## Talk Overview
+Variational approximations. 
+
+Estimation methods. 
+
+Examples. 
+
+Conclusions.
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Variational Approximations</h1>
+<!--/html_preserve-->
+
+## Lower Bound 
+Define the integrand 
+
+$$
+\begin{align*}
+h_i(\vec y_i, \vec u) &= g_i(\vec u;\vec\theta) 
+  \prod_{j = 1}^{l_i}f_{ij}(y_{ij}\mid \vec u)
+\end{align*}
+$$
+
+such that
+
+$$
+\begin{align*}
+f_i(\vec y_i) &= \int h_i(\vec y_i, \vec u)
+  \der\vec u \\
+f_{ij}(y_{ij}\mid \vec u) &= \exp\bigg(y_{ij} \eta_{ij}(\vec\beta,\vec u) 
+  + b(\eta_{ij}(\vec\beta,\vec u))
+  + c(y_{ij})\bigg) \\
+\eta_{ij}(\vec\beta,\vec u) &= \vec\beta^\top\vec x_{ij} + 
+  \vec u^\top\vec z_{ij}
+\end{align*}
+$$
+
+## Lower Bound (cont.)
+
+Select some variational distribution with density $\nu_i$ parameterized 
+by some set $\Omega_i$. Then
+
+$$
+\begin{align*}
+\log f_i(\vec y_i) &\geq \int \nu_i(\vec u;\vec\omega) \log\left(
+  \frac{h_i(\vec y_i,\vec u)}
+       {\nu_i(\vec u;\vec\omega)}\right)\der\vec u \\
+&= \log \tilde f_i(\vec y_i;\vec\omega)
+\end{align*}  
+$$
+
+for some $\vec\omega \in \Omega_i$.
+
+## Approximate Maximum Likelihood
+Use
+
+$$
+\argmax_{\vec\beta,\vec\theta,\vec\omega_1,\dots,\vec\omega_n}
+  \sum_{i = 1}^n \log \tilde f_i(\vec y_i;\vec\omega_i)
+$$
+
+instead of 
+
+$$
+\argmax_{\vec\beta,\vec\theta}
+  \sum_{i = 1}^n \log f_i(\vec y_i)
+$$
+
+## Remarks 
+Often very simple (at worst one dimensional integrals):
+
+$$\int \nu_i(\vec u;\vec\omega) \log\left(
+  h_i(\vec y_i,\vec u)\right)\der\vec u$$
+
+<p class = "smallish">  
+Easily computed with e.g. adaptive Gaussian-Hermite quadrature.</p>
+
+## Computational Issues 
+The number of parameters are $\bigO{n}$.
+
+<div class = "fragment">
+A Gaussian VA (GVA) is:
+
+$$
+\nu_i(\vec u;\vec\mu_i, \mat\Psi_i) = \phi(\vec u;\vec\mu_i, \mat\Psi_i)
+$$
+</div>
+
+<div class = "fragment w-small">
+Let $d$ be the dimension of  $\vec u_i$. Then
+$\vec\omega_i\in\mathbb R^{d(d + 3) / 2}$.
+<p class = "smallish">
+$d = 4$ and $n = 1000$ yields 14000 variational parameters.</p>
+</div>
+
+<p class = "fragment">
+@Ormerod11 show the formulas for GVAs for GLMMs.</p>
+
+## Computational Issues (cont.)
+The objective functions is:
+
+$$
+l(\vec\beta,\vec\theta,\vec\omega_1,\dots,\vec\omega_n) = 
+  \sum_{i = 1}^n \log \tilde f_i(\vec y_i;\vec\omega_i)
+$$
+
+<div class = "fragment">
+The Hessian
+
+$$\nabla^2 l(\vec x) = \begin{pmatrix}
+  \partial^2 l(\vec x) / \partial x_1\partial x_1 &
+  \dots & \partial^2 l(\vec x)\partial x_1\partial x_k \\
+  \vdots &\ddots &\vdots \\
+  \partial^2 l(\vec x) / \partial x_k\partial x_1 & \dots &
+  \partial^2 l(\vec x) / \partial x_k\partial x_k
+\end{pmatrix}$$
+
+is extremely sparse and highly structured.
+</div>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Hessian Example</h2>
+<!--/html_preserve-->
+
+```{r ex_hes_plot, echo = FALSE, fig.width = 2.8, fig.height = 2.8}
+p <- 3L
+q <- c(2L, 6L, 2L, 3L, 6L, 3L, 5L, 3L, 9L, 6L)
+idx <- list()
+off <- p
+for(qi in q){
+  idx <- c(idx, list(c(1:p, 1:qi + off)))
+  off <- off + qi
+}
+l <- max(unlist(idx))
+get_mat <- function(x){
+  o <- matrix(0L, l, l)
+  for(xj in x)
+    for(xi in x)
+      o[xi, xj] <- o[xj, xi] <- 1L
+  o
+}
+img_rev <- function(x, ...){
+  x <- x[, NROW(x):1]
+  cl <- match.call()
+  cl$x <- x
+  cl[[1L]] <- image
+  eval(cl, parent.frame())
+}
+
+par(mar = c(.5, .5, .5, .5))
+img_rev(apply(sapply(idx, get_mat, simplify = "array"), 1:2, sum) > 0, 
+        xaxt = "n", yaxt = "n", col = gray.colors(2L, 1, 0))
+```
+
+<p class = "smallish">
+Hypothetical example of $\nabla^2 f(\vec x)$ with $n = 10$ clusters. 
+Black entries are non-zero.</p>
+
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Optimization Methods</h1>
+<!--/html_preserve-->
+
+## Newton's Method
+Want to minimize some function $f$ with $o$ inputs. 
+
+<div class = "fragment">
+Start at some $\vec x^{(0)}\in\mathbb R^o$. Set $k = 0$ and
+
+$$\vec x^{(k+1)} = \vec x^{(k)} - \gamma(\nabla^2 f(\vec x^{(k)}))^{-1}\nabla f(\vec x^{(k)})$$
+
+for $\gamma \in (0, 1]$. Set $k \leftarrow k + 1$ if not converged.
+</div>
+
+<p class = "fragment">
+Good convergence properties if started close to an optimum. Inversion is 
+$\bigO {o^3}$ in general.</p>
+
+## BFGS
+<div class = "w-small">
+Recursively update an approximation of $(\nabla^2 f(\vec x^{(k)}))^{-1}$ 
+<p class = "smallish">
+using rank-two updates. Can also provide an approximation of 
+$\nabla^2 f(\vec x^{(k)})$.</p>
+</div>
+
+<p class = "fragment">
+Still a $\bigO{o^2}$ iteration cost and memory cost.</p>
+
+## Limited-memory BFGS
+Make an approximation of $\nabla^2 f(\vec x^{(k)})$ using only the last couple
+of gradients, $\nabla f(\vec x^{(k)})$. 
+
+<p class = "fragment">
+$\bigO o$ iteration cost and memory cost.</p>
+
+<p class = "fragment">
+Poor convergence properties.</p>
+
+## Partial Separability
+Suppose that 
+
+$$f(\vec x) = \sum_{i = 1}^n f_i(\vec x_{\mathcal I_i})$$
+
+where 
+
+$$\begin{align*}
+\vec x_{\mathcal I_i} &=    (\vec e_{j_{i1}}^\top, \dots ,\vec e_{j_{im_i}}^\top)\vec x\\
+\mathcal I_i &= (j_{i1}, \dots, \mathcal j_{im_i}) \subseteq  \{1, \dots, o\}
+\end{align*},$$
+
+$\vec e_k$ is the $k$'th column of the $o$ dimensional identity matrix, 
+and $m_i \ll o$ for all $i = 1,\dots,n$.
+
+## Partial Separability (cont.)
+Make $n$ BFGS approximations of 
+$\nabla^2 f_1(\vec x^{(k)}_{\mathcal I_1}),\dots,\nabla^2 f_n(\vec x^{(k)}_{\mathcal I_n})$.
+
+<p class = "fragment">
+Preserves the sparsity of $\nabla^2 f(\vec x^{(k)})$ and provides
+potentially quicker convergence towards a good approximation.</p>
+
+<div class = "fragment w-small">
+Approximately compute $(\nabla^2 f(\vec x^{(k)})^{-1}\nabla f(\vec x^{(k)})$
+using a conjugate gradient method.
+<p class = "smallish">
+Fast as we can do sparse matrix-vector products.</p>
+</div>
+
+## Implementation 
+Implemented in the psqn package [@Christoffersen20]. 
+
+<p class = "fragment">
+Provides a header-only C++ library and a R interface.</p>
+
+<p class = "fragment">
+Supports computation in parallel.</p>
+
+## Remarks
+Closely followed @nocedal06.
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Examples</h1>
+<!--/html_preserve-->
+
+## 1D Random Effects
+Three dimensional fixed effects, $\vec x_{ij}, \vec\beta\in\mathbb R^3$. 
+
+<p class = "fragment">
+One dimensional random effect, $\vec U_i \in \mathbb R$ and $\vec z_{ij} = (1)$.</p>
+
+<div class = "fragment w-small">
+Three observations per cluster. Each outcome is conditionally binomially 
+distributed with a size in 1-5. 
+<p class = "smallish">
+All configuration includes 100 replications.</p>
+</div>
+
+<p class = "fragment">
+Compare with the Laplace approximation and the adaptive Gauss-Hermite 
+quadrature (AGHQ) from the lme4 package [@Bates15].</p>
+
+## 1D Random Effects (small)
+$n = 1000$ clusters. Bias estimates are:
+
+```{r uni_small_bias, echo = FALSE}
+res <- readRDS("small-uni-res.RDS")
+fixef <- do.call(rbind, res$fixef)
+sigs <- do.call(rbind, res$stdev)
+bias_est <- cbind(fixef, sigs)
+
+colnames(bias_est) <- c("Inter.", "Cont.", "Bin.", "Std.")
+keep <- !rownames(bias_est) %in% c("GVA (4 threads)", "GVA LBFGS")
+bias_est <- bias_est[keep, ]
+
+n_meth <- NROW(bias_est) / 2
+bias_est <- bias_est[rep(1:n_meth, each = 2) + rep(c(0L, n_meth), n_meth), ]
+bias_est[] <- apply(bias_est, 2, function(x){
+  n_dig <- floor(max(-log10(abs(x)))) + 2
+  f1 <- paste0("%.", n_dig, "f")
+  f2 <- paste0("(%.", n_dig, "f)")
+  ifelse(seq_along(x) %% 2 == 1, sprintf(f1, x), sprintf(f2, x))
+})
+rownames(bias_est)[duplicated(rownames(bias_est))] <- ""
+
+knitr::kable(bias_est, align = "r")
+```
+
+<p class = "smallish">
+Monte Carlo standard errors are in parentheses. The first three columns 
+are the fixed effects, $\vec\beta$. Inter.: intercept, cont.: continuous 
+covariate, and bin.: binary covariate. The last column is the random 
+effect standard deviation. The GVA row uses the psqn package.</p>
+
+## 1D Random Effects (comp. time)
+
+```{r uni_small_comp, echo = FALSE}
+knitr::kable(res$time, digits = 3)
+```
+
+<p class = "smallish">
+Computation times are in seconds. "GVA LBFGS" uses the limited-memory BFGS
+implementation in the lbfgs package [@Coppola20].</p>
+
+## 1D Random Effects (large)
+$n = 5000$ clusters.  Bias estimates are:
+
+```{r uni_large_bias, echo = FALSE}
+res <- readRDS("large-uni-res.RDS")
+fixef <- do.call(rbind, res$fixef)
+sigs <- do.call(rbind, res$stdev)
+bias_est <- cbind(fixef, sigs)
+
+colnames(bias_est) <- c("Inter.", "Cont.", "Bin.", "Rng Std.")
+keep <- !rownames(bias_est) %in% c("GVA (4 threads)", "GVA LBFGS")
+bias_est <- bias_est[keep, ]
+
+n_meth <- NROW(bias_est) / 2
+bias_est <- bias_est[rep(1:n_meth, each = 2) + rep(c(0L, n_meth), n_meth), ]
+bias_est[] <- apply(bias_est, 2, function(x){
+  n_dig <- floor(max(-log10(abs(x)))) + 2
+  f1 <- paste0("%.", n_dig, "f")
+  f2 <- paste0("(%.", n_dig, "f)")
+  ifelse(seq_along(x) %% 2 == 1, sprintf(f1, x), sprintf(f2, x))
+})
+rownames(bias_est)[duplicated(rownames(bias_est))] <- ""
+
+knitr::kable(bias_est, align = "r")
+```
+
+<p class = "smallish">
+Monte Carlo standard errors are in parentheses. The first three columns 
+are the fixed effects, $\vec\beta$. Inter.: intercept, cont.: continuous 
+covariate, and bin.: binary covariate. The last column is the random 
+effect standard deviation. The GVA row uses the psqn package.</p>
+
+## 1D Random Effects (comp. time)
+
+```{r uni_large_comp, echo = FALSE}
+knitr::kable(res$time, digits = 3)
+```
+
+<p class = "smallish">
+Computation times are in seconds. "GVA LBFGS" uses the limited-memory BFGS
+implementation in the lbfgs package.</p>
+
+## 3D Random Effects
+Three dimensional random effect, $\vec U_i \in \mathbb R^3$ and 
+$\vec z_{ij} = \vec x_{ij}$.
+
+<p class = "fragment">
+$n = 1000$ clusters. Ten observations per cluster.</p>
+
+## 3D Random Effects
+Bias estimates are:
+
+```{r 3D_bias, echo = FALSE}
+res <- readRDS("3D-res.RDS")
+fixef <- do.call(rbind, res$fixef)
+sigs <- do.call(rbind, res$stdev)
+cor_mats <- do.call(rbind, res$cor_mat)
+bias_est <- cbind(fixef, sigs, cor_mats)
+
+nams <- c("Inter.", "Cont.", "Bin.")
+colnames(bias_est) <- c(nams, paste(nams, "std."), 
+                        c("cor cont. inter.", "cor bin. inter.", 
+                          "cor cont. bin."))
+keep <- !rownames(bias_est) %in% c("GVA (4 threads)", "GVA LBFGS")
+bias_est <- bias_est[keep, ]
+
+n_meth <- NROW(bias_est) / 2
+bias_est <- bias_est[rep(1:n_meth, each = 2) + rep(c(0L, n_meth), n_meth), ]
+bias_est[] <- apply(bias_est, 2, function(x){
+  n_dig <- floor(max(-log10(abs(x)))) + 2
+  f1 <- paste0("%.", n_dig, "f")
+  f2 <- paste0("(%.", n_dig, "f)")
+  ifelse(seq_along(x) %% 2 == 1, sprintf(f1, x), sprintf(f2, x))
+})
+rownames(bias_est)[duplicated(rownames(bias_est))] <- ""
+
+knitr::kable(bias_est[, 1:6], align = "r")
+```
+
+<p class = "smallish">
+Monte Carlo standard errors are in parentheses. The first three columns 
+are the fixed effects, $\vec\beta$. Inter.: intercept, cont.: continuous 
+covariate, and bin.: binary covariate. The last three columns are the random 
+effect standard deviations. The GVA row uses the psqn package.</p>
+
+## 3D Random Effects 
+
+```{r 3D_cor, echo = FALSE}
+knitr::kable(bias_est[, 7:9], align = "r")
+```
+
+<p class = "smallish">
+Bias estimates of the correlation coefficients. 
+Monte Carlo standard errors are in parentheses.</p>
+
+## 3D Random Effects (comp. time)
+
+```{r 3D_time, echo = FALSE}
+knitr::kable(res$time, digits = 3)
+```
+
+<p class = "smallish">
+Computation times are in seconds. "GVA LBFGS" uses the limited-memory BFGS
+implementation in the lbfgs package.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Conclusions</h1>
+<!--/html_preserve-->
+
+## Conclusions
+Introduced variational approximations for generalized linear mixed models. 
+
+<div class = "fragment w-small">
+Number of variational parameters increase quickly 
+<p class = "smallish">
+in the number of clusters and the dimension of the random effects.</p>
+</div>
+
+<p class = "fragment">
+The psqn package exploits the sparsity of the Hessian and yields very fast
+estimation times.</p>
+
+## Extension
+Easy to extend to other members of the exponential family and use other link
+functions.
+
+<p class = "fragment">
+Can use other variational distributions.</p>
+
+## Extension to the psqn Package
+Add Newton conjugate gradient method. 
+
+<p class = "fragment">
+Add constraints.</p>
+
+<p class = "fragment">
+Add a trust region method.</p>
+
+<p class = "fragment">
+Add other sparsity patterns of the Hessian.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="center final">
+<h1>Thank You!</h1>
+
+<div class="w-small">
+<p class="smallish">The presentation is at  
+<a href="https://rpubs.com/boennecd/GVAs-n-psqn-KTH">rpubs.com/boennecd/GVAs-n-psqn-KTH</a>.</p>
+<p class="smallish">The markdown is at  
+<a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
+<p class="smallish">The code for the example is at  
+<a href="https://github.com/boennecd/psqn-va-ex">github.com/boennecd/psqn-va-ex</a>.</p>
+<p class="smallish">The psqn package is CRAN and at 
+<a href="https://github.com/boennecd/psqn">github.com/boennecd/psqn</a>.</p>
+<p class="smallish">References are on the next slide.</p>
+</div>
+
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<section>
+<h1>References</h1>
+
+<!--/html_preserve-->
