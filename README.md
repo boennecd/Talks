@@ -1,4 +1,4 @@
-### KTH Group Meeting November 2020: GVAs of GLMMs using the psqn Package
+### KTH Group Meeting November 2020: GVAs for GLMMs using the psqn Package
 [Code](/GVAs-n-psqn-KTH/GVAs-n-psqn-KTH.Rmd) and presentation at 
 [RPubs](https://rpubs.com/boennecd/GVAs-n-psqn-KTH).
 
