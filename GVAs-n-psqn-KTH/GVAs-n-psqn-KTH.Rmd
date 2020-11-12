@@ -1,5 +1,5 @@
 ---
-title: "Gaussian Variational Approximation"
+title: "Gaussian Variational Approximations"
 bibliography: ref.bib
 biblio-style: apa
 output: 
@@ -650,7 +650,7 @@ Add other sparsity patterns of the Hessian.</p>
 <a href="https://rpubs.com/boennecd/GVAs-n-psqn-KTH">rpubs.com/boennecd/GVAs-n-psqn-KTH</a>.</p>
 <p class="smallish">The markdown is at  
 <a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
-<p class="smallish">The code for the example is at  
+<p class="smallish">The code for the example are at  
 <a href="https://github.com/boennecd/psqn-va-ex">github.com/boennecd/psqn-va-ex</a>.</p>
 <p class="smallish">The psqn package is CRAN and at 
 <a href="https://github.com/boennecd/psqn">github.com/boennecd/psqn</a>.</p>
