@@ -1,0 +1,14 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+renv/*
+fig
+cache/*
+!cache/.placeholder
+!cache/small
+cache/small/*
+!cache/small/.placeholder
+!cache/large
+cache/large/*
+!cache/large/.placeholder

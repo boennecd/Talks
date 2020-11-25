@@ -1,0 +1,675 @@
+---
+title: "Mixed Effect Models for Pedigree Data"
+bibliography: ref.bib
+biblio-style: apa
+output: 
+  revealjs::revealjs_presentation:
+    css: styles.css
+    theme: black
+    center: false
+    transition: slide
+    highlight: monochrome
+    self_contained: true
+    reveal_options:
+      slideNumber: true
+    includes:
+      in_header: header.html
+      after_body: doc_suffix.html
+---
+
+## dummy slide
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.height = 5, cache.path = "cache/")
+.par_use <- list(cex = 1.33, cex.lab = 1.2)
+options(digits = 3)
+```
+
+<!--html_preserve-->
+<script>
+(function() {
+  document.getElementById("dummy-slide").remove(); 
+  
+  var front_div = document.getElementsByTagName("section")[0];
+  front_div.classList.add("front");
+  front_div.classList.add("center");
+  
+  // add second header
+  var second_head = document.createElement("p");
+  var node = document.createTextNode("Application of Randomized Quasi-Monte Carlo");
+  second_head.appendChild(node);
+  second_head.style.margin = "0";
+  front_div.appendChild(second_head);
+  
+  // add author 
+  var credit_div = document.createElement('div');
+  credit_div.innerHTML += "<div class='w-small'><p>Benjamin Christoffersen</p><p class='smallish'>KI, Department of Medical Epidemiology and Biostatistics, <a href='mailto:benjamin.christoffersen@ki.se'>benjamin.christoffersen@ki.se</a></p><p class='smallish'>KTH, Division of Robotics, Perception and Learning, <a href='mailto:benchr@kth.se'>benchr@kth.se</a></p></div>";
+  credit_div.classList.add("authors");
+  front_div.appendChild(credit_div);
+})();
+</script>
+<!--end dummy slide-->
+
+</section>
+
+<section>
+<section class="large-first center slide level2">
+<h1>Motivation</h1>
+<!--/html_preserve-->
+
+<div style="display: none;">
+$$
+\renewcommand\vec{\boldsymbol}
+\def\bigO#1{\mathcal{O}(#1)}
+\def\Cond#1#2{\left(#1\,\middle|\, #2\right)}
+\def\mat#1{\boldsymbol{#1}}
+\def\der{{\mathop{}\!\mathrm{d}}}
+\def\argmax{\text{arg}\,\text{max}}
+\def\Prob{\text{P}}
+\def\Expec{\text{E}}
+\def\logit{\text{logit}}
+\def\diag{\text{diag}}
+$$
+</div>
+
+## Research Question
+Want to estimate genetic effect, environmental effect, paternal effect, etc.
+
+<p class = "fragment">
+We observe $j = 1,\dots, n_i$ binary outcomes in $i = 1,\dots, m$ 
+clusters.</p>
+
+<p class = "fragment">
+Running Example: Interested in presence of a genetic effect and maternal 
+effect.</p>
+
+## Model
+<div class = "w-small">
+
+$$
+\begin{align*}
+Y_{ij} &= 1_{\{\vec\beta^\top\vec x_{ij} + \epsilon_{i1j} + 
+  \epsilon_{i2j} + \epsilon_{i3j} > 0\}} \\
+\vec\epsilon_{ik} &= (\epsilon_{ik1}, \dots, \epsilon_{ikn_i})^\top \\
+\vec\epsilon_{i1} & 
+  \sim N^{(n_i)}(\vec0, 2\theta_1\mat K_i) \\
+\vec\epsilon_{i2} & 
+  \sim N^{(n_i)}(\vec0, \theta_2\mat R_i\mat K_i\mat R_i^\top) \\
+\vec\epsilon_{i3} & 
+  \sim N^{(n_i)}(\vec0, \mat I)
+\end{align*}
+$$
+<p class = "smallish">
+where $\mat K_i$ is the kinship matrix and $\mat R_i$ is a matrix 
+such that $\vec\epsilon_{i2}$ represents a maternal effect.</p>
+
+<p class = "fragment">
+Quantify heritability through $\theta_1 \big/(\theta_1 + \theta_2 + 1)$.</p>
+
+## General Model
+
+$$
+\begin{align*}
+Y_{ij} &= 1_{\{\vec\beta^\top\vec x_{ij} + \epsilon_{ij} > 0\}} \\
+\vec\epsilon_i = (\epsilon_{i1}, \dots, \epsilon_{in_i}) &\sim
+  N^{(n_i)}(\vec 0, \mat I + \mat\Sigma_i(\vec\theta)) \\
+\mat\Sigma_i(\vec\theta) &= \sum_{k = 1}^K \theta_k \mat C_{ik}
+\end{align*}
+$$
+
+for known matrices $\mat C_{i1}, \dots, \mat C_{iK}$.
+
+## Previous Work
+@Pawitan04 use the Fortran code by @Genz02 to estimate the model 
+using a derivative-free optimization method.
+
+## Talk Overview
+Extended code. 
+
+<p class = "fragment">
+Simulation study.</p>
+
+<p class = "fragment">
+Extensions.</p>
+
+<p class = "fragment">
+Conclusion.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Marginal Likelihood</h1>
+<!--/html_preserve-->
+
+## The Marginal Likelihood
+
+$$
+\begin{align*}
+L_i(\vec\beta,\vec\theta) &= \int \phi^{(n_i)}
+  (\vec z;\vec 0, \mat\Sigma_i(\vec\theta) )
+  \prod_{j = 1}^{n_i}\Phi(
+    u_{ij}(\vec\beta^\top \vec x_{ij} + z_j))
+  \der\vec z \\
+u_{ij} &= 2y_{ij} - 1
+\end{align*}.
+$$
+
+<div class = "fragment">
+Find the MLE:
+
+$$
+\argmax_{\vec\beta,\vec\theta} \sum_{i = 1}^m\log 
+  L_i(\vec\beta,\vec\theta).
+$$
+</p>
+
+## Identity
+
+$$
+\begin{align*}
+\begin{pmatrix} \vec Y_1 \\ \vec Y_2\end{pmatrix} &\sim 
+  N^{(k_1 + k_2)}\left(
+  \begin{pmatrix} \vec\xi_1 \\ \vec \xi_2\end{pmatrix}, 
+  \begin{pmatrix} 
+    \vec\Xi_{11} & \vec\Xi_{12} \\
+    \vec\Xi_{21} & \vec\Xi_{22}
+  \end{pmatrix}
+  \right) \\
+\Prob(\vec Y_2 \leq \vec x) &= 
+  \Phi^{(k_2)}(\vec x; \vec\xi_2,\mat\Xi_{22}) \\
+&= \int \phi^{(k_1)}(\vec z;\vec\xi_1,\mat\Xi_{11})
+  \Phi^{(k_2)}\Big( \\
+&\hspace{25pt}\vec x; \vec\xi_2 + \mat\Xi_{21}\mat\Xi_{11}^{-1}(\vec z
+    - \vec \xi_1), \mat\Xi_{22} - \mat\Xi_{21}\mat\Xi_{11}^{-1}\mat\Xi_{12}
+    \Big)\der\vec z
+\end{align*}
+$$
+
+## The Marginal Likelihood (cont.)
+
+$$
+\begin{align*}
+L_i(\vec\beta,\vec\theta) &= 
+  \Phi^{(n_i)}(\mat U_i\mat X_i\vec\beta;\vec 0, \mat I + 
+  \mat U_i\mat\Sigma_i(\vec\theta) \mat U_i) \\
+&= \int_{\vec z\leq \mat U_i\mat X_i\vec\beta}
+  \phi^{(n_i)}(\vec z; \vec 0, 
+  \mat I + 
+  \mat U_i\mat\Sigma_i(\vec\theta) \mat U_i)\der\vec z \\
+&= \int_{\mat S^\top\vec z\leq \mat U_i\mat X_i\vec\beta}
+  \prod_{j = 1}^{n_i} \phi(z_j)\der\vec z
+\end{align*}
+$$
+
+where $\mat U_i = \text{diag}(\vec u_i)$ and
+
+$$\mat I + \mat U_i\mat\Sigma_i(\vec\theta) \mat U_i = \mat S^\top\mat S.$$
+
+## Importance Sampling
+
+$$
+\begin{align*}
+L_i(\vec\beta,\vec\theta) 
+&= \int
+  \frac{\prod_{j = 1}^{n_i} \phi(z_j)}{
+  h(\vec z)}h(\vec z)\der\vec z \\
+&= \int
+  h(\vec z)\prod_{j = 1}^{n_i}
+  \Phi(\vec s_j^\top\vec z - u_{ij}\vec x_{ij}^\top\vec\beta)\der z
+\end{align*}
+$$
+
+where
+
+$$
+h(\vec z) =  \begin{cases} \prod_{j = 1}^{n_i}
+  \frac{\phi(z_j)}
+  {\Phi(\vec s_j^\top\vec z  - u_{ij}\vec x_{ij}^\top\vec\beta)} &
+  \mat S^\top\vec z\leq \mat U_i\mat X_i\vec\beta \\
+  0 & \text{otherwise}
+\end{cases}.
+$$
+
+## Importance Sampling (cont.)
+Closely follow @Genz09. 
+
+<div class = "fragment">
+Like @Genz92 and @Genz02:
+
+a. Add a heuristic variable re-ordering. 
+b. Use randomized Korobov rules [@Niederreiter1972; @Keast73; @Cranley76].
+
+</div>
+
+## New Code 
+<div class = "w-small">
+Rewritten most of the Fortran code by @Genz02 in C++. 
+<p class ="smallish">
+Used in the mvtnorm package @Genz20.</p>
+</div>
+
+<p class = "fragment">
+Added fast $\Phi$ and $\Phi^{-1}$ approximations.</p>
+
+<div class = "w-small fragment">
+Added support for computation in parallel. 
+<p class = "smallish">
+Seems compute-bound.</p>
+</div>
+
+<div class = "w-small fragment">
+Added gradient approximations.
+<p class = "smallish">
+Like @Hajivassiliou96 but with all of the above, re-ordering, and
+randomized Korobov rules.</p>
+</div>
+
+## Gradient Approximations
+
+$$
+\begin{align*}
+L_i'(\vec\beta,\vec\theta) &= 
+  \int_{\vec z\leq \mat U_i\mat X_i\vec\beta}
+  \vec g(\vec z; \vec\beta, \vec\theta)
+  \phi^{(n_i)}(\vec z; \vec 0, 
+  \mat I + 
+  \mat U_i\mat\Sigma_i(\vec\theta) \mat U_i)\der\vec z \\
+&= 
+  \int_{\mat S^\top\vec z\leq \mat U_i\mat X_i\vec\beta}
+  \vec g(\mat S^{-\top}\vec z; \vec\beta, \vec\theta)
+  \phi(z_j)\der\vec z\\
+&= \int 
+  \vec g(\mat S^{-\top}\vec z; \vec\beta, \vec\theta) 
+  h(\vec z)\prod_{j = 1}^{n_i}
+  \Phi(\vec s_j^\top\vec z - u_{ij}\vec x_{ij}^\top\vec\beta)\der z
+\end{align*}.
+$$
+
+<div class = "fragment">
+Used for
+
+$$
+\sum_{i = 1}^m
+(\log L_i(\vec\beta,\vec\theta))' = 
+  \sum_{i = 1}^m
+  \frac{L_i'(\vec\beta,\vec\theta)}{L_i(\vec\beta,\vec\theta)}.
+$$
+</div>
+
+## Std. Normal CDF Approximation
+Use monotone cubic interpolation:
+
+```{r source_cdf_apprx, echo = FALSE, cache = 1}
+Rcpp::sourceCpp(file.path("src", "norm-cdf-approx.cpp"), embeddedR = FALSE)
+```
+
+```{r show_cdf_aprx, cache = 1}
+truth <- exp(seq(log(1e-32), log(1 - 1e-16), length.out = 10000))
+args <- qnorm(truth)
+range(pnorm(args) - pnorm_aprx(args))
+```
+
+## Std. Normal CDF Approximation
+
+```{r time_show_cdf_aprx, cache = 1}
+bench::mark(pnorm = pnorm(args), aprx = pnorm_aprx(args), min_time = 1, 
+            check = FALSE)
+```
+
+## Std. Normal Quantile Approximation
+<div class = "w-small">
+Use lower precision method shown by @Wichura88.
+<p class = "smallish">
+Same paper used by `stats::qnorm`. </p>
+</div>
+
+```{r source_inv_cdf_apprx, echo = FALSE, cache = 1}
+Rcpp::sourceCpp(file.path("src", "norm-inv-cdf-approx.cpp"), embeddedR = FALSE)
+```
+
+```{r show_inv_cdf_aprx, cache = 1}
+args <- exp(seq(log(1e-32), log(1 - 1e-16), length.out = 10000))
+range(qnorm(args) - qnorm_aprx(args))
+```
+
+## Std. Normal Quantile Approximation
+
+```{r time_inv_show_cdf_aprx, cache = 1}
+bench::mark(qnorm = qnorm(args), aprx = qnorm_aprx(args), 
+            min_time = 1, check = FALSE)
+```
+
+## Approximate Multivariate Normal CDF 
+
+```{r setup_cdf_ex, echo = FALSE, cache = 1}
+n <- 5
+mu <- rep(0, 5)
+lw <- rep(-1, 5)
+up <- rep(3, 5)
+sig <- diag(5)
+sig[lower.tri(sig)] <- 0.5
+sig[upper.tri(sig)] <- 0.5
+library(mvtnorm)
+library(pedmod)
+pmvnorm <- function(...)
+  mvtnorm::pmvnorm(..., algorithm = GenzBretz(abseps = 0, releps = 1e-3))
+formals(mvndst)[c("maxvls", "use_aprx", "rel_eps", "abs_eps")] <- 
+  list(25000L, TRUE, 1e-3, 0)
+```
+
+<div class = "w-small">
+Compare `mvtnorm::pmvnorm` with `pedmod::mvndst`:
+<p class = "smallish">
+Example from `?mvtnorm::pmvnorm`.</p>
+</div>
+
+```{r show_cdf_ex, cache = 1}
+set.seed(95501057)
+print(c(pmvnorm(lw, up, mu, sig), 
+        mvndst (lw, up, mu, sig)), digits = 5)
+```
+
+## Approximate Multivariate Normal CDF 
+
+The MC error is comparable:
+
+```{r err_show_cdf_ex, cache = 1}
+set.seed(95501057)
+apply(
+  replicate(100, c(pmvnorm(lw, up, mu, sig), 
+                   mvndst (lw, up, mu, sig))), 
+  1, sd)
+```
+
+## Approximate Multivariate Normal CDF 
+
+```{r time_show_cdf_ex, cache = 1}
+set.seed(1)
+bench::mark(mvtnorm = pmvnorm(lw, up, mu, sig), 
+            pedmod  = mvndst(lw, up, mu, sig), min_time = 1, check = FALSE)
+```
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Simulation Study</h1>
+<!--/html_preserve-->
+
+## Setup
+
+$m = 1000$ families with:
+
+$$
+\begin{align*}
+\vec x_{ij} &= \left(1, Z_{ij}, \left(j - (n_i + 1) / 2\right) / v(n_i)
+  \right)^\top \\
+v(x) &= \sqrt{x (x + 1) \big/ 12} \\
+Z_{ij}&\sim N(0, 1) \\
+\vec\beta &= (-1, 0.3, 0.2)^\top \\
+\vec\theta &= (0.5, 0.3)^\top
+\end{align*}
+$$
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Example</h2>
+<!--/html_preserve-->
+
+```{r show_ex, echo=FALSE, message=FALSE}
+library(pedmod)
+source(system.file("gen-pedigree-data.R", package = "pedmod"))
+set.seed(1)
+ex_dat <- sim_pedigree_data(max_members = 40L, n_families = 1L)
+ex_dat <- ex_dat$sim_data[[1L]]
+plot(ex_dat$pedAll)
+```
+
+Only keep the youngest generation as @Mahjani20.
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Scale Matrix: Genetic Effect</h2>
+<!--/html_preserve-->
+
+```{r genetic_show, echo = FALSE}
+rev_img <- function(x, ...)
+  image(x[, NROW(x):1], ...)
+cl <- colorRampPalette(c("Red", "White", "Blue"))(101)
+par(mar = c(2, 2, 1, 1))
+rev_img(ex_dat$rel_mat, xaxt = "n", yaxt = "n", col = cl, 
+        zlim = c(-1, 1))
+```
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Scale Matrix: Maternal Effect</h2>
+<!--/html_preserve-->
+
+```{r maternal_show, echo = FALSE}
+par(mar = c(2, 2, 1, 1))
+rev_img(ex_dat$met_mat, xaxt = "n", yaxt = "n", col = cl, 
+        zlim = c(-1, 1))
+```
+
+## Smaller Families
+$n_i \sim  13$ yielding $13000$ observations.
+
+<p class = "fragment">
+Start with a maximum of 5000 samples per term. Then use 25000.</p>
+
+## Smaller Families: Bias
+
+```{r small_get_res, echo = FALSE, message=FALSE}
+ev <- new.env()
+ev$cache_dir <- "small"
+ev$max_members <- 40L
+source(file.path("R", "sim-study.R"), local = ev)
+
+bs <- ev$bias
+bs <- apply(bs, 2, function(x) 
+  round(x, max(0, -floor(min(log10(abs(x)))) + 2)))
+knitr::kable(bs, digits = 5)
+```
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Smaller Families: Bias (cont.)</h2>
+<!--/html_preserve-->
+
+```{r small_plot_err, echo = FALSE}
+# plot the errors
+par(mar = c(5, 4, 1, 1))
+boxplot(t(ev$errors[, "w/ extra" , ]))
+abline(h = 0, lty = 2)
+```
+
+## Smaller Families: Computation Time
+
+```{r small_comp_times, echo = FALSE}
+knitr::kable(ev$comp_times_stats, digits = 2)
+```
+
+## Larger Families
+$n_i \sim  50$ yielding $50000$ observations.
+
+## Larger Families: Bias
+
+```{r large_get_res, echo = FALSE, message=FALSE}
+ev <- new.env()
+ev$cache_dir <- "large"
+ev$max_members <- 150L
+source(file.path("R", "sim-study.R"), local = ev)
+
+bs <- ev$bias
+bs <- apply(bs, 2, function(x) 
+  round(x, max(0, -floor(min(log10(abs(x)))) + 2)))
+knitr::kable(bs, digits = 5)
+```
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Larger Families: Bias (cont.)</h2>
+<!--/html_preserve-->
+
+```{r larger_plot_err, echo = FALSE}
+# plot the errors
+par(mar = c(5, 4, 1, 1))
+boxplot(t(ev$errors[, "w/ extra" , ]))
+abline(h = 0, lty = 2)
+```
+
+## Larger Families: Computation Time
+
+```{r large_comp_times}
+knitr::kable(ev$comp_times_stats, digits = 2)
+```
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Extensions</h1>
+<!--/html_preserve-->
+
+## Improvements
+<div class = "w-small">
+Get better starting values.
+<p class = "smallish">
+Make an efficient Gaussian variational approximation or Laplace 
+approximation to get starting values.</p>
+</div>
+
+<p class = "fragment">
+Use stochastic gradient techniques.</p>
+
+## Survival Data
+$Y_{ij}^* \in (0,\infty)$ with independent right censoring time 
+$S_{ij} \in (0,\infty)$.  
+
+<div class = "fragment">
+Use a mixed generalized survival model 
+
+$$
+\begin{align*}
+P(Y_{ij}^* > y \mid \epsilon_{ij} = e) &= \Phi(
+  -\vec g(y)^\top\vec\omega - \vec\beta^\top\vec x_{ij} - e) \\
+f_{Y_{ij}^*\mid \epsilon_{ij}}(y, e) &= \phi(
+  -\vec g(y)^\top\vec\omega - \vec\beta^\top\vec x_{ij} - e)
+  \vec g'(y)^\top\vec\omega
+  \\
+\vec\epsilon_i &\sim
+  N^{(n_i)}(\vec 0, \mat\Sigma_i(\vec\theta))
+\end{align*}
+$$
+</div>
+
+## Survival Data
+A simple case is $\vec g(y) = \log y$ in which case
+
+$$
+\begin{align*}
+\omega\log Y_{ij}^* &= -\vec\beta^\top\vec x_{ij} + \epsilon_{ij} \\
+\vec\epsilon_i &\sim
+  N^{(n_i)}(\vec 0, \mat I + \mat\Sigma_i(\vec\theta))
+\end{align*}
+$$
+
+<p class = "fragment">
+The CDF dimension is equal to the number of censored individuals.</p>
+
+## Generic GLMMs
+The identity can be used for multionomial and ordinal data with the probit 
+link.
+
+<p class = "fragment">
+Approximating the CDF when the number of random effects per cluster 
+is not much smaller than the number of observations in a cluster.</p>
+
+## Imputation Method
+Use Gaussian copula for the joint distribution of mixed data types. 
+
+<div class = "w-small fragment">
+Improve upon the approximate EM-algorithm by @zhao19. 
+<p class = "smallish">
+See [github.com/boennecd/mdgc](https://github.com/boennecd/mdgc).</p>
+</div>
+
+<p class = "fragment">
+One can Extend the approach to multinomial data.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Conclusions</h1>
+<!--/html_preserve-->
+
+## Conclusions
+Extended the estimation method suggested by @Pawitan04. 
+
+<div class = "fragment w-small">
+Showed that the new C++ implementation is fast 
+<p class = "smallish">
+for large data sets with moderate to high dimensional integrals per 
+cluster.</p>
+</div>
+
+<p class = "fragment">
+Discussed extensions to other types of outcomes.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="center final">
+<h1>Thank You!</h1>
+
+<div class="w-small">
+<p class="smallish">The presentation is at  
+<a href="https://rpubs.com/boennecd/MEB-RQMC-pedigree">rpubs.com/boennecd/MEB-RQMC-pedigree</a>.</p>
+<p class="smallish">The markdown is at  
+<a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
+<p class="smallish">The R package is at
+<a href="https://github.com/boennecd/pedmod">github.com/boennecd/pedmod</a>.</p>
+<p class="smallish">References are on the next slide.</p>
+</div>
+
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<section>
+<h1>References</h1>
+
+<!--/html_preserve-->
