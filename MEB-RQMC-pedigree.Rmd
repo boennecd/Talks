@@ -251,7 +251,7 @@ b. Use randomized Korobov rules [@Niederreiter1972; @Keast73; @Cranley76].
 <div class = "w-small">
 Rewritten most of the Fortran code by @Genz02 in C++. 
 <p class ="smallish">
-Used in the mvtnorm package @Genz20.</p>
+Used in the mvtnorm package [@Genz20].</p>
 </div>
 
 <p class = "fragment">
@@ -472,6 +472,9 @@ $n_i \sim  13$ yielding $13000$ observations.
 <p class = "fragment">
 Start with a maximum of 5000 samples per term. Then use 25000.</p>
 
+<p class = "fragment">
+Use four threads.</p>
+
 ## Smaller Families: Bias
 
 ```{r small_get_res, echo = FALSE, message=FALSE}
@@ -537,7 +540,7 @@ abline(h = 0, lty = 2)
 
 ## Larger Families: Computation Time
 
-```{r large_comp_times}
+```{r large_comp_times, echo = FALSE}
 knitr::kable(ev$comp_times_stats, digits = 2)
 ```
 
@@ -617,7 +620,7 @@ See [github.com/boennecd/mdgc](https://github.com/boennecd/mdgc).</p>
 </div>
 
 <p class = "fragment">
-One can Extend the approach to multinomial data.</p>
+One can extend the approach to multinomial data.</p>
 
 <!--html_preserve-->
 </section>

@@ -124,7 +124,7 @@ div.logo-kth {
 }
 
 .reveal section > img, .reveal section > p > img, div.column > p > img {
-  max-height: 45vh;
+  max-height: 37vh;
   height: auto;
   width: auto;
   border: none;
@@ -167,7 +167,7 @@ div.references > div > p {
 
 .reveal table {
   border-style: none;
-  font-size: 0.55em;
+  font-size: 0.75em;
   margin-top: .5em;
   margin-bottom: .5em;
 }

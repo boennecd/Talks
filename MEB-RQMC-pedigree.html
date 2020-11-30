@@ -1528,7 +1528,7 @@ max-height: 40vh;
 background-color: #d3d3d338;
 }
 .reveal section > img, .reveal section > p > img, div.column > p > img {
-max-height: 45vh;
+max-height: 37vh;
 height: auto;
 width: auto;
 border: none;
@@ -1561,7 +1561,7 @@ border-color: white;
 }
 .reveal table {
 border-style: none;
-font-size: 0.55em;
+font-size: 0.75em;
 margin-top: .5em;
 margin-bottom: .5em;
 }
@@ -2191,7 +2191,7 @@ h(\vec z) =  \begin{cases} \prod_{j = 1}^{n_i}
 <div class="w-small">
 Rewritten most of the Fortran code by <span class="citation" data-cites="Genz02">Genz and Bretz (2002)</span> in C++.
 <p class="smallish">
-Used in the mvtnorm package <span class="citation" data-cites="Genz20">Genz et al. (2020)</span>.
+Used in the mvtnorm package <span class="citation" data-cites="Genz20">(Genz et al. 2020)</span>.
 </p>
 </div>
 <p class="fragment">
@@ -2364,6 +2364,9 @@ Z_{ij}&amp;\sim N(0, 1) \\
 <p class="fragment">
 Start with a maximum of 5000 samples per term. Then use 25000.
 </p>
+<p class="fragment">
+Use four threads.
+</p>
 </section>
 <section id="smaller-families-bias" class="slide level2">
 <h2>Smaller Families: Bias</h2>
@@ -2508,7 +2511,6 @@ Start with a maximum of 5000 samples per term. Then use 25000.
 </section>
 <section id="larger-families-computation-time" class="slide level2">
 <h2>Larger Families: Computation Time</h2>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><a class="sourceLine" id="cb15-1" data-line-number="1">knitr<span class="op">::</span><span class="kw">kable</span>(ev<span class="op">$</span>comp_times_stats, <span class="dt">digits =</span> <span class="dv">2</span>)</a></code></pre></div>
 <table>
 <thead>
 <tr class="header">
@@ -2607,7 +2609,7 @@ See <a href="https://github.com/boennecd/mdgc">github.com/boennecd/mdgc</a>.
 </p>
 </div>
 <p class="fragment">
-One can Extend the approach to multinomial data.
+One can extend the approach to multinomial data.
 </p>
 
 </section>
