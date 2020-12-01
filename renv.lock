@@ -304,9 +304,9 @@
       "RemoteHost": "api.github.com",
       "RemoteRepo": "pedmod",
       "RemoteUsername": "boennecd",
-      "RemoteRef": "fd8c2fb060",
-      "RemoteSha": "fd8c2fb060b7bf77ea7cc914b31f5a52463f9044",
-      "Hash": "0f42364a6a6029ae06990f334216888f"
+      "RemoteRef": "HEAD",
+      "RemoteSha": "051fc85150f9df9a7c668d417710eeea521e2bb3",
+      "Hash": "b070f13ea938a6d20c3ec467d30995c0"
     },
     "pillar": {
       "Package": "pillar",
@@ -370,6 +370,18 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "f5d7d94cc097aa9dade988e3e6715067"
+    },
+    "psqn": {
+      "Package": "psqn",
+      "Version": "0.1.5",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "psqn",
+      "RemoteUsername": "boennecd",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "6b93a721ac443d28f29e4737ce3514369a9d2927",
+      "Hash": "d6ce4431dcd14fcb658374c7ec98566c"
     },
     "quadprog": {
       "Package": "quadprog",
@@ -464,10 +476,10 @@
     },
     "survival": {
       "Package": "survival",
-      "Version": "3.1-12",
+      "Version": "3.2-7",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "1c5bb53bd428f3c42a25b7aeb983d8c7"
+      "Hash": "39c4ac6d22dad33db0ee37b40810ea12"
     },
     "testthat": {
       "Package": "testthat",

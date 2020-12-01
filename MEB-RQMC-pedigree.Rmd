@@ -72,7 +72,7 @@ $$
 $$
 </div>
 
-## Research Question
+## Research Questions
 Want to estimate genetic effect, environmental effect, paternal effect, etc.
 
 <p class = "fragment">
@@ -105,6 +105,56 @@ such that $\vec\epsilon_{i2}$ represents a maternal effect.</p>
 
 <p class = "fragment">
 Quantify heritability through $\theta_1 \big/(\theta_1 + \theta_2 + 1)$.</p>
+
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Model with Example</h2>
+<!--/html_preserve-->
+
+```{r source_fixed, include=FALSE, message=FALSE}
+fix_ev <- new.env()
+source(file.path("R", "sim-study-fixed.R"), local = fix_ev)
+```
+
+```{r show_base_fam, echo=FALSE}
+plot(fix_ev$base_fam$ped_dat)
+```
+
+<p class = "smallish">
+Example: 12 and 13 have 1/4 shared genetic effect and 1/2 shared 
+maternal effect. 13 and 15 only have 1/4 shared genetic effect.</p>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Scale Matrix: Genetic Effect</h2>
+<!--/html_preserve-->
+
+```{r fixed_genetic_show, echo = FALSE}
+rev_img <- function(x, ...)
+  image(x[, NROW(x):1], ...)
+cl <- colorRampPalette(c("Red", "White", "Blue"))(101)
+par(mar = c(2, 2, 1, 1))
+rev_img(fix_ev$base_fam$rel_mat, xaxt = "n", yaxt = "n", col = cl, 
+        zlim = c(-1, 1))
+```
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Scale Matrix: Maternal Effect</h2>
+<!--/html_preserve-->
+
+```{r fixed_maternal_show, echo = FALSE}
+rev_img <- function(x, ...)
+  image(x[, NROW(x):1], ...)
+cl <- colorRampPalette(c("Red", "White", "Blue"))(101)
+par(mar = c(2, 2, 1, 1))
+rev_img(fix_ev$base_fam$met_mat, xaxt = "n", yaxt = "n", col = cl, 
+        zlim = c(-1, 1))
+```
 
 ## General Model
 
@@ -408,6 +458,73 @@ bench::mark(mvtnorm = pmvnorm(lw, up, mu, sig),
 <!--/html_preserve-->
 
 ## Setup
+<div class = "w-small">
+$m = `r fix_ev$n_families`$ families with a fixed design matrix.
+<p class = "smallish">
+`r fix_ev$n_families * 16L` observations.</p>
+</div>
+
+<p class = "fragment">
+Start with a maximum of 5000 samples per term. Then use 25000.</p>
+
+<p class = "fragment">
+Use four threads.</p>
+
+## Setup (cont.)
+
+$$
+\begin{align*}
+\mat X_i &= (\vec 1, \vec x_{\cdot 2}, \vec x_{\cdot 3}) \\
+\vec x_{\cdot 2} &= \frac 4{15}(-7.5, -6.5, \dots, 6.5, 7.5)^\top \\
+\vec x_{\cdot 3} &= (0, 1, 0, \dots, 0, 1)^\top \\
+\vec\beta &= (-2, 0.5, 1)^\top \\
+\vec\theta &= (0.5, 0.33)^\top
+\end{align*}
+$$
+
+## Fixed Families: Bias Estimates (cont.)
+
+```{r fixed_bias_tbl, echo = FALSE, message=FALSE}
+bs <- fix_ev$bias
+bs <- apply(bs, 2, function(x) 
+  round(x, max(0, -floor(min(log10(abs(x)))) + 2)))
+knitr::kable(bs, digits = 5)
+```
+
+<p class = "smallish">
+"W/o extra" and "w/ extra" is with 5000 and 25000 samples per log 
+marginal likelihood term. SE is the MC standard error. The last two 
+columns are the genetic effect parameter, $\theta_1$, and the 
+maternal effect parameter, $\theta_2$.</p>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Fixed Families: Bias Estimates</h2>
+<!--/html_preserve-->
+
+```{r fixed_get_res, echo = FALSE, message=FALSE}
+# plot the errors
+par(mar = c(4, 5, 1, 1))
+boxplot(t(fix_ev$errors[, "w/ extra" , ]), ylab = "Estimate - truth")
+abline(h = 0, lty = 2)
+```
+
+<p class = "smallish">
+Estimated values less true values when using more samples per log 
+marginal likelihood term.</p>
+
+## Fixed Families: Computation Time
+
+```{r fixed_comp_times, echo = FALSE}
+knitr::kable(fix_ev$time_stats, digits = 2)
+```
+
+<p class = "smallish">
+"W/o extra" and "w/ extra" is with 5000 and 25000 samples per log 
+marginal likelihood term.</p>
+
+## Setup
 
 $m = 1000$ families with:
 
@@ -421,6 +538,9 @@ Z_{ij}&\sim N(0, 1) \\
 \vec\theta &= (0.5, 0.3)^\top
 \end{align*}
 $$
+
+<p class = "fragment">
+Pedigree data is randomly generated.</p>
 
 <!--html_preserve-->
 </section>
@@ -446,9 +566,6 @@ Only keep the youngest generation as @Mahjani20.
 <!--/html_preserve-->
 
 ```{r genetic_show, echo = FALSE}
-rev_img <- function(x, ...)
-  image(x[, NROW(x):1], ...)
-cl <- colorRampPalette(c("Red", "White", "Blue"))(101)
 par(mar = c(2, 2, 1, 1))
 rev_img(ex_dat$rel_mat, xaxt = "n", yaxt = "n", col = cl, 
         zlim = c(-1, 1))
@@ -469,13 +586,7 @@ rev_img(ex_dat$met_mat, xaxt = "n", yaxt = "n", col = cl,
 ## Smaller Families
 $n_i \sim  13$ yielding $13000$ observations.
 
-<p class = "fragment">
-Start with a maximum of 5000 samples per term. Then use 25000.</p>
-
-<p class = "fragment">
-Use four threads.</p>
-
-## Smaller Families: Bias
+## Smaller Families: Bias Estimates
 
 ```{r small_get_res, echo = FALSE, message=FALSE}
 ev <- new.env()
@@ -489,6 +600,12 @@ bs <- apply(bs, 2, function(x)
 knitr::kable(bs, digits = 5)
 ```
 
+<p class = "smallish">
+"W/o extra" and "w/ extra" is with 5000 and 25000 samples per log 
+marginal likelihood term. SE is the MC standard error. The last two 
+columns are the genetic effect parameter, $\theta_1$, and the 
+maternal effect parameter, $\theta_2$.</p>
+
 <!--html_preserve-->
 </section>
 <section class="center-horiz">
@@ -497,16 +614,24 @@ knitr::kable(bs, digits = 5)
 
 ```{r small_plot_err, echo = FALSE}
 # plot the errors
-par(mar = c(5, 4, 1, 1))
-boxplot(t(ev$errors[, "w/ extra" , ]))
+par(mar = c(4, 5, 1, 1))
+boxplot(t(ev$errors[, "w/ extra" , ]), ylab = "Estimate - truth")
 abline(h = 0, lty = 2)
 ```
+
+<p class = "smallish">
+Estimated values less true values when using more samples per log 
+marginal likelihood term.</p>
 
 ## Smaller Families: Computation Time
 
 ```{r small_comp_times, echo = FALSE}
 knitr::kable(ev$comp_times_stats, digits = 2)
 ```
+
+<p class = "smallish">
+"W/o extra" and "w/ extra" is with 5000 and 25000 samples per log 
+marginal likelihood term.</p>
 
 ## Larger Families
 $n_i \sim  50$ yielding $50000$ observations.
@@ -525,6 +650,12 @@ bs <- apply(bs, 2, function(x)
 knitr::kable(bs, digits = 5)
 ```
 
+<p class = "smallish">
+"W/o extra" and "w/ extra" is with 5000 and 25000 samples per log 
+marginal likelihood term. SE is the MC standard error. The last two 
+columns are the genetic effect parameter, $\theta_1$, and the 
+maternal effect parameter, $\theta_2$.</p>
+
 <!--html_preserve-->
 </section>
 <section class="center-horiz">
@@ -533,16 +664,24 @@ knitr::kable(bs, digits = 5)
 
 ```{r larger_plot_err, echo = FALSE}
 # plot the errors
-par(mar = c(5, 4, 1, 1))
-boxplot(t(ev$errors[, "w/ extra" , ]))
+par(mar = c(4, 5, 1, 1))
+boxplot(t(ev$errors[, "w/ extra" , ]), ylab = "Estimate - truth")
 abline(h = 0, lty = 2)
 ```
+
+<p class = "smallish">
+Estimated values less true values when using more samples per log 
+marginal likelihood term.</p>
 
 ## Larger Families: Computation Time
 
 ```{r large_comp_times, echo = FALSE}
 knitr::kable(ev$comp_times_stats, digits = 2)
 ```
+
+<p class = "smallish">
+"W/o extra" and "w/ extra" is with 5000 and 25000 samples per log 
+marginal likelihood term.</p>
 
 <!--html_preserve-->
 </section>
@@ -572,7 +711,7 @@ $Y_{ij}^* \in (0,\infty)$ with independent right censoring time
 $S_{ij} \in (0,\infty)$.  
 
 <div class = "fragment">
-Use a mixed generalized survival model 
+Use a mixed generalized survival model:
 
 $$
 \begin{align*}
@@ -603,7 +742,7 @@ $$
 The CDF dimension is equal to the number of censored individuals.</p>
 
 ## Generic GLMMs
-The identity can be used for multionomial and ordinal data with the probit 
+The identity can be used for multinomial and ordinal data with the probit 
 link.
 
 <p class = "fragment">

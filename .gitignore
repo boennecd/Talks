@@ -12,3 +12,6 @@ cache/small/*
 !cache/large
 cache/large/*
 !cache/large/.placeholder
+!cache/fixed
+cache/fixed/*
+!cache/fixed/.placeholder
