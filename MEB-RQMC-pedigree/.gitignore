@@ -3,7 +3,6 @@
 .RData
 .Ruserdata
 renv/*
-fig
 cache/*
 !cache/.placeholder
 !cache/small
