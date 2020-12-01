@@ -9,6 +9,48 @@
     ]
   },
   "Packages": {
+    "KernSmooth": {
+      "Package": "KernSmooth",
+      "Version": "2.23-17",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "bbff70c8c0357b5b88238c83f680fcd3"
+    },
+    "MASS": {
+      "Package": "MASS",
+      "Version": "7.3-53",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "d1bc1c8e9c0ace57ec9ffea01021d45f"
+    },
+    "Matrix": {
+      "Package": "Matrix",
+      "Version": "1.2-18",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "08588806cba69f04797dab50627428ed"
+    },
+    "PKI": {
+      "Package": "PKI",
+      "Version": "0.1-5.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "19e62e249570b758ff6c18452d6a2f9f"
+    },
+    "RCurl": {
+      "Package": "RCurl",
+      "Version": "1.95-4.12",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "0f298d739d578cf66581e49235a8228c"
+    },
+    "RJSONIO": {
+      "Package": "RJSONIO",
+      "Version": "1.3-1.3",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "3c210da709086ef34bfde425815e41ec"
+    },
     "Rcpp": {
       "Package": "Rcpp",
       "Version": "1.0.1",
@@ -23,12 +65,61 @@
       "Repository": "CRAN",
       "Hash": "e8a22846fff485f0be3770c2da758713"
     },
+    "backports": {
+      "Package": "backports",
+      "Version": "1.1.4",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "b9a4db2667d7e43d197ed12e40781889"
+    },
     "base64enc": {
       "Package": "base64enc",
       "Version": "0.1-3",
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "543776ae6848fde2f48ff3816d0628bc"
+    },
+    "bitops": {
+      "Package": "bitops",
+      "Version": "1.0-6",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "0b118d5900596bae6c4d4865374536a6"
+    },
+    "boot": {
+      "Package": "boot",
+      "Version": "1.3-25",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "bd51734a754b6c2baf28b2d1ebc11e91"
+    },
+    "caTools": {
+      "Package": "caTools",
+      "Version": "1.17.1.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "8d279db9748ad87df8196367c5baefde"
+    },
+    "class": {
+      "Package": "class",
+      "Version": "7.3-17",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "9267f5dab59a4ef44229858a142bded1"
+    },
+    "cluster": {
+      "Package": "cluster",
+      "Version": "2.1.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "db63a44aab5aadcb6bf2f129751d129a"
+    },
+    "codetools": {
+      "Package": "codetools",
+      "Version": "0.2-16",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "89cf4b8207269ccf82fbeb6473fd662b"
     },
     "curl": {
       "Package": "curl",
@@ -50,6 +141,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "ec8ca05cffcc70569eaaad8469d2a3a7"
+    },
+    "foreign": {
+      "Package": "foreign",
+      "Version": "0.8-76",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "649b9c7a979d50d869578c73fed072cd"
     },
     "glue": {
       "Package": "glue",
@@ -86,6 +184,13 @@
       "Repository": "CRAN",
       "Hash": "38b6e864babc3e16a34d3d9a78c6a735"
     },
+    "lattice": {
+      "Package": "lattice",
+      "Version": "0.20-41",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "fbd9285028b0263d76d18c95ae51a53d"
+    },
     "magrittr": {
       "Package": "magrittr",
       "Version": "1.5",
@@ -100,12 +205,33 @@
       "Repository": "CRAN",
       "Hash": "b01af64e2b3297ad6f9f34fe369339b9"
     },
+    "mgcv": {
+      "Package": "mgcv",
+      "Version": "1.8-33",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "eb7b6439bc6d812eed2cddba5edc6be3"
+    },
     "mime": {
       "Package": "mime",
       "Version": "0.7",
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "f085cb5d1548336cafa5ee7ec56d7e34"
+    },
+    "nlme": {
+      "Package": "nlme",
+      "Version": "3.1-149",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "7c24ab3a1e3afe50388eb2d893aab255"
+    },
+    "nnet": {
+      "Package": "nnet",
+      "Version": "7.3-14",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "0d87e50e11394a7151a28873637d799a"
     },
     "openssl": {
       "Package": "openssl",
@@ -142,6 +268,20 @@
       "Repository": "CRAN",
       "Hash": "122650e1982ea65085528dc5894b6c05"
     },
+    "rpart": {
+      "Package": "rpart",
+      "Version": "4.1-15",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "9787c1fcb680e655d062e7611cadf78e"
+    },
+    "rprojroot": {
+      "Package": "rprojroot",
+      "Version": "1.3-2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "f6a407ae5dd21f6f80a6708bbb6eb3ae"
+    },
     "rsconnect": {
       "Package": "rsconnect",
       "Version": "0.8.16",
@@ -156,6 +296,13 @@
       "Repository": "CRAN",
       "Hash": "da31c988698b91fdf6a3e2317679d6cb"
     },
+    "spatial": {
+      "Package": "spatial",
+      "Version": "7.3-11",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "f27a078d834614513608da2c08031130"
+    },
     "stringi": {
       "Package": "stringi",
       "Version": "1.4.3",
@@ -169,6 +316,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "0759e6b6c0957edb1311028a49a35e76"
+    },
+    "survival": {
+      "Package": "survival",
+      "Version": "3.2-7",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "39c4ac6d22dad33db0ee37b40810ea12"
     },
     "sys": {
       "Package": "sys",
