@@ -94,7 +94,7 @@ Y_{ij} &= 1_{\{\vec\beta^\top\vec x_{ij} + \epsilon_{i1j} +
 \vec\epsilon_{i1} & 
   \sim N^{(n_i)}(\vec0, 2\theta_1\mat K_i) \\
 \vec\epsilon_{i2} & 
-  \sim N^{(n_i)}(\vec0, \theta_2\mat R_i\mat K_i\mat R_i^\top) \\
+  \sim N^{(n_i)}(\vec0, \theta_2\mat R_i) \\
 \vec\epsilon_{i3} & 
   \sim N^{(n_i)}(\vec0, \mat I)
 \end{align*}
@@ -459,9 +459,10 @@ bench::mark(mvtnorm = pmvnorm(lw, up, mu, sig),
 
 ## Setup
 <div class = "w-small">
-$m = `r fix_ev$n_families`$ families with a fixed design matrix.
+$m = `r fix_ev$n_families`$ families with a fixed design matrix
 <p class = "smallish">
-`r fix_ev$n_families * 16L` observations.</p>
+and the pedigree data shown earlier resulting in 
+`r fix_ev$n_families * 16L` observations. Repeat 100 times.</p>
 </div>
 
 <p class = "fragment">
@@ -482,17 +483,30 @@ $$
 \end{align*}
 $$
 
-## Fixed Families: Bias Estimates (cont.)
+## Fixed Families: Bias Estimates
 
 ```{r fixed_bias_tbl, echo = FALSE, message=FALSE}
+# gather the results
 bs <- fix_ev$bias
+
+small_ev <- new.env()
+small_ev$cache_dir <- "small"
+small_ev$max_members <- 40L
+source(file.path("R", "sim-study.R"), local = small_ev)
+
+larg_ev <- new.env()
+larg_ev$cache_dir <- "large"
+larg_ev$max_members <- 150L
+source(file.path("R", "sim-study.R"), local = larg_ev)
+
+# create the bias table
 bs <- apply(bs, 2, function(x) 
   round(x, max(0, -floor(min(log10(abs(x)))) + 2)))
 knitr::kable(bs, digits = 5)
 ```
 
 <p class = "smallish">
-"W/o extra" and "w/ extra" is with 5000 and 25000 samples per log 
+"W/o extra" and "w/ extra" are with, respectively, 5000 and 25000 samples per log 
 marginal likelihood term. SE is the MC standard error. The last two 
 columns are the genetic effect parameter, $\theta_1$, and the 
 maternal effect parameter, $\theta_2$.</p>
@@ -500,19 +514,23 @@ maternal effect parameter, $\theta_2$.</p>
 <!--html_preserve-->
 </section>
 <section class="center-horiz">
-<h2>Fixed Families: Bias Estimates</h2>
+<h2>Fixed Families: Bias Estimates (cont.)</h2>
 <!--/html_preserve-->
 
 ```{r fixed_get_res, echo = FALSE, message=FALSE}
 # plot the errors
 par(mar = c(4, 5, 1, 1))
-boxplot(t(fix_ev$errors[, "w/ extra" , ]), ylab = "Estimate - truth")
+err_ylim <- range(fix_ev$errors[, "w/ extra" , ], 
+                  small_ev$errors, larg_ev$errors)
+boxplot(t(fix_ev$errors[, "w/ extra" , ]), ylab = "Estimate - truth", 
+        ylim = err_ylim)
 abline(h = 0, lty = 2)
 ```
 
 <p class = "smallish">
 Estimated values less true values when using more samples per log 
-marginal likelihood term.</p>
+marginal likelihood term. The y-axis is the same as the box plots shown 
+later.</p>
 
 ## Fixed Families: Computation Time
 
@@ -521,7 +539,7 @@ knitr::kable(fix_ev$time_stats, digits = 2)
 ```
 
 <p class = "smallish">
-"W/o extra" and "w/ extra" is with 5000 and 25000 samples per log 
+"W/o extra" and "w/ extra" are with, respectively, 5000 and 25000 samples per log 
 marginal likelihood term.</p>
 
 ## Setup
@@ -589,19 +607,14 @@ $n_i \sim  13$ yielding $13000$ observations.
 ## Smaller Families: Bias Estimates
 
 ```{r small_get_res, echo = FALSE, message=FALSE}
-ev <- new.env()
-ev$cache_dir <- "small"
-ev$max_members <- 40L
-source(file.path("R", "sim-study.R"), local = ev)
-
-bs <- ev$bias
+bs <- small_ev$bias
 bs <- apply(bs, 2, function(x) 
   round(x, max(0, -floor(min(log10(abs(x)))) + 2)))
 knitr::kable(bs, digits = 5)
 ```
 
 <p class = "smallish">
-"W/o extra" and "w/ extra" is with 5000 and 25000 samples per log 
+"W/o extra" and "w/ extra" are with, respectively, 5000 and 25000 samples per log 
 marginal likelihood term. SE is the MC standard error. The last two 
 columns are the genetic effect parameter, $\theta_1$, and the 
 maternal effect parameter, $\theta_2$.</p>
@@ -615,7 +628,8 @@ maternal effect parameter, $\theta_2$.</p>
 ```{r small_plot_err, echo = FALSE}
 # plot the errors
 par(mar = c(4, 5, 1, 1))
-boxplot(t(ev$errors[, "w/ extra" , ]), ylab = "Estimate - truth")
+boxplot(t(small_ev$errors[, "w/ extra" , ]), ylab = "Estimate - truth",
+        ylim = err_ylim)
 abline(h = 0, lty = 2)
 ```
 
@@ -626,11 +640,11 @@ marginal likelihood term.</p>
 ## Smaller Families: Computation Time
 
 ```{r small_comp_times, echo = FALSE}
-knitr::kable(ev$comp_times_stats, digits = 2)
+knitr::kable(small_ev$comp_times_stats, digits = 2)
 ```
 
 <p class = "smallish">
-"W/o extra" and "w/ extra" is with 5000 and 25000 samples per log 
+"W/o extra" and "w/ extra" are with, respectively, 5000 and 25000 samples per log 
 marginal likelihood term.</p>
 
 ## Larger Families
@@ -639,19 +653,14 @@ $n_i \sim  50$ yielding $50000$ observations.
 ## Larger Families: Bias
 
 ```{r large_get_res, echo = FALSE, message=FALSE}
-ev <- new.env()
-ev$cache_dir <- "large"
-ev$max_members <- 150L
-source(file.path("R", "sim-study.R"), local = ev)
-
-bs <- ev$bias
+bs <- larg_ev$bias
 bs <- apply(bs, 2, function(x) 
   round(x, max(0, -floor(min(log10(abs(x)))) + 2)))
 knitr::kable(bs, digits = 5)
 ```
 
 <p class = "smallish">
-"W/o extra" and "w/ extra" is with 5000 and 25000 samples per log 
+"W/o extra" and "w/ extra" are with, respectively, 5000 and 25000 samples per log 
 marginal likelihood term. SE is the MC standard error. The last two 
 columns are the genetic effect parameter, $\theta_1$, and the 
 maternal effect parameter, $\theta_2$.</p>
@@ -665,7 +674,8 @@ maternal effect parameter, $\theta_2$.</p>
 ```{r larger_plot_err, echo = FALSE}
 # plot the errors
 par(mar = c(4, 5, 1, 1))
-boxplot(t(ev$errors[, "w/ extra" , ]), ylab = "Estimate - truth")
+boxplot(t(larg_ev$errors[, "w/ extra" , ]), ylab = "Estimate - truth", 
+        ylim = err_ylim)
 abline(h = 0, lty = 2)
 ```
 
@@ -676,11 +686,11 @@ marginal likelihood term.</p>
 ## Larger Families: Computation Time
 
 ```{r large_comp_times, echo = FALSE}
-knitr::kable(ev$comp_times_stats, digits = 2)
+knitr::kable(larg_ev$comp_times_stats, digits = 2)
 ```
 
 <p class = "smallish">
-"W/o extra" and "w/ extra" is with 5000 and 25000 samples per log 
+"W/o extra" and "w/ extra" are with, respectively, 5000 and 25000 samples per log 
 marginal likelihood term.</p>
 
 <!--html_preserve-->

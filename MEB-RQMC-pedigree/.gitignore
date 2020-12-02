@@ -14,3 +14,4 @@ cache/large/*
 !cache/fixed
 cache/fixed/*
 !cache/fixed/.placeholder
+rsconnect
