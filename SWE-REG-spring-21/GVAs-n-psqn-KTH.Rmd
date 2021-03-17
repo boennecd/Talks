@@ -1,0 +1,664 @@
+---
+title: "Fast Estimation of Random Effect Models"
+bibliography: ref.bib
+biblio-style: apa
+output: 
+  revealjs::revealjs_presentation:
+    css: styles.css
+    theme: black
+    center: false
+    transition: slide
+    highlight: monochrome
+    self_contained: true
+    reveal_options:
+      slideNumber: true
+    includes:
+      in_header: header.html
+      after_body: doc_suffix.html
+---
+
+## dummy slide
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.height = 5, cache.path = "cache/", 
+                      message = FALSE, error = FALSE, warning = FALSE)
+.par_use <- list(cex = 1.33, cex.lab = 1.2)
+options(digits = 3)
+```
+
+<!--html_preserve-->
+<script>
+(function() {
+  document.getElementById("dummy-slide").remove(); 
+  
+  var front_div = document.getElementsByTagName("section")[0];
+  front_div.classList.add("front");
+  front_div.classList.add("center");
+  
+  // add second header
+  var second_head = document.createElement("p");
+  var node = document.createTextNode("Using Quasi-newton Methods with Variational Approximations");
+  second_head.appendChild(node);
+  second_head.style.margin = "0";
+  front_div.appendChild(second_head);
+  
+  // add author 
+  var credit_div = document.createElement('div');
+  credit_div.innerHTML += "<div class='w-small'><p>Benjamin Christoffersen</p><p class='smallish'>KI, Department of Medical Epidemiology and Biostatistics, <a href='mailto:benjamin.christoffersen@ki.se'>benjamin.christoffersen@ki.se</a></p><p class='smallish'>KTH, Division of Robotics, Perception and Learning, <a href='mailto:benchr@kth.se'>benchr@kth.se</a></p></div>";
+  credit_div.classList.add("authors");
+  front_div.appendChild(credit_div);
+})();
+</script>
+<!--end dummy slide-->
+
+</section>
+
+<section>
+<section class="large-first center slide level2">
+<h1>Introduction</h1>
+<!--/html_preserve-->
+
+<div style="display: none;">
+$$
+\renewcommand\vec{\boldsymbol}
+\def\bigO#1{\mathcal{O}(#1)}
+\def\Cond#1#2{\left(#1\,\middle|\, #2\right)}
+\def\mat#1{\boldsymbol{#1}}
+\def\der{{\mathop{}\!\mathrm{d}}}
+\def\argmax{\text{arg}\,\text{max}}
+\def\Prob{\text{P}}
+\def\Expec{\text{E}}
+\def\logit{\text{logit}}
+\def\diag{\text{diag}}
+$$
+</div>
+
+## Introduction Example
+
+<div class = "w-small">
+We have clustered or somehow dependent data. 
+<p class = "smallish">
+Twins, individuals treated at the same hospital, repeated measurements etc.
+</p></div>
+
+<p class = "fragment">
+Interested in modeling the dependence per se.</p>
+
+<p class = "fragment">
+Focus on clustered data.</p>
+
+## Introduction Example (cont.)
+Outcomes $\vec Y_i = (Y_{i1}, \dots, Y_{in_i})^\top$, 
+model parameters $\vec\theta$, and random effects $\vec U_i$ for cluster $i$.
+
+<p class = "fragment">
+$\vec Y_i$ given $\vec U_i = \vec u$ has density $h_i(\vec y;\vec u, \vec\theta)$ 
+and $\vec U_i$ has density $g_i(\vec u; \vec\theta)$.</p>
+
+## Introduction Example (cont.)
+The log marginal likelihood term is
+
+$$
+l_i(\vec\theta) = 
+  \int h_i(\vec Y_i;\vec u, \vec\theta)g_i(\vec u; \vec\theta)\der\vec u
+$$
+
+Typically intractable. 
+
+## Variational Approximations
+Select some variational distribution with density 
+$q_i(\vec u;\vec\omega_i)$ for 
+$\vec\omega_i \in \Omega_i$ and use
+
+$$\begin{align*}
+l_i(\vec\theta) &\geq \int q_i(\vec u; \vec\omega_i)
+  \log\left(\frac{h_i(\vec Y_i;\vec u, \vec\theta)g_i(\vec u; \vec\theta)}
+  {q_i(\vec u; \vec\omega_i)}\right) \der\vec u \\
+  &= \tilde l_i(\vec\theta, \vec\omega_i)
+\end{align*}$$
+
+Typically much easier computationally to evaluate.
+
+## Approximate Maximum Likelihood
+
+Approximate 
+
+$$
+\argmax_{\vec\theta} l(\vec\theta) = \sum_{i = 1}^m l_i(\vec\theta)
+$$
+
+with 
+
+$$
+\argmax_{\vec\theta,\vec\omega_1, \dots, \vec\omega_m} 
+  \tilde l(\vec \theta, \vec\omega_1,\dots,\vec\omega_m) = 
+     \sum_{i = 1}^m \tilde l_i(\vec\theta, \vec\omega_i)
+$$
+
+## Remarks 
+Number of parameters is 
+$\lvert\vec\theta\rvert + \sum_{i = 1}^m \lvert\vec\omega_i\rvert$ instead 
+of $\lvert\vec\theta\rvert$.
+
+The Hessian is sparse though: partially separable.
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Optimization Method</h1>
+<!--/html_preserve-->
+
+## Issues with Quasi-Newton Methods
+Have to optimize
+
+$$
+\tilde l(\vec \theta, \vec\omega_1,\dots,\vec\omega_m) = 
+ \sum_{i = 1}^m \tilde l_i(\vec\theta, \vec\omega_i).
+$$ 
+
+<p class = "fragment">
+Quasi-Newton methods like BFGS creates an approximation of the Hessian of 
+$\tilde l$.</p>
+
+<p class="fragment">
+BFGS does not preserve the sparsity of $\tilde l$.</p>
+
+## Partially Separability
+Make $m$ BFGS updates to approximate the Hessian of 
+$\tilde l_1(\vec\theta, \vec\omega_1), \dots, \tilde l_m(\vec\theta, \vec\omega_m)$. 
+
+<div class = "w-small fragment">
+Solve the normal equation using conjugate gradient. 
+<p class = "smallish">
+Fast as we preserve the sparsity.
+</p></div>
+
+## Comparing with BFGS
+$\vec\theta$ has $p$ elements, 
+$\vec\omega_i$ have $s$ elements, and 
+at most $n_{cg}$ conjugate gradient iterations.
+
+<div class = "fragment">
+The ratio of flops between BFGS and the new methods is (roughly)
+
+$$
+\frac{p^2 + 2mps + (ms)^2}
+  {n_{cg}(p^2 + 2pms + ms^2) + mp^2} \approx 
+  \frac m{n_{cg}}.
+$$
+
+for large $m$ and $s$ slightly larger than $p$. Favorable if $n_{cg} \ll m$.</div>
+
+<p class = "fragment">
+May yield better Hessian approximation.</p>
+
+## psqn Package
+Implemented in the psqn package. 
+
+Both R and C++ interface. 
+
+Supports computation in parallel using OpenMP for C++ implementations.
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Example</h1>
+<!--/html_preserve-->
+
+## GLMM Example
+
+```{r load_scripts}
+# File to source the C++ file with the GVA method.
+source_cpp_files <- function(){
+  library(Rcpp)
+  sourceCpp(file.path("src", "glmm-gva.cpp"), embeddedR = FALSE)
+}
+source_cpp_files()
+```
+
+```{r assign_seeds}
+# the seeds we will use
+seeds <- c(65149482L, 44504929L, 70101994L, 510188L, 47261471L, 39062098L, 21834720L, 66280504L, 4666857L, 91463072L, 57280030L, 20120125L, 89521557L, 96671561L, 73870879L, 83987376L, 28097039L, 71191123L, 29303014L, 32040266L, 67706270L, 82330003L, 653929L, 86925333L, 9928935L, 44913801L, 7512181L, 87745929L, 93300388L, 50564055L, 59843354L, 47858759L, 20405095L, 32651543L, 65155407L, 26087289L, 20560526L, 27917604L, 4142210L, 88502935L, 8668445L, 52590391L, 49036753L, 45401795L, 60488672L, 23157306L, 73953138L, 69289004L, 33135208L, 96255526L, 53593893L, 98603377L, 94730698L, 65667907L, 55890179L, 50340509L, 50505806L, 84639997L, 55062926L, 44396923L, 2493238L, 95637139L, 99511051L, 86322623L, 68724113L, 79577505L, 68595466L, 10423915L, 72890143L, 41385925L, 86913057L, 56425653L, 68939190L, 34911805L, 28240283L, 10909365L, 34978122L, 14120796L, 7981854L, 49487139L, 74281889L, 66083112L, 38345052L, 74664992L, 95057224L, 84935256L, 3737675L, 38860280L, 26368261L, 77054164L, 68262918L, 56235253L, 67190353L, 99397722L, 4875409L, 18603598L, 27121922L, 20212344L, 1735302L, 71615229L)
+```
+
+```{r assign_sim_funcs}
+# simulates from a GLMM.
+# 
+# Args: 
+#   n_cluster: number of clusters
+#   cor_mat: the correlation/scale matrix for the random effects.
+#   beta: the fixed effect coefficient vector.
+#   n_obs: number of members in each cluster.
+#   get_x: function to get the fixed effect covariate matrix.
+#   get_z: function to get the random effect covariate matrix.
+#   model: character with model and link function.
+sim_dat <- function(n_cluster = 100L, cor_mat, beta, n_obs = 10L, 
+                    get_x, get_z, model = "binomial_logit"){
+  # simulate the clusters
+  group <- 0L
+  out <- replicate(n_cluster, {
+    # the random effects
+    u <- drop(rnorm(NCOL(cor_mat)) %*% chol(cor_mat))
+    
+    # design matrices
+    X <- t(get_x(1:n_obs))
+    Z <- t(get_z(1:n_obs))
+    
+    # linear predictors
+    eta <- drop(beta %*% X +  u %*% Z)
+    
+    # the outcome
+    group <<- group + 1L
+    if(model == "binomial_logit"){
+      prob <- 1/(1 + exp(-eta))
+      nis <- sample.int(3L, n_obs, replace = TRUE)
+      y <- rbinom(n_obs, nis, prob)
+      nis <- as.numeric(nis)
+      y <- as.numeric(y)
+      
+    } else if(model == "Poisson_log"){
+      y <- rpois(length(eta), exp(eta))
+      nis <- rep(1, length(y))
+      
+    } else
+      stop("model not implemented")
+    
+    # return 
+    list(y = y, group = rep(group, n_obs), 
+         nis = nis, X = X, Z = Z, model = model)
+  }, simplify = FALSE)
+  
+  # create a data.frame with the data set and return 
+  df <- lapply(out, function(x){
+    x$X <- t(x$X)
+    x$Z <- t(x$Z)
+    x$Z <- x$Z[, setdiff(colnames(x$Z), colnames(x$X))]
+    data.frame(x)
+  })
+  df <- do.call(rbind, df)
+  
+  list(df_dat = df, list_dat = out, beta = beta, cor_mat = cor_mat)   
+}
+
+# estimates the model using a Laplace approximation or adaptive 
+# Gauss-Hermite quadrature. 
+# 
+# Args: 
+#   dat: data.frame with the data.
+#   formula: formula to pass to glmer. 
+#   nAGQ: nAGQ argument to pass to glmer.
+#   family: family to use.
+est_lme4 <- function(dat, formula, nAGQ = 1L, family){
+  library(lme4)
+  fit <- glmer(
+    formula = formula, dat, family = family, nAGQ = nAGQ, weights = nis, 
+    control = glmerControl(optimizer = "bobyqa", optCtrl = list(maxfun=2e5)))
+  vc <- VarCorr(fit)
+  list(ll = c(logLik(fit)), fixef = fixef(fit), 
+       stdev = attr(vc$group, "stddev"), 
+       cor_mat = attr(vc$group, "correlation"), 
+       conv = fit@optinfo$conv$opt)
+}
+
+# estimates the model using a GVA. 
+# 
+# Args: 
+#   dat: list with a list for each cluster. 
+#   rel_eps: relative convergence threshold.
+#   est_with: character with which method to use.
+#   model: character with model and link function.
+#   family: family to pass to glm.
+est_va <- function(dat, rel_eps = 1e-8, est_with, n_threads = 1L, 
+                   model, formula, family){
+  func <- get_lb_optimizer(dat$list_dat, n_threads)
+  
+  # setup stating values
+  n_clust <- length(dat$list_dat)
+  n_rng <- NROW(dat$list_dat[[1L]]$Z)
+  n_fix <- NROW(dat$list_dat[[1L]]$X)
+  
+  par <- numeric(n_fix + n_clust * n_rng +
+                   (n_clust + 1) * n_rng * (n_rng + 1L) / 2)
+  
+  # estimate starting values for the fixed effects w/ a GLM
+  if(n_fix > 0)
+    par[1:n_fix] <- with(dat$df_dat, glm.fit(
+      x = dat$df_dat[, grepl("^X", colnames(dat$df_dat))], 
+      y = y / nis, weights = nis, family = family))[[
+        "coefficients"]]
+  
+  par <- drop(get_start_vals(func, par = par, Sigma = diag(n_rng), 
+                             n_beta = n_fix))
+  
+  switch(
+    est_with, 
+    psqn = {
+      # use the psqn package
+      res <- opt_lb(val = par, ptr = func, rel_eps = rel_eps, max_it = 1000L, 
+                  n_threads = n_threads, c1 = 1e-4, c2 = .9, cg_tol = .2, 
+                  max_cg = max(2L, as.integer(log(n_clust) * 10)))
+      conv <- !res$convergence
+      
+    }, 
+    lbfgs = {
+      # use a limited-memory BFGS implementation 
+      library(lbfgs)
+      fn <- function(x)
+        eval_lb   (x, ptr = func, n_threads = n_threads)
+      gr <- function(x)
+        eval_lb_gr(x, ptr = func, n_threads = n_threads)
+      res <- lbfgs(fn, gr, par, invisible = 1)
+      conv <- res$convergence
+    }, 
+    bfgs = {
+      fn <- function(x)
+        eval_lb   (x, ptr = func, n_threads = n_threads)
+      gr <- function(x)
+        eval_lb_gr(x, ptr = func, n_threads = n_threads)
+      res <- optim(par, fn, gr, method = "BFGS", control = list(maxit = 1000L))
+      conv <- res$convergence
+    }, 
+    stop("est_with is not implemented"))
+  
+  mod_par <- head(res$par, n_fix + n_rng * (n_rng + 1) / 2)
+  Sig_hat <- get_pd_mat(tail(mod_par, -n_fix), n_rng)[[1L]]
+  
+  list(lb = -res$value, fixef = head(mod_par, n_fix), 
+       stdev = sqrt(diag(Sig_hat)), cor_mat = cov2cor(Sig_hat), 
+       conv = conv)
+}
+
+# performs the simulation study. 
+# 
+# Args: 
+#   n_cluster: number of clusters.
+#   seeds_use: seeds to use in the simulations.
+#   n_obs: number of members in each cluster.
+#   cor_mat: the correlation matrix.
+#   beta: the fixed effect coefficient vector.
+#   prefix: prefix for saved files.
+#   formula: formula for lme4. 
+#   model: characther with model and link function.
+run_study <- function(n_cluster, seeds_use, n_obs = 3L,  
+                      cor_mat = diag(1), beta = c(-2, -1, 1), 
+                      prefix = "univariate", 
+                      formula = y / nis ~ X.V2 + X.dummy + (1 | group), 
+                      model = "binomial_logit")
+  lapply(seeds_use, function(s){
+    f <- file.path("cache", sprintf("%s-%d-%d.RDS", prefix, n_cluster, s))
+    if(!file.exists(f)){
+      # simulate the data set
+      set.seed(s)
+      dat <- sim_dat(
+        n_cluster = n_cluster, cor_mat = cor_mat, beta = beta, 
+        n_obs = n_obs, get_x = get_x, get_z = get_z, 
+        model = model)
+      
+      # fit the model
+      fam <- switch (model,
+        binomial_logit = binomial(), 
+        Poisson_log = poisson(), 
+        stop("model not implemented"))
+      lap_time <- system.time(lap_fit <- est_lme4(
+        formula = formula, family = fam,
+        dat = dat$df_dat, nAGQ = 1L))
+      if(NCOL(cor_mat) > 1){
+        agh_time <- NULL
+        agh_fit <- NULL
+      } else 
+        agh_time <- system.time(agh_fit <- est_lme4(
+          formula = formula, family = fam,
+          dat = dat$df_dat, nAGQ = 25L))
+      gva_time <- system.time(
+        gva_fit <- est_va(dat, est_with = "psqn", n_threads = 1L, 
+                          model = model, family = fam))
+      gva_time_four <- system.time(
+        gva_fit_four <- est_va(dat, est_with = "psqn", n_threads = 4L, 
+                               model = model, family = fam))
+      gva_lbfgs_time <- system.time(
+        gva_lbfgs_fit <- est_va(dat, est_with = "lbfgs", n_threads = 1L, 
+                                model = model, family = fam))
+      gva_bfgs_time <- system.time(
+        gva_bfgs_fit <- est_va(dat, est_with = "bfgs", n_threads = 1L, 
+                               model = model, family = fam))
+      
+      
+      # extract the bias, the computation time, and the lower bound
+      # or log likelihood and return
+      beta <- dat$beta
+      stdev <- sqrt(diag(dat$cor_mat))
+      cor_mat <- cov2cor(dat$cor_mat)
+      
+      get_bias <- function(x){
+        if(is.null(x))
+          list(fixed = NULL, 
+               stdev = NULL, 
+               cor_mat = NULL)
+        else
+          list(fixed = x$fixef - beta, 
+               stdev = x$stdev - stdev,
+               cor_mat = (x$cor_mat - cor_mat)[lower.tri(cor_mat)])
+      }
+      
+      bias <- mapply(
+        rbind, 
+        Laplace = get_bias(lap_fit), 
+        AGHQ = get_bias(agh_fit), GVA = get_bias(gva_fit), 
+        `GVA (4 threads)` = get_bias(gva_fit_four),
+        `GVA LBFGS` = get_bias(gva_lbfgs_fit),
+        `GVA BFGS` = get_bias(gva_bfgs_fit),
+        SIMPLIFY = FALSE)
+      
+      tis <- rbind(Laplace = lap_time, AGHQ = agh_time, GVA = gva_time, 
+                   `GVA (4 threads)` = gva_time_four,
+                   `GVA LBFGS` = gva_lbfgs_time, 
+                   `GVA BFGS` = gva_bfgs_time)[, 1:3]
+      
+      conv <- unlist(sapply(
+        list(Laplace = lap_fit, AGHQ = agh_fit, GVA = gva_fit, 
+             `GVA (4 threads)` = gva_fit_four, `GVA LBFGS` = gva_lbfgs_fit, 
+             `GVA BFGS` = gva_bfgs_fit), 
+        `[[`, "conv"))
+      
+      . <- function(x)
+        if(is.null(x)) NULL else x$ll
+      out <- list(bias = bias, time = tis, 
+                  lls = c(Laplace = .(lap_fit), AGHQ = .(agh_fit), 
+                          GVA = gva_fit$lb, 
+                          `GVA (4 threads)` = gva_fit_four$lb, 
+                          `GVA LBFGS` = gva_lbfgs_fit$lb, 
+                          `GVA BFGS` = gva_bfgs_fit$lb), conv = conv,
+                  seed = s)
+      saveRDS(out, f)
+    }
+    
+    out <- readRDS(f)
+    message(paste0(capture.output(out[c("time", "lls", "conv")]), 
+                   collapse = "\n"))
+    message("")
+    
+    out
+  })
+```
+
+```{r run_sim_study}
+# setup for the simulation study
+cor_mat <- diag(1 / 3, 3)
+
+get_z <- get_x <- function(x){
+  n <- length(x)
+  out <- cbind(1, matrix(rnorm(n * 2), n))
+  colnames(out) <- c("(Intercept)", paste0("X", 1:2))
+  out
+}
+
+# run the study
+sim_res_3D <- run_study(
+  n_cluster = 1000L, seeds_use = seeds,
+  n_obs = 10L, cor_mat = cor_mat, prefix = "3D", 
+  beta = c(-2, rep(1/sqrt(2), 2)),
+  formula = y / nis ~ X.X1 + X.X2 + (1 + X.X1 + X.X2 | group))
+```
+
+$$\begin{align*}
+Y_{ij} &\sim \text{Bin}\left(h_{ij}, (1 + \exp(-\eta_{ij}))^{-1}\right) 
+  & h_{ij} &\sim \text{Unif}(\{1, 2, 3\}) \\
+\eta_{ij} &= (\vec\beta + \vec U_i)^\top\vec x_{ij} 
+  & \vec x_{ij} &= (1, Z_{ij1}, Z_{ij2}) \\ 
+Z_{ij1}, Z_{ij2} &\sim N(0, 1) 
+  & \vec\beta &= (-2, 2^{-1/2}, 2^{-1/2}) \\
+\vec U_i &\sim N^{(3)}(\vec 0_3, 3^{-1}\mat I_3)
+\end{align*}$$
+
+## Bias: Standard Deviations
+
+```{r bias_fix}
+# check that all converged
+keep <- sapply(sim_res_3D, `[[`, "conv")
+stopifnot(all(apply(keep == 0, 2L, all)))
+
+# get the errors
+fix_err    <- sapply(sim_res_3D, function(x) x$bias$fixed  , simplify = "array")
+stddev_err <- sapply(sim_res_3D, function(x) x$bias$stdev  , simplify = "array")
+cor_err    <- sapply(sim_res_3D, function(x) x$bias$cor_mat, simplify = "array")
+
+# set the names of the dimensions
+dimnames(fix_err)[[2]] <- dimnames(stddev_err)[[2]] <-  c("Inter", "X1", "X2")
+dimnames(cor_err)[[2]] <-  c("Inter:X1", "Inter:X1", "X1:X2")
+
+# computes the bias and standard error
+est_bias <- function(x)
+  list(bias = apply(x, 1:2, mean, na.rm = TRUE), 
+       SE   = apply(x, 1:2, sd, na.rm = TRUE) / 
+         sqrt(apply(x, 1:2, function(z) sum(!is.na(z)))))
+
+# get the bias and standard errors
+bias_fix    <- est_bias(fix_err)
+bias_stddev <- est_bias(stddev_err)
+bias_cor    <- est_bias(cor_err)
+
+# print to console
+message("bias_fix")
+message(paste0(capture.output(bias_fix), sep = "\n"))
+message("bias_stddev")
+message(paste0(capture.output(bias_stddev), sep = "\n"))
+message("bias_cor")
+message(paste0(capture.output(bias_cor), sep = "\n"))
+
+# get the matrix to return 
+format_tab <- function(x){
+  n <- NCOL(x$bias)
+  colnames(x$SE) <- rep("SE", n)
+  out <- cbind(x$bias, x$SE)
+  inc <- rep(1:n, each = 2L) + rep(c(0, n), n)
+  out <- out[, inc]
+  out
+}
+
+exclude_mult_thread <- function(x)
+  lapply(x, function(z) z[rownames(z) != "GVA (4 threads)", ])
+knitr::kable(format_tab(exclude_mult_thread(bias_stddev)), digits = 5L)
+```
+
+BFGS had convergence problems.
+
+## Bias: Standard Deviations
+
+```{r drop_extreme_bfgs_res}
+# drop extreme BFGS results
+do_drop <- apply(abs(stddev_err["GVA BFGS", , ]) > 10, 2L, any)
+message(sprintf("Fraction removed of BFGS %.2f", mean(do_drop)))
+fix_err   ["GVA BFGS", , do_drop] <- NA_real_
+stddev_err["GVA BFGS", , do_drop] <- NA_real_
+cor_err   ["GVA BFGS", , do_drop] <- NA_real_
+
+# get the bias and standard errors
+bias_fix    <- est_bias(fix_err)
+bias_stddev <- est_bias(stddev_err)
+bias_cor    <- est_bias(cor_err)
+
+# redo table
+knitr::kable(format_tab(exclude_mult_thread(bias_stddev)), digits = 5L)
+```
+
+Excluded solutions for BFGS where it did not converge.
+
+
+## Bias: Fixed Effect Coefficients 
+
+```{r bias_stddev}
+knitr::kable(format_tab(exclude_mult_thread(bias_fix)), digits = 5L)
+```
+
+Excluded solutions for BFGS where it did not converge.
+
+## Bias: Correlation Coefficients
+
+```{r bias_cor}
+knitr::kable(format_tab(exclude_mult_thread(bias_cor)), digits = 5L)
+```
+
+Excluded solutions for BFGS where it did not converge.
+
+## Average Computation Times
+
+```{r avg_comp_times}
+# get the computation times
+tis <- sapply(sim_res_3D, `[[`, "time", simplify = "array")
+
+# format and show the table
+tis_stats <- est_bias(tis)
+tis_stats <- lapply(tis_stats, function(x) {
+  x <- x[, "elapsed", drop = FALSE]
+  colnames(x) <- "Computation time (secs)"
+  x
+})
+
+knitr::kable(format_tab(tis_stats), digits = 5L)
+```
+
+
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="center final">
+<h1>Thank You!</h1>
+
+<div class="w-small">
+<p class="smallish">The presentation is at  
+<a href="https://rpubs.com/boennecd/GVAs-n-psqn-KTH">rpubs.com/boennecd/GVAs-n-psqn-KTH</a>.</p>
+<p class="smallish">The markdown is at  
+<a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
+<p class="smallish">The code for the example are at  
+<a href="https://github.com/boennecd/psqn-va-ex">github.com/boennecd/psqn-va-ex</a>.</p>
+<p class="smallish">The psqn package is CRAN and at 
+<a href="https://github.com/boennecd/psqn">github.com/boennecd/psqn</a>.</p>
+<p class="smallish">References are on the next slide.</p>
+</div>
+
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+<section>
+<h1>References</h1>
+
+<!--/html_preserve-->
