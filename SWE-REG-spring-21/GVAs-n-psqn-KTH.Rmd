@@ -37,10 +37,20 @@ options(digits = 3)
   
   // add second header
   var second_head = document.createElement("p");
-  var node = document.createTextNode("Using Quasi-newton Methods with Variational Approximations");
+  var node = document.createTextNode("Using Quasi-Newton Methods with Variational Approximations");
   second_head.appendChild(node);
   second_head.style.margin = "0";
   front_div.appendChild(second_head);
+  
+  // conference/where this is at
+  var where_at = document.createElement("p");
+  var where_at_text = document.createElement("i");
+  var node = document.createTextNode("SWE-REG Spring Meeting 2021");
+  where_at_text.appendChild(node);
+  where_at.appendChild(where_at_text);
+  where_at.style.margin = "0.1em";
+  where_at.style.fontSize = "75%";
+  front_div.appendChild(where_at);
   
   // add author 
   var credit_div = document.createElement('div');
@@ -100,31 +110,43 @@ The log marginal likelihood term is
 
 $$
 l_i(\vec\theta) = 
-  \int h_i(\vec Y_i;\vec u, \vec\theta)g_i(\vec u; \vec\theta)\der\vec u
+  \log\int h_i(\vec Y_i;\vec u, \vec\theta)g_i(\vec u; \vec\theta)\der\vec u.
 $$
 
 Typically intractable. 
 
+## Overview
+Use variational approximations to approximate the log marginal likelihood terms, 
+$l_i$'s. 
+
+<div class = "fragment w-small">
+Use structure of the problem to perform fast estimation.
+<p class = "smallish">
+Made a package for that.</p>
+</div>
+
 ## Variational Approximations
 Select some variational distribution with density 
 $q_i(\vec u;\vec\omega_i)$ for 
-$\vec\omega_i \in \Omega_i$ and use
+$\vec\omega_i \in \Omega_i$ <span class = "fragment" data-fragment-index = 1>and use</span>
 
+<div class = "fragment" data-fragment-index = 1>
 $$\begin{align*}
 l_i(\vec\theta) &\geq \int q_i(\vec u; \vec\omega_i)
   \log\left(\frac{h_i(\vec Y_i;\vec u, \vec\theta)g_i(\vec u; \vec\theta)}
   {q_i(\vec u; \vec\omega_i)}\right) \der\vec u \\
-  &= \tilde l_i(\vec\theta, \vec\omega_i)
-\end{align*}$$
+  &= \tilde l_i(\vec\theta, \vec\omega_i).
+\end{align*}$$</div>
 
-Typically much easier computationally to evaluate.
+<p class = "fragment" data-fragment-index = 2>
+Point: replace with "more tractable" lower bound.</p>
 
 ## Approximate Maximum Likelihood
 
 Approximate 
 
 $$
-\argmax_{\vec\theta} l(\vec\theta) = \sum_{i = 1}^m l_i(\vec\theta)
+\argmax_{\vec\theta}\, l(\vec\theta) = \sum_{i = 1}^m l_i(\vec\theta)
 $$
 
 with 
@@ -132,15 +154,16 @@ with
 $$
 \argmax_{\vec\theta,\vec\omega_1, \dots, \vec\omega_m} 
   \tilde l(\vec \theta, \vec\omega_1,\dots,\vec\omega_m) = 
-     \sum_{i = 1}^m \tilde l_i(\vec\theta, \vec\omega_i)
+     \sum_{i = 1}^m \tilde l_i(\vec\theta, \vec\omega_i).
 $$
 
 ## Remarks 
 Number of parameters is 
-$\lvert\vec\theta\rvert + \sum_{i = 1}^m \lvert\vec\omega_i\rvert$ instead 
-of $\lvert\vec\theta\rvert$.
+$\text{dim}(\vec\theta) + \sum_{i = 1}^m \text{dim}(\vec\omega_i)$ instead 
+of $\text{dim}(\vec\theta)$.
 
-The Hessian is sparse though: partially separable.
+<p class = "fragment">
+... but the Hessian is sparse (partially separable).</p>
 
 <!--html_preserve-->
 </section>
@@ -154,6 +177,13 @@ The Hessian is sparse though: partially separable.
 <h1>Optimization Method</h1>
 <!--/html_preserve-->
 
+## Quick Remarks
+<div class = "w-small">
+Briefly cover details. A bit technical (bear with me!).
+<p class = "smallish">
+See @nocedal06 and the package mentioned later for details.</p>
+</div>
+
 ## Issues with Quasi-Newton Methods
 Have to optimize
 
@@ -162,30 +192,36 @@ $$
  \sum_{i = 1}^m \tilde l_i(\vec\theta, \vec\omega_i).
 $$ 
 
-<p class = "fragment">
-Quasi-Newton methods like BFGS creates an approximation of the Hessian of 
-$\tilde l$.</p>
+<div class = "fragment w-small">
+Quasi-Newton methods creates an approximation of the Hessian of 
+$\tilde l$.
+<p class = "smallish">
+E.g. BFGS.</p>
+</div>
 
 <p class="fragment">
-BFGS does not preserve the sparsity of $\tilde l$.</p>
+BFGS does not preserve the sparsity of the Hessian $\tilde l$.</p>
 
 ## Partially Separability
 Make $m$ BFGS updates to approximate the Hessian of 
 $\tilde l_1(\vec\theta, \vec\omega_1), \dots, \tilde l_m(\vec\theta, \vec\omega_m)$. 
 
 <div class = "w-small fragment">
-Solve the normal equation using conjugate gradient. 
+Solve using conjugate gradient. 
 <p class = "smallish">
 Fast as we preserve the sparsity.
 </p></div>
 
+<p class = "fragment">
+May yield better Hessian approximation.</p>
+
 ## Comparing with BFGS
-$\vec\theta$ has $p$ elements, 
-$\vec\omega_i$ have $s$ elements, and 
+Suppose $\text{dim}(\vec\theta) = p$, 
+$\text{dim}(\vec\omega_i) = s$, and 
 at most $n_{cg}$ conjugate gradient iterations.
 
 <div class = "fragment">
-The ratio of flops between BFGS and the new methods is (roughly)
+Ratio of flops between BFGS and the new methods is (roughly)
 
 $$
 \frac{p^2 + 2mps + (ms)^2}
@@ -193,17 +229,28 @@ $$
   \frac m{n_{cg}}.
 $$
 
-for large $m$ and $s$ slightly larger than $p$. Favorable if $n_{cg} \ll m$.</div>
+<p class = "smallish">
+for large $m$ and $s$ slightly larger than $p$. Favorable if $n_{cg} \ll m$.
+</p></div>
 
-<p class = "fragment">
-May yield better Hessian approximation.</p>
-
-## psqn Package
+## The psqn Package
 Implemented in the psqn package. 
 
-Both R and C++ interface. 
+<p class = "fragment">
+Both R and C++ interface.</p>
 
-Supports computation in parallel using OpenMP for C++ implementations.
+
+<div class = "fragment w-small">
+Supports computation in parallel 
+<p class = "smallish">
+using OpenMP for C++ implementations.</p>
+</div>
+
+<div class = "fragment w-small">
+Applicable to other partially separable problems!
+<p class = "smallish">
+E.g. inner optimization in Laplace method.</p>
+</div>
 
 <!--html_preserve-->
 </section>
@@ -263,7 +310,7 @@ sim_dat <- function(n_cluster = 100L, cor_mat, beta, n_obs = 10L,
     group <<- group + 1L
     if(model == "binomial_logit"){
       prob <- 1/(1 + exp(-eta))
-      nis <- sample.int(3L, n_obs, replace = TRUE)
+      nis <- rep(1, n_obs)
       y <- rbinom(n_obs, nis, prob)
       nis <- as.numeric(nis)
       y <- as.numeric(y)
@@ -390,7 +437,7 @@ est_va <- function(dat, rel_eps = 1e-8, est_with, n_threads = 1L,
 #   beta: the fixed effect coefficient vector.
 #   prefix: prefix for saved files.
 #   formula: formula for lme4. 
-#   model: characther with model and link function.
+#   model: character with model and link function.
 run_study <- function(n_cluster, seeds_use, n_obs = 3L,  
                       cor_mat = diag(1), beta = c(-2, -1, 1), 
                       prefix = "univariate", 
@@ -512,22 +559,56 @@ sim_res_3D <- run_study(
   formula = y / nis ~ X.X1 + X.X2 + (1 + X.X1 + X.X2 | group))
 ```
 
+Take a GLMM with a logit link function. 
+
+<div class = "w-small fragment">
+Use $q_i(\vec u;\vec\lambda,\mat \Lambda) = \phi^{(K)}(\vec u; \vec \lambda,\mat\Lambda)$ 
+(a GVA).
+<p class = "smallish">
+Gaussian variational approximations [@Ormerod12].</p>
+</div>
+
+<div class = "fragment w-small">
+Compare with Laplace approximation
+<p class = "smallish">
+from lme4 [@Bates15].</p>
+</div>
+
+<div class = "fragment w-small">
+Compare with BFGS from R and L-BFGS
+<p class = "smallish">
+from the lbfgs package [@Coppola20].</p>
+</div>
+
+## GLMM Example (cont.)
+
+Three random effects per cluster, $m = 1000$ clusters, and $n_i = 10$ 
+observations in each cluster.
+
 $$\begin{align*}
-Y_{ij} &\sim \text{Bin}\left(h_{ij}, (1 + \exp(-\eta_{ij}))^{-1}\right) 
-  & h_{ij} &\sim \text{Unif}(\{1, 2, 3\}) \\
-\eta_{ij} &= (\vec\beta + \vec U_i)^\top\vec x_{ij} 
-  & \vec x_{ij} &= (1, Z_{ij1}, Z_{ij2}) \\ 
-Z_{ij1}, Z_{ij2} &\sim N(0, 1) 
-  & \vec\beta &= (-2, 2^{-1/2}, 2^{-1/2}) \\
+Y_{ij} &\sim \text{Bin}\left(1, (1 + \exp(-\eta_{ij}))^{-1}\right)  \\
+\eta_{ij} &= (\vec\beta + \vec U_i)^\top\vec x_{ij} \\
+\vec x_{ij} &= (1, Z_{ij1}, Z_{ij2}) \\ 
+Z_{ij1}, Z_{ij2} &\sim N(0, 1)  \\
+\vec\beta &= (-2, 2^{-1/2}, 2^{-1/2}) \\
 \vec U_i &\sim N^{(3)}(\vec 0_3, 3^{-1}\mat I_3)
 \end{align*}$$
 
-## Bias: Standard Deviations
+## Findings
+Variational approximations are faster. 
+
+<p class = "fragment">
+Yields lower bias in this case.</p>
+
+<p class = "fragment">
+The new optimization method is much faster than generic alternatives.</p>
 
 ```{r bias_fix}
 # check that all converged
 keep <- sapply(sim_res_3D, `[[`, "conv")
-stopifnot(all(apply(keep == 0, 2L, all)))
+keep <- apply(keep == 0, 2L, all)
+message(sprintf("%d is removed", sum(!keep)))
+sim_res_3D <- sim_res_3D[keep]
 
 # get the errors
 fix_err    <- sapply(sim_res_3D, function(x) x$bias$fixed  , simplify = "array")
@@ -569,12 +650,22 @@ format_tab <- function(x){
 
 exclude_mult_thread <- function(x)
   lapply(x, function(z) z[rownames(z) != "GVA (4 threads)", ])
-knitr::kable(format_tab(exclude_mult_thread(bias_stddev)), digits = 5L)
+# knitr::kable(format_tab(exclude_mult_thread(bias_stddev)), digits = 5L)
 ```
 
-BFGS had convergence problems.
+## Bias: Fixed Effect Coefficients 
 
-## Bias: Standard Deviations
+```{r bias_stddev}
+knitr::kable(format_tab(exclude_mult_thread(bias_fix)), digits = 5L)
+```
+
+<div class = "w-small">
+Excluded solutions for BFGS where it did not converge.
+<p class = "smallish">
+SEs are the standard errors. The GVA row uses the psqn package.</p>
+</div>
+
+## Bias: Random Effects' Standard Deviations
 
 ```{r drop_extreme_bfgs_res}
 # drop extreme BFGS results
@@ -593,16 +684,11 @@ bias_cor    <- est_bias(cor_err)
 knitr::kable(format_tab(exclude_mult_thread(bias_stddev)), digits = 5L)
 ```
 
+<div class = "w-small">
 Excluded solutions for BFGS where it did not converge.
-
-
-## Bias: Fixed Effect Coefficients 
-
-```{r bias_stddev}
-knitr::kable(format_tab(exclude_mult_thread(bias_fix)), digits = 5L)
-```
-
-Excluded solutions for BFGS where it did not converge.
+<p class = "smallish">
+SEs are the standard errors. The GVA row uses the psqn package.</p>
+</div>
 
 ## Bias: Correlation Coefficients
 
@@ -610,26 +696,79 @@ Excluded solutions for BFGS where it did not converge.
 knitr::kable(format_tab(exclude_mult_thread(bias_cor)), digits = 5L)
 ```
 
+<div class = "w-small">
 Excluded solutions for BFGS where it did not converge.
+<p class = "smallish">
+SEs are the standard errors. The GVA row uses the psqn package.</p>
+</div>
 
 ## Average Computation Times
 
 ```{r avg_comp_times}
 # get the computation times
 tis <- sapply(sim_res_3D, `[[`, "time", simplify = "array")
+tis["GVA BFGS", , do_drop] <- NA_real_
 
 # format and show the table
 tis_stats <- est_bias(tis)
 tis_stats <- lapply(tis_stats, function(x) {
   x <- x[, "elapsed", drop = FALSE]
-  colnames(x) <- "Computation time (secs)"
+  colnames(x) <- "Computation time (sec.)"
   x
 })
 
 knitr::kable(format_tab(tis_stats), digits = 5L)
 ```
 
+<div class = "w-small">
+Excluded solutions for BFGS where it did not converge.
+<p class = "smallish">
+SEs are the standard errors. The GVA row uses the psqn package.</p>
+</div>
 
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Extensions and Conclusions</h1>
+<!--/html_preserve-->
+
+## Conclusions
+Introduced variational approximations and its related optimization problem.
+
+<p class = "fragment">
+May yield low bias.</p>
+
+<p class = "fragment">
+Quasi-Newton methods for partially separable can yield estimates fast.</p>
+
+## Variational Approximations
+<div class = "w-small">
+Can use restricted Gaussian variational approximations for fast estimation.
+<p class = "smallish">
+Particularly useful for crossed and nested random effects. E.g. 
+@Challis13, @Miller17, and @Ong18.</p>
+</div>
+
+<p class = "fragment">
+Use other variational distributions.</p>
+
+## The psqn Package
+Add Newton conjugate gradient method. 
+
+<p class = "fragment">
+Add constraints.</p>
+
+<p class = "fragment">
+Add a trust region method.</p>
+
+<p class = "fragment">
+Add other sparsity patterns of the Hessian.</p>
 
 <!--html_preserve-->
 </section>
@@ -644,12 +783,12 @@ knitr::kable(format_tab(tis_stats), digits = 5L)
 
 <div class="w-small">
 <p class="smallish">The presentation is at  
-<a href="https://rpubs.com/boennecd/GVAs-n-psqn-KTH">rpubs.com/boennecd/GVAs-n-psqn-KTH</a>.</p>
+<a href="https://rpubs.com/boennecd/SWE-REG-spring-21">rpubs.com/boennecd/SWE-REG-spring-21</a>.</p>
 <p class="smallish">The markdown is at  
 <a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
-<p class="smallish">The code for the example are at  
+<p class="smallish">More examples at 
 <a href="https://github.com/boennecd/psqn-va-ex">github.com/boennecd/psqn-va-ex</a>.</p>
-<p class="smallish">The psqn package is CRAN and at 
+<p class="smallish">The psqn package is on CRAN and at 
 <a href="https://github.com/boennecd/psqn">github.com/boennecd/psqn</a>.</p>
 <p class="smallish">References are on the next slide.</p>
 </div>

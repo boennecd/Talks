@@ -308,18 +308,6 @@
       "Repository": "CRAN",
       "Hash": "0d87e50e11394a7151a28873637d799a"
     },
-    "pedmod": {
-      "Package": "pedmod",
-      "Version": "0.1.0",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteRepo": "pedmod",
-      "RemoteUsername": "boennecd",
-      "RemoteRef": "HEAD",
-      "RemoteSha": "b7af8b49bf3c69f651498499f8eb1424f75de48f",
-      "Hash": "67c485f9a506e6bef4220cd4203cbaaf"
-    },
     "pillar": {
       "Package": "pillar",
       "Version": "1.5.1",
@@ -375,6 +363,18 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "32620e2001c1dce1af49c49dccbb9420"
+    },
+    "psqn": {
+      "Package": "psqn",
+      "Version": "0.1.5",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteRepo": "psqn",
+      "RemoteUsername": "boennecd",
+      "RemoteRef": "HEAD",
+      "RemoteSha": "6b93a721ac443d28f29e4737ce3514369a9d2927",
+      "Hash": "d6ce4431dcd14fcb658374c7ec98566c"
     },
     "rematch2": {
       "Package": "rematch2",

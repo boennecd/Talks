@@ -1938,10 +1938,20 @@ document.getElementsByTagName('head')[0].appendChild(style);
   
   // add second header
   var second_head = document.createElement("p");
-  var node = document.createTextNode("Using Quasi-newton Methods with Variational Approximations");
+  var node = document.createTextNode("Using Quasi-Newton Methods with Variational Approximations");
   second_head.appendChild(node);
   second_head.style.margin = "0";
   front_div.appendChild(second_head);
+  
+  // conference/where this is at
+  var where_at = document.createElement("p");
+  var where_at_text = document.createElement("i");
+  var node = document.createTextNode("SWE-REG Spring Meeting 2021");
+  where_at_text.appendChild(node);
+  where_at.appendChild(where_at_text);
+  where_at.style.margin = "0.1em";
+  where_at.style.fontSize = "75%";
+  front_div.appendChild(where_at);
   
   // add author 
   var credit_div = document.createElement('div');
@@ -2000,38 +2010,54 @@ Focus on clustered data.
 <p>The log marginal likelihood term is</p>
 <p><span class="math display">\[
 l_i(\vec\theta) = 
-  \int h_i(\vec Y_i;\vec u, \vec\theta)g_i(\vec u; \vec\theta)\der\vec u
+  \log\int h_i(\vec Y_i;\vec u, \vec\theta)g_i(\vec u; \vec\theta)\der\vec u.
 \]</span></p>
 <p>Typically intractable.</p>
 </section>
+<section id="overview" class="slide level2">
+<h2>Overview</h2>
+<p>Use variational approximations to approximate the log marginal likelihood terms, <span class="math inline">\(l_i\)</span>’s.</p>
+<div class="fragment w-small">
+Use structure of the problem to perform fast estimation.
+<p class="smallish">
+Made a package for that.
+</p>
+</div>
+</section>
 <section id="variational-approximations" class="slide level2">
 <h2>Variational Approximations</h2>
-<p>Select some variational distribution with density <span class="math inline">\(q_i(\vec u;\vec\omega_i)\)</span> for <span class="math inline">\(\vec\omega_i \in \Omega_i\)</span> and use</p>
-<p><span class="math display">\[\begin{align*}
+<p>Select some variational distribution with density <span class="math inline">\(q_i(\vec u;\vec\omega_i)\)</span> for <span class="math inline">\(\vec\omega_i \in \Omega_i\)</span> <span class="fragment" data-fragment-index="1">and use</span></p>
+<div class="fragment" data-fragment-index="1">
+<span class="math display">\[\begin{align*}
 l_i(\vec\theta) &amp;\geq \int q_i(\vec u; \vec\omega_i)
   \log\left(\frac{h_i(\vec Y_i;\vec u, \vec\theta)g_i(\vec u; \vec\theta)}
   {q_i(\vec u; \vec\omega_i)}\right) \der\vec u \\
-  &amp;= \tilde l_i(\vec\theta, \vec\omega_i)
-\end{align*}\]</span></p>
-<p>Typically much easier computationally to evaluate.</p>
+  &amp;= \tilde l_i(\vec\theta, \vec\omega_i).
+\end{align*}\]</span>
+</div>
+<p class="fragment" data-fragment-index="2">
+Point: replace with “more tractable” lower bound.
+</p>
 </section>
 <section id="approximate-maximum-likelihood" class="slide level2">
 <h2>Approximate Maximum Likelihood</h2>
 <p>Approximate</p>
 <p><span class="math display">\[
-\argmax_{\vec\theta} l(\vec\theta) = \sum_{i = 1}^m l_i(\vec\theta)
+\argmax_{\vec\theta}\, l(\vec\theta) = \sum_{i = 1}^m l_i(\vec\theta)
 \]</span></p>
 <p>with</p>
 <p><span class="math display">\[
 \argmax_{\vec\theta,\vec\omega_1, \dots, \vec\omega_m} 
   \tilde l(\vec \theta, \vec\omega_1,\dots,\vec\omega_m) = 
-     \sum_{i = 1}^m \tilde l_i(\vec\theta, \vec\omega_i)
+     \sum_{i = 1}^m \tilde l_i(\vec\theta, \vec\omega_i).
 \]</span></p>
 </section>
 <section id="remarks" class="slide level2">
 <h2>Remarks</h2>
-<p>Number of parameters is <span class="math inline">\(\lvert\vec\theta\rvert + \sum_{i = 1}^m \lvert\vec\omega_i\rvert\)</span> instead of <span class="math inline">\(\lvert\vec\theta\rvert\)</span>.</p>
-<p>The Hessian is sparse though: partially separable.</p>
+<p>Number of parameters is <span class="math inline">\(\text{dim}(\vec\theta) + \sum_{i = 1}^m \text{dim}(\vec\omega_i)\)</span> instead of <span class="math inline">\(\text{dim}(\vec\theta)\)</span>.</p>
+<p class="fragment">
+… but the Hessian is sparse (partially separable).
+</p>
 
 </section>
 <!-- need extra end tag before next section -->
@@ -2044,6 +2070,15 @@ l_i(\vec\theta) &amp;\geq \int q_i(\vec u; \vec\omega_i)
 <h1>Optimization Method</h1>
 
 </section>
+<section id="quick-remarks" class="slide level2">
+<h2>Quick Remarks</h2>
+<div class="w-small">
+Briefly cover details. A bit technical (bear with me!).
+<p class="smallish">
+See <span class="citation" data-cites="nocedal06">Nocedal and Wright (2006)</span> and the package mentioned later for details.
+</p>
+</div>
+</section>
 <section id="issues-with-quasi-newton-methods" class="slide level2">
 <h2>Issues with Quasi-Newton Methods</h2>
 <p>Have to optimize</p>
@@ -2051,44 +2086,62 @@ l_i(\vec\theta) &amp;\geq \int q_i(\vec u; \vec\omega_i)
 \tilde l(\vec \theta, \vec\omega_1,\dots,\vec\omega_m) = 
  \sum_{i = 1}^m \tilde l_i(\vec\theta, \vec\omega_i).
 \]</span></p>
-<p class="fragment">
-Quasi-Newton methods like BFGS creates an approximation of the Hessian of <span class="math inline">\(\tilde l\)</span>.
+<div class="fragment w-small">
+Quasi-Newton methods creates an approximation of the Hessian of <span class="math inline">\(\tilde l\)</span>.
+<p class="smallish">
+E.g. BFGS.
 </p>
+</div>
 <p class="fragment">
-BFGS does not preserve the sparsity of <span class="math inline">\(\tilde l\)</span>.
+BFGS does not preserve the sparsity of the Hessian <span class="math inline">\(\tilde l\)</span>.
 </p>
 </section>
 <section id="partially-separability" class="slide level2">
 <h2>Partially Separability</h2>
 <p>Make <span class="math inline">\(m\)</span> BFGS updates to approximate the Hessian of <span class="math inline">\(\tilde l_1(\vec\theta, \vec\omega_1), \dots, \tilde l_m(\vec\theta, \vec\omega_m)\)</span>.</p>
 <div class="w-small fragment">
-Solve the normal equation using conjugate gradient.
+Solve using conjugate gradient.
 <p class="smallish">
 Fast as we preserve the sparsity.
 </p>
-</div>
-</section>
-<section id="comparing-with-bfgs" class="slide level2">
-<h2>Comparing with BFGS</h2>
-<p><span class="math inline">\(\vec\theta\)</span> has <span class="math inline">\(p\)</span> elements, <span class="math inline">\(\vec\omega_i\)</span> have <span class="math inline">\(s\)</span> elements, and at most <span class="math inline">\(n_{cg}\)</span> conjugate gradient iterations.</p>
-<div class="fragment">
-<p>The ratio of flops between BFGS and the new methods is (roughly)</p>
-<p><span class="math display">\[
-\frac{p^2 + 2mps + (ms)^2}
-  {n_{cg}(p^2 + 2pms + ms^2) + mp^2} \approx 
-  \frac m{n_{cg}}.
-\]</span></p>
-for large <span class="math inline">\(m\)</span> and <span class="math inline">\(s\)</span> slightly larger than <span class="math inline">\(p\)</span>. Favorable if <span class="math inline">\(n_{cg} \ll m\)</span>.
 </div>
 <p class="fragment">
 May yield better Hessian approximation.
 </p>
 </section>
-<section id="psqn-package" class="slide level2">
-<h2>psqn Package</h2>
+<section id="comparing-with-bfgs" class="slide level2">
+<h2>Comparing with BFGS</h2>
+<p>Suppose <span class="math inline">\(\text{dim}(\vec\theta) = p\)</span>, <span class="math inline">\(\text{dim}(\vec\omega_i) = s\)</span>, and at most <span class="math inline">\(n_{cg}\)</span> conjugate gradient iterations.</p>
+<div class="fragment">
+<p>Ratio of flops between BFGS and the new methods is (roughly)</p>
+<p><span class="math display">\[
+\frac{p^2 + 2mps + (ms)^2}
+  {n_{cg}(p^2 + 2pms + ms^2) + mp^2} \approx 
+  \frac m{n_{cg}}.
+\]</span></p>
+<p class="smallish">
+for large <span class="math inline">\(m\)</span> and <span class="math inline">\(s\)</span> slightly larger than <span class="math inline">\(p\)</span>. Favorable if <span class="math inline">\(n_{cg} \ll m\)</span>.
+</p>
+</div>
+</section>
+<section id="the-psqn-package" class="slide level2">
+<h2>The psqn Package</h2>
 <p>Implemented in the psqn package.</p>
-<p>Both R and C++ interface.</p>
-<p>Supports computation in parallel using OpenMP for C++ implementations.</p>
+<p class="fragment">
+Both R and C++ interface.
+</p>
+<div class="fragment w-small">
+Supports computation in parallel
+<p class="smallish">
+using OpenMP for C++ implementations.
+</p>
+</div>
+<div class="fragment w-small">
+Applicable to other partially separable problems!
+<p class="smallish">
+E.g. inner optimization in Laplace method.
+</p>
+</div>
 
 </section>
 <!-- need extra end tag before next section -->
@@ -2103,125 +2156,47 @@ May yield better Hessian approximation.
 </section>
 <section id="glmm-example" class="slide level2">
 <h2>GLMM Example</h2>
+<p>Take a GLMM with a logit link function.</p>
+<div class="w-small fragment">
+Use <span class="math inline">\(q_i(\vec u;\vec\lambda,\mat \Lambda) = \phi^{(K)}(\vec u; \vec \lambda,\mat\Lambda)\)</span> (a GVA).
+<p class="smallish">
+Gaussian variational approximations <span class="citation" data-cites="Ormerod12">(Ormerod and Wand 2012)</span>.
+</p>
+</div>
+<div class="fragment w-small">
+Compare with Laplace approximation
+<p class="smallish">
+from lme4 <span class="citation" data-cites="Bates15">(Bates et al. 2015)</span>.
+</p>
+</div>
+<div class="fragment w-small">
+Compare with BFGS from R and L-BFGS
+<p class="smallish">
+from the lbfgs package <span class="citation" data-cites="Coppola20">(Coppola, Stewart, and Okazaki 2020)</span>.
+</p>
+</div>
+</section>
+<section id="glmm-example-cont." class="slide level2">
+<h2>GLMM Example (cont.)</h2>
+<p>Three random effects per cluster, <span class="math inline">\(m = 1000\)</span> clusters, and <span class="math inline">\(n_i = 10\)</span> observations in each cluster.</p>
 <p><span class="math display">\[\begin{align*}
-Y_{ij} &amp;\sim \text{Bin}\left(h_{ij}, (1 + \exp(-\eta_{ij}))^{-1}\right) 
-  &amp; h_{ij} &amp;\sim \text{Unif}(\{1, 2, 3\}) \\
-\eta_{ij} &amp;= (\vec\beta + \vec U_i)^\top\vec x_{ij} 
-  &amp; \vec x_{ij} &amp;= (1, Z_{ij1}, Z_{ij2}) \\ 
-Z_{ij1}, Z_{ij2} &amp;\sim N(0, 1) 
-  &amp; \vec\beta &amp;= (-2, 2^{-1/2}, 2^{-1/2}) \\
+Y_{ij} &amp;\sim \text{Bin}\left(1, (1 + \exp(-\eta_{ij}))^{-1}\right)  \\
+\eta_{ij} &amp;= (\vec\beta + \vec U_i)^\top\vec x_{ij} \\
+\vec x_{ij} &amp;= (1, Z_{ij1}, Z_{ij2}) \\ 
+Z_{ij1}, Z_{ij2} &amp;\sim N(0, 1)  \\
+\vec\beta &amp;= (-2, 2^{-1/2}, 2^{-1/2}) \\
 \vec U_i &amp;\sim N^{(3)}(\vec 0_3, 3^{-1}\mat I_3)
 \end{align*}\]</span></p>
 </section>
-<section id="bias-standard-deviations" class="slide level2">
-<h2>Bias: Standard Deviations</h2>
-<table>
-<thead>
-<tr class="header">
-<th style="text-align: left;"></th>
-<th style="text-align: right;">Inter</th>
-<th style="text-align: right;">SE</th>
-<th style="text-align: right;">X1</th>
-<th style="text-align: right;">SE</th>
-<th style="text-align: right;">X2</th>
-<th style="text-align: right;">SE</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Laplace</td>
-<td style="text-align: right;">7.91e-03</td>
-<td style="text-align: right;">3.38e-03</td>
-<td style="text-align: right;">-3.93e-01</td>
-<td style="text-align: right;">7.93e-03</td>
-<td style="text-align: right;">-3.86e-01</td>
-<td style="text-align: right;">6.86e-03</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">GVA</td>
-<td style="text-align: right;">-1.28e-02</td>
-<td style="text-align: right;">3.79e-03</td>
-<td style="text-align: right;">-6.45e-03</td>
-<td style="text-align: right;">3.60e-03</td>
-<td style="text-align: right;">-1.24e-02</td>
-<td style="text-align: right;">3.26e-03</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">GVA LBFGS</td>
-<td style="text-align: right;">-1.29e-02</td>
-<td style="text-align: right;">3.79e-03</td>
-<td style="text-align: right;">-6.42e-03</td>
-<td style="text-align: right;">3.60e-03</td>
-<td style="text-align: right;">-1.24e-02</td>
-<td style="text-align: right;">3.27e-03</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">GVA BFGS</td>
-<td style="text-align: right;">1.12e+86</td>
-<td style="text-align: right;">1.12e+86</td>
-<td style="text-align: right;">2.85e+30</td>
-<td style="text-align: right;">2.85e+30</td>
-<td style="text-align: right;">3.65e+18</td>
-<td style="text-align: right;">3.65e+18</td>
-</tr>
-</tbody>
-</table>
-<p>BFGS had convergence problems.</p>
-</section>
-<section id="bias-standard-deviations-1" class="slide level2">
-<h2>Bias: Standard Deviations</h2>
-<table>
-<thead>
-<tr class="header">
-<th style="text-align: left;"></th>
-<th style="text-align: right;">Inter</th>
-<th style="text-align: right;">SE</th>
-<th style="text-align: right;">X1</th>
-<th style="text-align: right;">SE</th>
-<th style="text-align: right;">X2</th>
-<th style="text-align: right;">SE</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Laplace</td>
-<td style="text-align: right;">0.00791</td>
-<td style="text-align: right;">0.00338</td>
-<td style="text-align: right;">-0.39257</td>
-<td style="text-align: right;">0.00793</td>
-<td style="text-align: right;">-0.3861</td>
-<td style="text-align: right;">0.00686</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">GVA</td>
-<td style="text-align: right;">-0.01280</td>
-<td style="text-align: right;">0.00379</td>
-<td style="text-align: right;">-0.00645</td>
-<td style="text-align: right;">0.00360</td>
-<td style="text-align: right;">-0.0124</td>
-<td style="text-align: right;">0.00326</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">GVA LBFGS</td>
-<td style="text-align: right;">-0.01288</td>
-<td style="text-align: right;">0.00379</td>
-<td style="text-align: right;">-0.00642</td>
-<td style="text-align: right;">0.00360</td>
-<td style="text-align: right;">-0.0124</td>
-<td style="text-align: right;">0.00327</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">GVA BFGS</td>
-<td style="text-align: right;">-0.01535</td>
-<td style="text-align: right;">0.00401</td>
-<td style="text-align: right;">-0.00622</td>
-<td style="text-align: right;">0.00379</td>
-<td style="text-align: right;">-0.0122</td>
-<td style="text-align: right;">0.00357</td>
-</tr>
-</tbody>
-</table>
-<p>Excluded solutions for BFGS where it did not converge.</p>
+<section id="findings" class="slide level2">
+<h2>Findings</h2>
+<p>Variational approximations are faster.</p>
+<p class="fragment">
+Yields lower bias in this case.
+</p>
+<p class="fragment">
+The new optimization method is much faster than generic alternatives.
+</p>
 </section>
 <section id="bias-fixed-effect-coefficients" class="slide level2">
 <h2>Bias: Fixed Effect Coefficients</h2>
@@ -2240,46 +2215,111 @@ Z_{ij1}, Z_{ij2} &amp;\sim N(0, 1)
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">Laplace</td>
-<td style="text-align: right;">0.14550</td>
-<td style="text-align: right;">0.00342</td>
-<td style="text-align: right;">-0.04495</td>
-<td style="text-align: right;">0.00285</td>
-<td style="text-align: right;">-0.04388</td>
-<td style="text-align: right;">0.00244</td>
+<td style="text-align: right;">0.1796</td>
+<td style="text-align: right;">0.00423</td>
+<td style="text-align: right;">-0.05136</td>
+<td style="text-align: right;">0.00383</td>
+<td style="text-align: right;">-0.05472</td>
+<td style="text-align: right;">0.00363</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">GVA</td>
-<td style="text-align: right;">-0.00085</td>
-<td style="text-align: right;">0.00365</td>
-<td style="text-align: right;">-0.00275</td>
-<td style="text-align: right;">0.00279</td>
-<td style="text-align: right;">-0.00027</td>
-<td style="text-align: right;">0.00233</td>
+<td style="text-align: right;">0.0255</td>
+<td style="text-align: right;">0.00465</td>
+<td style="text-align: right;">-0.00603</td>
+<td style="text-align: right;">0.00369</td>
+<td style="text-align: right;">-0.00851</td>
+<td style="text-align: right;">0.00387</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">GVA LBFGS</td>
-<td style="text-align: right;">-0.00084</td>
-<td style="text-align: right;">0.00365</td>
-<td style="text-align: right;">-0.00275</td>
-<td style="text-align: right;">0.00279</td>
-<td style="text-align: right;">-0.00027</td>
-<td style="text-align: right;">0.00233</td>
+<td style="text-align: right;">0.0256</td>
+<td style="text-align: right;">0.00465</td>
+<td style="text-align: right;">-0.00605</td>
+<td style="text-align: right;">0.00369</td>
+<td style="text-align: right;">-0.00853</td>
+<td style="text-align: right;">0.00387</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">GVA BFGS</td>
-<td style="text-align: right;">0.00145</td>
-<td style="text-align: right;">0.00379</td>
-<td style="text-align: right;">-0.00342</td>
-<td style="text-align: right;">0.00294</td>
-<td style="text-align: right;">-0.00037</td>
-<td style="text-align: right;">0.00248</td>
+<td style="text-align: right;">0.1694</td>
+<td style="text-align: right;">0.06273</td>
+<td style="text-align: right;">-0.23624</td>
+<td style="text-align: right;">0.22678</td>
+<td style="text-align: right;">-0.20647</td>
+<td style="text-align: right;">0.24829</td>
 </tr>
 </tbody>
 </table>
-<p>Excluded solutions for BFGS where it did not converge.</p>
+<div class="w-small">
+Excluded solutions for BFGS where it did not converge.
+<p class="smallish">
+SEs are the standard errors. The GVA row uses the psqn package.
+</p>
+</div>
 </section>
-<section id="bias-correlation-coefficient" class="slide level2">
-<h2>Bias: Correlation Coefficient</h2>
+<section id="bias-random-effects-standard-deviations" class="slide level2">
+<h2>Bias: Random Effects’ Standard Deviations</h2>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: right;">Inter</th>
+<th style="text-align: right;">SE</th>
+<th style="text-align: right;">X1</th>
+<th style="text-align: right;">SE</th>
+<th style="text-align: right;">X2</th>
+<th style="text-align: right;">SE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Laplace</td>
+<td style="text-align: right;">-0.0329</td>
+<td style="text-align: right;">0.00573</td>
+<td style="text-align: right;">-0.4594</td>
+<td style="text-align: right;">0.00778</td>
+<td style="text-align: right;">-0.4558</td>
+<td style="text-align: right;">0.00725</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">GVA</td>
+<td style="text-align: right;">-0.0282</td>
+<td style="text-align: right;">0.00576</td>
+<td style="text-align: right;">-0.0297</td>
+<td style="text-align: right;">0.00563</td>
+<td style="text-align: right;">-0.0183</td>
+<td style="text-align: right;">0.00566</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">GVA LBFGS</td>
+<td style="text-align: right;">-0.0282</td>
+<td style="text-align: right;">0.00576</td>
+<td style="text-align: right;">-0.0298</td>
+<td style="text-align: right;">0.00564</td>
+<td style="text-align: right;">-0.0183</td>
+<td style="text-align: right;">0.00567</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">GVA BFGS</td>
+<td style="text-align: right;">-0.0284</td>
+<td style="text-align: right;">0.00598</td>
+<td style="text-align: right;">-0.0287</td>
+<td style="text-align: right;">0.00590</td>
+<td style="text-align: right;">-0.0188</td>
+<td style="text-align: right;">0.00584</td>
+</tr>
+</tbody>
+</table>
+<div class="w-small">
+Excluded solutions for BFGS where it did not converge.
+<p class="smallish">
+SEs are the standard errors. The GVA row uses the psqn package.
+</p>
+</div>
+</section>
+<section id="bias-correlation-coefficients" class="slide level2">
+<h2>Bias: Correlation Coefficients</h2>
 <table>
 <thead>
 <tr class="header">
@@ -2295,43 +2335,48 @@ Z_{ij1}, Z_{ij2} &amp;\sim N(0, 1)
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">Laplace</td>
-<td style="text-align: right;">-0.18579</td>
-<td style="text-align: right;">0.04021</td>
-<td style="text-align: right;">-0.14322</td>
-<td style="text-align: right;">0.02572</td>
-<td style="text-align: right;">0.20919</td>
-<td style="text-align: right;">0.04205</td>
+<td style="text-align: right;">-0.38539</td>
+<td style="text-align: right;">0.0606</td>
+<td style="text-align: right;">-0.33844</td>
+<td style="text-align: right;">0.0573</td>
+<td style="text-align: right;">0.16671</td>
+<td style="text-align: right;">0.0752</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">GVA</td>
-<td style="text-align: right;">-0.00154</td>
-<td style="text-align: right;">0.00856</td>
-<td style="text-align: right;">0.00057</td>
-<td style="text-align: right;">0.00777</td>
-<td style="text-align: right;">-0.00743</td>
-<td style="text-align: right;">0.00805</td>
+<td style="text-align: right;">-0.00593</td>
+<td style="text-align: right;">0.0141</td>
+<td style="text-align: right;">-0.00630</td>
+<td style="text-align: right;">0.0113</td>
+<td style="text-align: right;">-0.00783</td>
+<td style="text-align: right;">0.0141</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">GVA LBFGS</td>
-<td style="text-align: right;">-0.00152</td>
-<td style="text-align: right;">0.00858</td>
-<td style="text-align: right;">0.00056</td>
-<td style="text-align: right;">0.00779</td>
-<td style="text-align: right;">-0.00744</td>
-<td style="text-align: right;">0.00806</td>
+<td style="text-align: right;">-0.00587</td>
+<td style="text-align: right;">0.0141</td>
+<td style="text-align: right;">-0.00623</td>
+<td style="text-align: right;">0.0113</td>
+<td style="text-align: right;">-0.00787</td>
+<td style="text-align: right;">0.0142</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">GVA BFGS</td>
-<td style="text-align: right;">0.00225</td>
-<td style="text-align: right;">0.00885</td>
-<td style="text-align: right;">0.00062</td>
-<td style="text-align: right;">0.00840</td>
-<td style="text-align: right;">-0.00399</td>
-<td style="text-align: right;">0.00858</td>
+<td style="text-align: right;">-0.00256</td>
+<td style="text-align: right;">0.0144</td>
+<td style="text-align: right;">0.00027</td>
+<td style="text-align: right;">0.0112</td>
+<td style="text-align: right;">-0.00703</td>
+<td style="text-align: right;">0.0148</td>
 </tr>
 </tbody>
 </table>
-<p>Excluded solutions for BFGS where it did not converge.</p>
+<div class="w-small">
+Excluded solutions for BFGS where it did not converge.
+<p class="smallish">
+SEs are the standard errors. The GVA row uses the psqn package.
+</p>
+</div>
 </section>
 <section id="average-computation-times" class="slide level2">
 <h2>Average Computation Times</h2>
@@ -2339,38 +2384,90 @@ Z_{ij1}, Z_{ij2} &amp;\sim N(0, 1)
 <thead>
 <tr class="header">
 <th style="text-align: left;"></th>
-<th style="text-align: right;">Comp. time (secs)</th>
+<th style="text-align: right;">Computation time (sec.)</th>
 <th style="text-align: right;">SE</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">Laplace</td>
-<td style="text-align: right;">9.156</td>
-<td style="text-align: right;">0.48364</td>
+<td style="text-align: right;">9.736</td>
+<td style="text-align: right;">0.54340</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">GVA</td>
-<td style="text-align: right;">1.290</td>
-<td style="text-align: right;">0.00783</td>
+<td style="text-align: right;">1.717</td>
+<td style="text-align: right;">0.02483</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">GVA (4 threads)</td>
-<td style="text-align: right;">0.363</td>
-<td style="text-align: right;">0.00231</td>
+<td style="text-align: right;">0.487</td>
+<td style="text-align: right;">0.00737</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">GVA LBFGS</td>
-<td style="text-align: right;">19.529</td>
-<td style="text-align: right;">0.15360</td>
+<td style="text-align: right;">30.166</td>
+<td style="text-align: right;">0.63334</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">GVA BFGS</td>
-<td style="text-align: right;">32.397</td>
-<td style="text-align: right;">0.67304</td>
+<td style="text-align: right;">40.651</td>
+<td style="text-align: right;">0.46618</td>
 </tr>
 </tbody>
 </table>
+<div class="w-small">
+Excluded solutions for BFGS where it did not converge.
+<p class="smallish">
+SEs are the standard errors. The GVA row uses the psqn package.
+</p>
+</div>
+
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Extensions and Conclusions</h1>
+
+</section>
+<section id="conclusions" class="slide level2">
+<h2>Conclusions</h2>
+<p>Introduced variational approximations and its related optimization problem.</p>
+<p class="fragment">
+May yield low bias.
+</p>
+<p class="fragment">
+Quasi-Newton methods for partially separable can yield estimates fast.
+</p>
+</section>
+<section id="variational-approximations-1" class="slide level2">
+<h2>Variational Approximations</h2>
+<div class="w-small">
+Can use restricted Gaussian variational approximations for fast estimation.
+<p class="smallish">
+Particularly useful for crossed and nested random effects. E.g. <span class="citation" data-cites="Challis13">Challis and Barber (2013)</span>, <span class="citation" data-cites="Miller17">Miller, Foti, and Adams (2017)</span>, and <span class="citation" data-cites="Ong18">Ong, Nott, and Smith (2018)</span>.
+</p>
+</div>
+<p class="fragment">
+Use other variational distributions.
+</p>
+</section>
+<section id="the-psqn-package-1" class="slide level2">
+<h2>The psqn Package</h2>
+<p>Add Newton conjugate gradient method.</p>
+<p class="fragment">
+Add constraints.
+</p>
+<p class="fragment">
+Add a trust region method.
+</p>
+<p class="fragment">
+Add other sparsity patterns of the Hessian.
+</p>
 
 </section>
 <!-- need extra end tag before next section -->
@@ -2384,12 +2481,12 @@ Z_{ij1}, Z_{ij2} &amp;\sim N(0, 1)
 
 <div class="w-small">
 <p class="smallish">The presentation is at  
-<a href="https://rpubs.com/boennecd/GVAs-n-psqn-KTH">rpubs.com/boennecd/GVAs-n-psqn-KTH</a>.</p>
+<a href="https://rpubs.com/boennecd/SWE-REG-spring-21">rpubs.com/boennecd/SWE-REG-spring-21</a>.</p>
 <p class="smallish">The markdown is at  
 <a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
-<p class="smallish">The code for the example are at  
+<p class="smallish">More examples at 
 <a href="https://github.com/boennecd/psqn-va-ex">github.com/boennecd/psqn-va-ex</a>.</p>
-<p class="smallish">The psqn package is CRAN and at 
+<p class="smallish">The psqn package is on CRAN and at 
 <a href="https://github.com/boennecd/psqn">github.com/boennecd/psqn</a>.</p>
 <p class="smallish">References are on the next slide.</p>
 </div>
@@ -2402,6 +2499,29 @@ Z_{ij1}, Z_{ij2} &amp;\sim N(0, 1)
 <h1>References</h1>
 
 
+<div id="refs" class="references" role="doc-bibliography">
+<div id="ref-Bates15">
+<p>Bates, Douglas, Martin Mächler, Ben Bolker, and Steve Walker. 2015. “Fitting Linear Mixed-Effects Models Using lme4.” <em>Journal of Statistical Software</em> 67 (1): 1–48. <a href="https://doi.org/10.18637/jss.v067.i01">https://doi.org/10.18637/jss.v067.i01</a>.</p>
+</div>
+<div id="ref-Challis13">
+<p>Challis, Edward, and David Barber. 2013. “Gaussian Kullback-Leibler Approximate Inference.” <em>Journal of Machine Learning Research</em> 14 (32): 2239–86.</p>
+</div>
+<div id="ref-Coppola20">
+<p>Coppola, Antonio, Brandon Stewart, and Naoaki Okazaki. 2020. <em>Lbfgs: Limited-Memory Bfgs Optimization</em>.</p>
+</div>
+<div id="ref-Miller17">
+<p>Miller, Andrew C., Nicholas J. Foti, and Ryan P. Adams. 2017. “Variational Boosting: Iteratively Refining Posterior Approximations.” In <em>Proceedings of the 34th International Conference on Machine Learning</em>, edited by Doina Precup and Yee Whye Teh, 70:2420–9. Proceedings of Machine Learning Research. International Convention Centre, Sydney, Australia: PMLR.</p>
+</div>
+<div id="ref-nocedal06">
+<p>Nocedal, Jorge, and Stephen Wright. 2006. <em>Numerical Optimization</em>. 2nd ed. Springer Science &amp; Business Media. <a href="https://doi.org/10.1007/978-0-387-40065-5">https://doi.org/10.1007/978-0-387-40065-5</a>.</p>
+</div>
+<div id="ref-Ong18">
+<p>Ong, Victor M.-H., David J. Nott, and Michael S. Smith. 2018. “Gaussian Variational Approximation with a Factor Covariance Structure.” <em>Journal of Computational and Graphical Statistics</em> 27 (3): 465–78. <a href="https://doi.org/10.1080/10618600.2017.1390472">https://doi.org/10.1080/10618600.2017.1390472</a>.</p>
+</div>
+<div id="ref-Ormerod12">
+<p>Ormerod, J. T., and M. P. Wand. 2012. “Gaussian Variational Approximate Inference for Generalized Linear Mixed Models.” <em>Journal of Computational and Graphical Statistics</em> 21 (1): 2–17. <a href="http://www.jstor.org/stable/23248820">http://www.jstor.org/stable/23248820</a>.</p>
+</div>
+</div>
 </section>
     </div>
   </div>
