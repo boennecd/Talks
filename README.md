@@ -1,3 +1,7 @@
+### The Swedish Network for Register-Based Research's Spring Meeting 2021: on the psqn Package.
+[Code](/SWE-REG-spring-21/SWE-REG-spring-21.Rmd) and presentation at 
+[RPubs](https://rpubs.com/boennecd/SWE-REG-spring-21).
+
 ### MEB Thursday Seminar Winter 2020: Mixed Effect Models for Pedigree Data
 [Code](/MEB-RQMC-pedigree/MEB-RQMC-pedigree.Rmd) and presentation at 
 [RPubs](https://rpubs.com/boennecd/MEB-RQMC-pedigree).
