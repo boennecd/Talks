@@ -1998,6 +1998,27 @@ Interested in modeling the dependence per se.
 Focus on clustered data.
 </p>
 </section>
+<section id="examples" class="slide level2">
+<h2>Examples</h2>
+<div class="w-small">
+Family data in epidemiology
+<p class="smallish">
+using the Swedish multi-generation register.
+</p>
+</div>
+<div class="w-small fragment">
+In sociology and econometrics.
+<p class="smallish">
+Random intercept and slope models for neighborhood effects, school effects, etc.
+</p>
+</div>
+<div class="w-small fragment">
+Modeling trajectories of biomarkers of kidney function
+<p class="smallish">
+accounting for diabetic complications and medication. Using data from the Swedish SCREAM project.
+</p>
+</div>
+</section>
 <section id="introduction-example-cont." class="slide level2">
 <h2>Introduction Example (cont.)</h2>
 <p>Outcomes <span class="math inline">\(\vec Y_i = (Y_{i1}, \dots, Y_{in_i})^\top\)</span>, model parameters <span class="math inline">\(\vec\theta\)</span>, and random effects <span class="math inline">\(\vec U_i\)</span> for cluster <span class="math inline">\(i\)</span>.</p>
@@ -2012,7 +2033,15 @@ Focus on clustered data.
 l_i(\vec\theta) = 
   \log\int h_i(\vec Y_i;\vec u, \vec\theta)g_i(\vec u; \vec\theta)\der\vec u.
 \]</span></p>
-<p>Typically intractable.</p>
+<div class="fragment w-small">
+Typically intractable.
+<p class="smallish">
+No closed-form solution.
+</p>
+</div>
+<p class="fragment">
+Issue: current approximations have long estimation time or large bias.
+</p>
 </section>
 <section id="overview" class="slide level2">
 <h2>Overview</h2>
@@ -2041,20 +2070,14 @@ Point: replace with “more tractable” lower bound.
 </section>
 <section id="approximate-maximum-likelihood" class="slide level2">
 <h2>Approximate Maximum Likelihood</h2>
-<p>Approximate</p>
-<p><span class="math display">\[
-\argmax_{\vec\theta}\, l(\vec\theta) = \sum_{i = 1}^m l_i(\vec\theta)
-\]</span></p>
-<p>with</p>
-<p><span class="math display">\[
-\argmax_{\vec\theta,\vec\omega_1, \dots, \vec\omega_m} 
-  \tilde l(\vec \theta, \vec\omega_1,\dots,\vec\omega_m) = 
-     \sum_{i = 1}^m \tilde l_i(\vec\theta, \vec\omega_i).
-\]</span></p>
-</section>
-<section id="remarks" class="slide level2">
-<h2>Remarks</h2>
-<p>Number of parameters is <span class="math inline">\(\text{dim}(\vec\theta) + \sum_{i = 1}^m \text{dim}(\vec\omega_i)\)</span> instead of <span class="math inline">\(\text{dim}(\vec\theta)\)</span>.</p>
+<span class="math display">\[
+\argmax_{\vec\theta}\,\sum_{i = 1}^m l_i(\vec\theta)
+\approx \argmax_{\vec\theta} \max_{\vec\omega_1, \dots, \vec\omega_m} 
+  \sum_{i = 1}^m \tilde l_i(\vec\theta, \vec\omega_i).
+\]</span>
+<p class="fragment">
+Parameters: <span class="math inline">\(\text{dim}(\vec\theta) + \sum_{i = 1}^m \text{dim}(\vec\omega_i) \gg \text{dim}(\vec\theta)\)</span>!
+</p>
 <p class="fragment">
 … but the Hessian is sparse (partially separable).
 </p>
@@ -2093,7 +2116,7 @@ E.g. BFGS.
 </p>
 </div>
 <p class="fragment">
-BFGS does not preserve the sparsity of the Hessian <span class="math inline">\(\tilde l\)</span>.
+… does not preserve the sparsity.
 </p>
 </section>
 <section id="partially-separability" class="slide level2">
@@ -2170,7 +2193,7 @@ from lme4 <span class="citation" data-cites="Bates15">(Bates et al. 2015)</span>
 </p>
 </div>
 <div class="fragment w-small">
-Compare with BFGS from R and L-BFGS
+Compare with L-BFGS
 <p class="smallish">
 from the lbfgs package <span class="citation" data-cites="Coppola20">(Coppola, Stewart, and Okazaki 2020)</span>.
 </p>
@@ -2178,7 +2201,18 @@ from the lbfgs package <span class="citation" data-cites="Coppola20">(Coppola, S
 </section>
 <section id="glmm-example-cont." class="slide level2">
 <h2>GLMM Example (cont.)</h2>
-<p>Three random effects per cluster, <span class="math inline">\(m = 1000\)</span> clusters, and <span class="math inline">\(n_i = 10\)</span> observations in each cluster.</p>
+<div class="w-small">
+Random intercept and slope model.
+<p class="smallish">
+E.g. schools or neighborhoods.
+</p>
+</div>
+<p class="fragment">
+Three fixed effects, three random effects per cluster, <span class="math inline">\(m = 1000\)</span> clusters, and <span class="math inline">\(n_i = 10\)</span> observations in each cluster.
+</p>
+</section>
+<section id="glmm-example-cont.-1" class="slide level2">
+<h2>GLMM Example (cont.)</h2>
 <p><span class="math display">\[\begin{align*}
 Y_{ij} &amp;\sim \text{Bin}\left(1, (1 + \exp(-\eta_{ij}))^{-1}\right)  \\
 \eta_{ij} &amp;= (\vec\beta + \vec U_i)^\top\vec x_{ij} \\
@@ -2240,23 +2274,48 @@ The new optimization method is much faster than generic alternatives.
 <td style="text-align: right;">-0.00853</td>
 <td style="text-align: right;">0.00387</td>
 </tr>
+</tbody>
+</table>
+<p class="smallish">
+The SE columns show the standard errors.
+</p>
+</section>
+<section id="average-computation-times" class="slide level2">
+<h2>Average Computation Times</h2>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;"></th>
+<th style="text-align: right;">Computation time (sec.)</th>
+<th style="text-align: right;">SE</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Laplace</td>
+<td style="text-align: right;">9.736</td>
+<td style="text-align: right;">0.54340</td>
+</tr>
 <tr class="even">
-<td style="text-align: left;">GVA BFGS</td>
-<td style="text-align: right;">0.1694</td>
-<td style="text-align: right;">0.06273</td>
-<td style="text-align: right;">-0.23624</td>
-<td style="text-align: right;">0.22678</td>
-<td style="text-align: right;">-0.20647</td>
-<td style="text-align: right;">0.24829</td>
+<td style="text-align: left;">GVA</td>
+<td style="text-align: right;">1.717</td>
+<td style="text-align: right;">0.02483</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">GVA (4 threads)</td>
+<td style="text-align: right;">0.487</td>
+<td style="text-align: right;">0.00737</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">GVA LBFGS</td>
+<td style="text-align: right;">30.166</td>
+<td style="text-align: right;">0.63334</td>
 </tr>
 </tbody>
 </table>
-<div class="w-small">
-Excluded solutions for BFGS where it did not converge.
 <p class="smallish">
-SEs are the standard errors. The GVA row uses the psqn package.
+The SE columns show the standard errors.
 </p>
-</div>
 </section>
 <section id="bias-random-effects-standard-deviations" class="slide level2">
 <h2>Bias: Random Effects’ Standard Deviations</h2>
@@ -2300,23 +2359,11 @@ SEs are the standard errors. The GVA row uses the psqn package.
 <td style="text-align: right;">-0.0183</td>
 <td style="text-align: right;">0.00567</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;">GVA BFGS</td>
-<td style="text-align: right;">-0.0284</td>
-<td style="text-align: right;">0.00598</td>
-<td style="text-align: right;">-0.0287</td>
-<td style="text-align: right;">0.00590</td>
-<td style="text-align: right;">-0.0188</td>
-<td style="text-align: right;">0.00584</td>
-</tr>
 </tbody>
 </table>
-<div class="w-small">
-Excluded solutions for BFGS where it did not converge.
 <p class="smallish">
-SEs are the standard errors. The GVA row uses the psqn package.
+The SE columns show the standard errors.
 </p>
-</div>
 </section>
 <section id="bias-correlation-coefficients" class="slide level2">
 <h2>Bias: Correlation Coefficients</h2>
@@ -2360,68 +2407,11 @@ SEs are the standard errors. The GVA row uses the psqn package.
 <td style="text-align: right;">-0.00787</td>
 <td style="text-align: right;">0.0142</td>
 </tr>
-<tr class="even">
-<td style="text-align: left;">GVA BFGS</td>
-<td style="text-align: right;">-0.00256</td>
-<td style="text-align: right;">0.0144</td>
-<td style="text-align: right;">0.00027</td>
-<td style="text-align: right;">0.0112</td>
-<td style="text-align: right;">-0.00703</td>
-<td style="text-align: right;">0.0148</td>
-</tr>
 </tbody>
 </table>
-<div class="w-small">
-Excluded solutions for BFGS where it did not converge.
 <p class="smallish">
-SEs are the standard errors. The GVA row uses the psqn package.
+The SE columns show the standard errors.
 </p>
-</div>
-</section>
-<section id="average-computation-times" class="slide level2">
-<h2>Average Computation Times</h2>
-<table>
-<thead>
-<tr class="header">
-<th style="text-align: left;"></th>
-<th style="text-align: right;">Computation time (sec.)</th>
-<th style="text-align: right;">SE</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Laplace</td>
-<td style="text-align: right;">9.736</td>
-<td style="text-align: right;">0.54340</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">GVA</td>
-<td style="text-align: right;">1.717</td>
-<td style="text-align: right;">0.02483</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">GVA (4 threads)</td>
-<td style="text-align: right;">0.487</td>
-<td style="text-align: right;">0.00737</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">GVA LBFGS</td>
-<td style="text-align: right;">30.166</td>
-<td style="text-align: right;">0.63334</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">GVA BFGS</td>
-<td style="text-align: right;">40.651</td>
-<td style="text-align: right;">0.46618</td>
-</tr>
-</tbody>
-</table>
-<div class="w-small">
-Excluded solutions for BFGS where it did not converge.
-<p class="smallish">
-SEs are the standard errors. The GVA row uses the psqn package.
-</p>
-</div>
 
 </section>
 <!-- need extra end tag before next section -->

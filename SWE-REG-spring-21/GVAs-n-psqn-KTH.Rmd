@@ -97,6 +97,27 @@ Interested in modeling the dependence per se.</p>
 <p class = "fragment">
 Focus on clustered data.</p>
 
+## Examples
+<div class = "w-small">
+Family data in epidemiology
+<p class = "smallish">
+using the Swedish multi-generation register.</p>
+</div>
+
+<div class = "w-small fragment">
+In sociology and econometrics.
+<p class = "smallish">
+Random intercept and slope models for neighborhood effects, school effects,
+etc.</p>
+</div>
+
+<div class = "w-small fragment">
+Modeling trajectories of biomarkers of kidney function 
+<p class = "smallish">
+accounting for diabetic complications and medication. 
+Using data from the Swedish SCREAM project.</p>
+</div>
+
 ## Introduction Example (cont.)
 Outcomes $\vec Y_i = (Y_{i1}, \dots, Y_{in_i})^\top$, 
 model parameters $\vec\theta$, and random effects $\vec U_i$ for cluster $i$.
@@ -113,7 +134,14 @@ l_i(\vec\theta) =
   \log\int h_i(\vec Y_i;\vec u, \vec\theta)g_i(\vec u; \vec\theta)\der\vec u.
 $$
 
-Typically intractable. 
+<div class = "fragment w-small">
+Typically intractable.
+<p class = "smallish">
+No closed-form solution.</p>
+</div>
+
+<p class = "fragment">
+Issue: current approximations have long estimation time or large bias.</p>
 
 ## Overview
 Use variational approximations to approximate the log marginal likelihood terms, 
@@ -143,24 +171,14 @@ Point: replace with "more tractable" lower bound.</p>
 
 ## Approximate Maximum Likelihood
 
-Approximate 
-
 $$
-\argmax_{\vec\theta}\, l(\vec\theta) = \sum_{i = 1}^m l_i(\vec\theta)
+\argmax_{\vec\theta}\,\sum_{i = 1}^m l_i(\vec\theta)
+\approx \argmax_{\vec\theta} \max_{\vec\omega_1, \dots, \vec\omega_m} 
+  \sum_{i = 1}^m \tilde l_i(\vec\theta, \vec\omega_i).
 $$
-
-with 
-
-$$
-\argmax_{\vec\theta,\vec\omega_1, \dots, \vec\omega_m} 
-  \tilde l(\vec \theta, \vec\omega_1,\dots,\vec\omega_m) = 
-     \sum_{i = 1}^m \tilde l_i(\vec\theta, \vec\omega_i).
-$$
-
-## Remarks 
-Number of parameters is 
-$\text{dim}(\vec\theta) + \sum_{i = 1}^m \text{dim}(\vec\omega_i)$ instead 
-of $\text{dim}(\vec\theta)$.
+<p class = "fragment">
+Parameters: 
+$\text{dim}(\vec\theta) + \sum_{i = 1}^m \text{dim}(\vec\omega_i) \gg \text{dim}(\vec\theta)$!</p>
 
 <p class = "fragment">
 ... but the Hessian is sparse (partially separable).</p>
@@ -200,7 +218,7 @@ E.g. BFGS.</p>
 </div>
 
 <p class="fragment">
-BFGS does not preserve the sparsity of the Hessian $\tilde l$.</p>
+... does not preserve the sparsity.</p>
 
 ## Partially Separability
 Make $m$ BFGS updates to approximate the Hessian of 
@@ -575,16 +593,23 @@ from lme4 [@Bates15].</p>
 </div>
 
 <div class = "fragment w-small">
-Compare with BFGS from R and L-BFGS
+Compare with L-BFGS
 <p class = "smallish">
 from the lbfgs package [@Coppola20].</p>
 </div>
 
 ## GLMM Example (cont.)
+<div class = "w-small">
+Random intercept and slope model.
+<p class = "smallish">
+E.g. schools or neighborhoods.</p>
+</div>
 
-Three random effects per cluster, $m = 1000$ clusters, and $n_i = 10$ 
-observations in each cluster.
+<p class = "fragment">
+Three fixed effects, three random effects per cluster, 
+$m = 1000$ clusters, and $n_i = 10$ observations in each cluster.</p>
 
+## GLMM Example (cont.)
 $$\begin{align*}
 Y_{ij} &\sim \text{Bin}\left(1, (1 + \exp(-\eta_{ij}))^{-1}\right)  \\
 \eta_{ij} &= (\vec\beta + \vec U_i)^\top\vec x_{ij} \\
@@ -604,6 +629,16 @@ Yields lower bias in this case.</p>
 The new optimization method is much faster than generic alternatives.</p>
 
 ```{r bias_fix}
+# get rid of BFGS
+sim_res_3D <- lapply(sim_res_3D, function(x){
+  to_exclude <- "GVA BFGS"
+  x$bias <- lapply(x$bias, function(z) z[!rownames(z) %in% to_exclude, ])
+  x$time <- x$time[!rownames(x$time) %in% to_exclude, ]
+  x$lls <- x$lls[!names(x$lls) %in% to_exclude]
+  x$conv <- x$conv[!names(x$conv) %in% to_exclude]
+  x
+})
+
 # check that all converged
 keep <- sapply(sim_res_3D, `[[`, "conv")
 keep <- apply(keep == 0, 2L, all)
@@ -659,55 +694,14 @@ exclude_mult_thread <- function(x)
 knitr::kable(format_tab(exclude_mult_thread(bias_fix)), digits = 5L)
 ```
 
-<div class = "w-small">
-Excluded solutions for BFGS where it did not converge.
 <p class = "smallish">
-SEs are the standard errors. The GVA row uses the psqn package.</p>
-</div>
-
-## Bias: Random Effects' Standard Deviations
-
-```{r drop_extreme_bfgs_res}
-# drop extreme BFGS results
-do_drop <- apply(abs(stddev_err["GVA BFGS", , ]) > 10, 2L, any)
-message(sprintf("Fraction removed of BFGS %.2f", mean(do_drop)))
-fix_err   ["GVA BFGS", , do_drop] <- NA_real_
-stddev_err["GVA BFGS", , do_drop] <- NA_real_
-cor_err   ["GVA BFGS", , do_drop] <- NA_real_
-
-# get the bias and standard errors
-bias_fix    <- est_bias(fix_err)
-bias_stddev <- est_bias(stddev_err)
-bias_cor    <- est_bias(cor_err)
-
-# redo table
-knitr::kable(format_tab(exclude_mult_thread(bias_stddev)), digits = 5L)
-```
-
-<div class = "w-small">
-Excluded solutions for BFGS where it did not converge.
-<p class = "smallish">
-SEs are the standard errors. The GVA row uses the psqn package.</p>
-</div>
-
-## Bias: Correlation Coefficients
-
-```{r bias_cor}
-knitr::kable(format_tab(exclude_mult_thread(bias_cor)), digits = 5L)
-```
-
-<div class = "w-small">
-Excluded solutions for BFGS where it did not converge.
-<p class = "smallish">
-SEs are the standard errors. The GVA row uses the psqn package.</p>
-</div>
+The SE columns show the standard errors.</p>
 
 ## Average Computation Times
 
 ```{r avg_comp_times}
 # get the computation times
 tis <- sapply(sim_res_3D, `[[`, "time", simplify = "array")
-tis["GVA BFGS", , do_drop] <- NA_real_
 
 # format and show the table
 tis_stats <- est_bias(tis)
@@ -720,11 +714,32 @@ tis_stats <- lapply(tis_stats, function(x) {
 knitr::kable(format_tab(tis_stats), digits = 5L)
 ```
 
-<div class = "w-small">
-Excluded solutions for BFGS where it did not converge.
 <p class = "smallish">
-SEs are the standard errors. The GVA row uses the psqn package.</p>
-</div>
+The SE columns show the standard errors.</p>
+
+## Bias: Random Effects' Standard Deviations
+
+```{r drop_extreme_bfgs_res}
+# get the bias and standard errors
+bias_fix    <- est_bias(fix_err)
+bias_stddev <- est_bias(stddev_err)
+bias_cor    <- est_bias(cor_err)
+
+# redo table
+knitr::kable(format_tab(exclude_mult_thread(bias_stddev)), digits = 5L)
+```
+
+<p class = "smallish">
+The SE columns show the standard errors.</p>
+
+## Bias: Correlation Coefficients
+
+```{r bias_cor}
+knitr::kable(format_tab(exclude_mult_thread(bias_cor)), digits = 5L)
+```
+
+<p class = "smallish">
+The SE columns show the standard errors.</p>
 
 <!--html_preserve-->
 </section>
