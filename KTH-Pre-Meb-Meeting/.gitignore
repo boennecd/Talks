@@ -1,0 +1,6 @@
+cache/*
+!cache/direct-genetic-study
+cache/direct-genetic-study/*
+!cache/direct-genetic-study/.placeholder
+rsconnect/*
+
