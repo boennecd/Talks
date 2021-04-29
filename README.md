@@ -1,4 +1,4 @@
-### KTH Group Meeting April 2021:Mixed Effect Models for Pedigree Data
+### KTH Group Meeting April 2021: Mixed Effect Models for Pedigree Data
 [Code](/KTH-Pre-Meb-Meeting/KTH-Pre-Meb-Meeting.Rmd) and presentation at 
 [RPubs](https://rpubs.com/boennecd/KTH-Pre-Meb-Meeting).
 
