@@ -1,0 +1,1437 @@
+---
+title: "Genetic and Environmental Effects"
+bibliography: ref.bib
+biblio-style: apa
+output: 
+  revealjs::revealjs_presentation:
+    css: styles.css
+    theme: black
+    center: false
+    transition: slide
+    highlight: monochrome
+    self_contained: true
+    reveal_options:
+      slideNumber: true
+    includes:
+      in_header: header.html
+      after_body: doc_suffix.html
+---
+
+## dummy slide
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.height = 5, cache.path = "cache/")
+.par_use <- list(cex = 1.33, cex.lab = 1.2)
+options(digits = 3, 
+        knitr.kable.NA = '')
+source(file.path("R", "pedigree-util.R"))
+```
+
+<!--html_preserve-->
+<script>
+(function() {
+  document.getElementById("dummy-slide").remove(); 
+  
+  var front_div = document.getElementsByTagName("section")[0];
+  front_div.classList.add("front");
+  front_div.classList.add("center");
+  
+  // add second header
+  var second_head = document.createElement("p");
+  var node = document.createTextNode("Estimation Using Multi-generation Registers");
+  second_head.appendChild(node);
+  second_head.style.margin = "0";
+  front_div.appendChild(second_head);
+  
+  // add author 
+  var credit_div = document.createElement('div');
+  credit_div.innerHTML += "<div class='w-small'><p>Benjamin Christoffersen</p><p class='smallish'>KI, Department of Medical Epidemiology and Biostatistics, <a href='mailto:benjamin.christoffersen@ki.se'>benjamin.christoffersen@ki.se</a></p><p class='smallish'>KTH, Division of Robotics, Perception and Learning, <a href='mailto:benchr@kth.se'>benchr@kth.se</a></p></div>";
+  credit_div.classList.add("authors");
+  front_div.appendChild(credit_div);
+})();
+</script>
+<!--end dummy slide-->
+
+</section>
+
+<section>
+<section class="large-first center slide level2">
+<h1>Background</h1>
+<!--/html_preserve-->
+
+<div style="display: none;">
+$$
+\renewcommand\vec{\boldsymbol}
+\def\bigO#1{\mathcal{O}(#1)}
+\def\Cond#1#2{\left(#1\,\middle|\, #2\right)}
+\def\mat#1{\boldsymbol{#1}}
+\def\der{{\mathop{}\!\mathrm{d}}}
+\def\argmax{\text{arg}\,\text{max}}
+\def\Prob{\text{P}}
+\def\Expec{\text{E}}
+\def\logit{\text{logit}}
+\def\diag{\text{diag}}
+$$
+</div>
+
+## Before MEB and KTH
+Wanted to study economics, finance, or computer science.
+
+<div class = "w-small fragment">
+Realized that I enjoy statistics.
+<p class = "smallish">
+Particularly, computational statistics.</p>
+</div>
+
+<div class = "w-small fragment">
+Got a Ph.d. from Copenhagen Business School.
+<p class = "smallish">
+Worked with default models which mostly are survival models.</p>
+</div>
+
+## Position
+Postdoc supervised by Keith, Mark, and Hedvig Kjellström from KTH. 
+
+<div class = "fragment w-small">
+Work on variational approximations in biostatistic.
+<p class = "smallish">
+A way of approximating integrals when estimating models. Often very fast.</p>
+</div>
+
+<div class = "w-small fragment">
+Has almost nothing to with today's topic!
+<p class = "smallish">
+Except also having to do with integral approximations.</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Motivation</h1>
+
+<!--/html_preserve-->
+
+## Overview
+Mention previous work and the type of data. 
+
+<p class = "fragment">
+Introduce the models.</p>
+
+<p class = "fragment">
+Highlight limitations of previous estimation methods.</p>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Example</h2>
+<!--/html_preserve-->
+
+```{r setup_ex_dat, echo = FALSE}
+library(kinship2, quietly = TRUE)
+ex_dat <- pedigree(
+  id = 1:10, 
+  dadid = c(NA, NA, 1L, NA, NA, 1L, 3L, 3L, 5L, 5L), 
+  momid = c(NA, NA, 2L, NA, NA, 2L, 4L, 4L, 6L, 6L), 
+  sex = c(1:2, 1:2, 1:2, 1L, 1L, 1L, 1L))
+plot(ex_dat)
+```
+
+<div class = "w-small">
+Suppose that the above is family $i$ for which we 
+observe $Y_{i1},\dots Y_{i10} \in \{0, 1\}$.
+<p class = "smallish">
+Circles are females and squares are male.</p>
+</div>
+
+## Obsessive-compulsive Disorder Study
+TODO...
+
+<div class = "fragment w-small">
+@Mahjani20 look at direct genetic effects and maternal effects on OCD 
+<p class = "smallish">
+controlling for sex and age of the mother.</p>
+</div>
+
+## Research Questions
+Want to estimate unobserved genetic effects, environmental effects, 
+paternal effects, etc. for binary outcomes.
+
+<div class ="fragment w-small">
+Other outcomes have been studied in the department. TODO: add more studies.
+<p class = "smallish">
+E.g. pre-eclamptic events, 
+melanoma onset, preterm birth, and autism spectrum disorder.
+[@Pawitan04; @Lindstroem06; @Svensson09; @yip2018; @Bai19].</p>
+</div>
+
+## Liability-Threshold Models
+$$
+Y_{ij} = \begin{cases}
+  1 & \vec x_{ij}^\top\vec\beta + \epsilon_{ij} > 0 \\
+  0 & \text{otherwise}
+\end{cases}
+$$
+
+where $\epsilon_{ij}$ is standard normally distributed. 
+
+<p class="fragment"> 
+There is a latent score $x_{ij}^\top\vec\beta + \epsilon_{ij}$ and we observe
+$Y_{ij} = 1$ if this exceeds the threshold zero.</p>
+
+
+<div class = "fragment w-small">
+Implies that
+
+$$
+\Phi(P(Y_{ij} = 1)) = \vec x_{ij}^\top\vec\beta.
+$$
+<p class = "smallish">A GLM. $\Phi$ is the standard normal CDF.</p>
+</div>
+
+<p class = "fragment">
+This choice allows us to use fast methods later.</p>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Liability-Threshold Models</h2>
+<!--/html_preserve-->
+
+```{r lt_model_illu, echo = FALSE}
+par(mar = c(5, 5, 1, 1), cex = 1.25)
+plot(dnorm, xlim = c(-3, 3), type = "l", ylab = "Density", bty = "l", 
+     xlab = expression(epsilon[ij]))
+grid()
+abline(v = .8, lty = 2)
+arrows(x0 = c(1, .6), x1 = c(1 + 1.5, .6 - 1.5), 
+       y0 = c(.05, .05), y1 = c(.05, .05), code = 2)
+text(expression(paste(y["ij"], " = ", 1)), x = 1.3, y = .07)
+text(expression(paste(y["ij"], " = ", 0)), x = .3, y = .07)
+text(expression(paste(-x["ij"]^"T", beta)), x = 1.1, y = .35)
+```
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Example</h2>
+<!--/html_preserve-->
+
+```{r show_ped, echo = FALSE}
+par(mar = c(1, 1, 1, 1), mfcol = c(1, 2))
+plot(ex_dat)
+image_plot <- function(K, ...){
+  col <- gray.colors(n = 20, start = 1, end = 0)
+  image(K[, NCOL(K):1], col = col,  xaxt = 'n', yaxt = 'n', bty = "n", ...)
+}
+library(kinship2, quietly = TRUE)
+image_plot(kinship(ex_dat))
+```
+
+<div class = "w-small">
+Left the family. Right the kinship matrix.
+<p class = "smallish">
+Darker colors are further from zero.</p>
+</div>
+
+## Adding Additive Genetic Effects
+$g_{ij}$ is the additive genetic effect for individual $j$ in family $i$ and
+$\mat K_i$ be the kinship matrix of family $i$. Suppose that 
+
+$$(g_{i1},\dots,g_{i10})^\top \sim N^{(10)}(\vec 0, \sigma_g^2 \underbrace{2\mat K_i}_{\mat C_{ig}}).$$
+
+<div class = "fragment">
+Write the model as
+
+$$
+\begin{align*}
+Y_{ij} &= \begin{cases}
+  1 & \vec x_{ij}^\top\vec\beta + \epsilon_{ij} + g_{ij} > 0 \\
+  0 & \text{otherwise}
+\end{cases}
+\end{align*}
+$$
+</div>
+
+## ACE Model 
+Wants to account for environmental effects also: the ACE model. 
+
+<div class = "fragment">
+ - Additive genetic effect (A),
+ - shared environmental factors (C), and 
+ - individual specific effects and measurement errors (E).
+</div>
+
+<p class = "fragment">
+The environmental effects (C) are often based on strong assumptions.</p>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz" data-transition="slide-in fade-out">
+<h2>Example (continued)</h2>
+<!--/html_preserve-->
+
+```{r rep_show_ped, echo = FALSE}
+par(mar = c(1, 1, 1, 1), mfcol = c(1, 2))
+plot(ex_dat)
+E <- matrix(0., 10, 10)
+E[c(1:3, 6), c(1:3, 6)] <- 1
+image_plot(E)
+```
+
+<div class = "w-small">
+Scale matrix for the environmental effect.
+<p class = "smallish">
+1, 2, 3, and 6 share an environment.</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz" data-transition="fade-in fade-out">
+<h2>Example (continued)</h2>
+<!--/html_preserve-->
+
+```{r 1_rep_show_ped, echo = FALSE}
+par(mar = c(1, 1, 1, 1), mfcol = c(1, 2))
+plot(ex_dat)
+E[c(3:4, 7:8), c(3:4, 7:8)] <- 1
+image_plot(E)
+```
+
+<div class = "w-small">
+Scale matrix for the environmental effect.
+<p class = "smallish">
+3, 4, 7, and 8 share an environment.</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz" data-transition="fade-in slide-out">
+<h2>Example (continued)</h2>
+<!--/html_preserve-->
+
+```{r 2_rep_show_ped, echo = FALSE}
+par(mar = c(1, 1, 1, 1), mfcol = c(1, 2))
+plot(ex_dat)
+E[c(5:6, 9:10), c(5:6, 9:10)] <- 1
+image_plot(E)
+```
+
+<div class = "w-small">
+Scale matrix for the environmental effect.
+<p class = "smallish">
+5, 6, 9, and 10 share an environment.</p>
+</div>
+
+## Adding Environmental Effects
+Define $\mat C_{ie}$ as in the previous slide and let:
+
+$$(e_{i1},\dots,e_{i10})^\top \sim N^{(10)}(\vec 0, \sigma_e^2 \mat C_{ie}).$$
+
+<div class = "fragment">
+The ACE model is:
+
+$$
+\begin{align*}
+Y_{ij} &= \begin{cases}
+  1 & \vec x_{ij}^\top\vec\beta + \epsilon_{ij} + g_{ij} + e_{ij} > 0 \\
+  0 & \text{otherwise}
+\end{cases} \\
+\epsilon_{ij} &\sim N(0, 1) \\
+(g_{i1}, \dots, g_{in_i})^\top & 
+  \sim N^{(n_i)}(\vec 0; \sigma_g^2 \mat C_{ig}) \\
+(e_{i1}, \dots, e_{in_i})^\top & 
+  \sim N^{(n_i)}(\vec 0; \sigma_e^2 \mat C_{ie}). \\
+\end{align*}
+$$
+
+<p class = "smallish">
+with $\mat C_{ig}$ being two times the kinship matrix and $\mat C_{ie}$ is 
+a matrix as defined before.</p>
+</div>
+
+## Inference
+<div class = "w-small">
+Interested in $\sigma_g^2/(1 + \sigma_g^2+ \sigma_e^2)$
+<p class = "smallish">
+the proportion of the variance explained by additive genetic effects,</p>
+</div>
+
+<div class = "fragment w-small">
+and $\sigma_e^2/(1 + \sigma_g^2+ \sigma_e^2)$
+<p class = "smallish">
+the proportion of the variance explained by environmental effects.</p>
+</div>
+
+## Re-write
+The model can be written as:
+
+$$
+\begin{align*}
+Y_{ij} &= \begin{cases}
+  1 & \vec x_{ij}^\top\vec\beta + \epsilon_{ij} > 0 \\
+  0 & \text{otherwise}
+\end{cases} \\
+(\epsilon_{i1}, \dots, \epsilon_{in_i})^\top & 
+  \sim N^{(n_i)}(\vec 0; \mat I_{n_i} + \sigma_g^2 \mat C_{ig} 
+    + \sigma_e^2 \mat C_{ie}).
+\end{align*}
+$$
+
+## Arbitrary Number of Effects
+May want paternal effect or maternal effect. 
+
+<div class = "fragment w-small">
+May want other definitions of environments. 
+<p class = "smallish">
+E.g. shared adult environment or
+shared childhood environment.</p>
+</div>
+
+<p class = "fragment">
+Can easily extend.</p>
+
+## Re-write (continued)
+
+For $K$ different effects:
+
+$$
+\begin{align*}
+Y_{ij} &= \begin{cases}
+  1 & \vec x_{ij}^\top\vec\beta + \epsilon_{ij} > 0 \\
+  0 & \text{otherwise}
+\end{cases} \\
+(\epsilon_{i1}, \dots, \epsilon_{in_i})^\top & 
+  \sim N^{(n_i)}(\vec 0; \mat I_{n_i} + 
+  \mat\Sigma(\vec\sigma)) \\
+\mat\Sigma(\vec\sigma) &= \sum_{k = 1}^K\sigma_k^2 \mat L_{ik} 
+\end{align*}
+$$
+
+Given researcher defined $\mat L_{i1}\dots\mat L_{iK}$.
+
+## Estimation 
+The likelihood has no simple (closed form) expression
+
+<div class = "fragment w-small">
+... but can expressed as integrals that have been extensively studied.
+<p class = "smallish">
+Used by @Pawitan04, @Lindstroem06, @Svensson09, @yip2018, and @Bai19. </p>
+</div>
+
+## Previous Work
+<div class = "w-small">
+Previous work only use a likelihood approximation without gradients.
+<p class = "smallish">
+Have to use derivative-free optimization. This is slow.</p>
+</div>
+
+<div class = "fragment w-small">
+To simplify the computation, they do not use all data by
+
+ - using discretized covariates,
+ - omitting observations,
+ - ignoring information from the pedigree, and
+ - using a composite likelihood like procedure
+ 
+<p class = "smallish">
+where individuals with cousin both on their mother and father side is 
+repeated twice.</p>
+</div>
+
+## New Method and Implementation
+Goal: faster estimation method such that we can use all (or almost all) data.
+
+<p class = "fragment">
+Method with gradient approximations.</p>
+
+<p class = "fragment">
+A faster approximation and implementation that supports computation in 
+parallel.</p>
+
+<p class = "fragment">
+Works for an arbitrary number of effects, $K$.</p>
+
+<p class = "fragment">
+The implementation is in the pedmod package.</p>
+
+## MCMC
+<div class = "w-small">
+Markov chain Monte Carlo (MCMC) is another option.
+<p class = "smallish">
+A way of sequentially sampling from the posterior.</p> 
+</div>
+
+<div class = "w-small fragment">
+Seems popular with animal data.
+<p class = "smallish">
+See e.g. MCMCglmm [@Hadfield10] and BLUPF90 [@BLUPF90].</p> 
+</div>
+
+<div class = "fragment w-small">
+Very slow!
+<p class = "smallish">
+Fitting a single model took weeks for @Mahjani20.</p>
+</div> 
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Marginal Likelihood</h1>
+<!--/html_preserve-->
+
+## Overview
+Show the marginal likelihood. 
+
+<p class = "fragment">
+At a high level, mention what have done before and how we extended it.</p>
+
+## Maximum Likelihood
+
+Find the MLE:
+
+$$
+\argmax_{\vec\beta,\vec\sigma} \sum_{i = 1}^m\log 
+  L_i(\vec\beta,\vec\sigma)
+$$
+
+
+where $L_i$ is the marginal likelihood of family (cluster) $i$.
+
+## The Marginal Likelihood
+<div class = "w-small">
+
+$$
+\begin{align*}
+L_i(\vec\beta,\vec\sigma) &= 
+  \Phi^{(n_i)}(\mat U_i\mat X_i\vec\beta;\vec 0, \mat I + 
+  \mat U_i\mat\Sigma_i(\vec\sigma) \mat U_i) \\
+u_{ij} &= 2y_{ij} - 1 \\
+\mat U_i &= \text{diag}(\vec u_i) \\
+\end{align*}
+$$
+
+<p class = "smallish">
+where $\Phi^{(K)}(\vec x; \vec\omega, \mat \Omega)$ is the $K$ dimensional 
+multivariate normal distribution's CDF 
+with mean $\vec\omega$ and covariance matrix 
+$\mat\Omega$ evaluated at $\vec x$.</p>
+</div>
+
+<p class = "fragment">
+Point: need CDF approximation.</p>
+
+## Importance Sampling
+@Genz92 and @Genz02 develop an efficient importance sampling procedure
+for the CDF with:
+
+a. A heuristic variable re-ordering. 
+b. Randomized Korobov rules [randomized quasi-Monte Carlo; see @Niederreiter1972; @Keast73; @Cranley76].
+
+## New Code 
+<div class = "w-small">
+Rewritten most of the Fortran code by @Genz02 in C++. 
+<p class ="smallish">
+Used in the mvtnorm package [@Genz20].</p>
+</div>
+
+<p class = "fragment">
+Added fast $\Phi$ and $\Phi^{-1}$ approximations.</p>
+
+<div class = "w-small fragment">
+Added support for computation in parallel. 
+<p class = "smallish">
+Seems compute-bound.</p>
+</div>
+
+<div class = "w-small fragment">
+Added gradient approximations.
+<p class = "smallish">
+Like @Hajivassiliou96 but with all of the above, re-ordering, and
+randomized Korobov rules.</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Simulation and Applied Examples</h1>
+<!--/html_preserve-->
+
+## Overview
+Show a simulation study looking at bias and computation time. 
+
+<p class = "fragment">
+Show a procedure to greatly simplify the computational problem while only 
+ignoring very little of the information.
+</p>
+
+<p class = "fragment">
+Show some preliminary results.</p>
+
+## Simulation Study
+<div class = "w-small">
+250 families, with 10 members in each family, and the same pedigree. We add an 
+additive genetic effect.
+<p class = "smallish">
+Same pedigree as earlier.</p>
+</div>
+
+<div class = "fragment">
+$$\begin{align*}
+Y_{ij} &= \begin{cases}
+  1 & \beta_0 + \beta_1X_{ij} + \beta_2 B_{ij} + \epsilon_{ij} > 0 \\
+  0 & \text{otherwise}
+\end{cases} \\
+(\epsilon_{i1}, \dots, \epsilon_{i10})^\top &\sim 
+  N^{(10)}(\vec 0, \mat I_{10} + \sigma_g^2\mat C_{ig}) 
+\end{align*}$$
+
+<p>
+$X_{ij}\sim N(0, 1)$, $B_{ij}\sim \text{Bin}(0.5, 1)$ are observed.</p>
+</div>
+
+<div class = "w-small fragment">
+Compare with MCMCglmm.
+<p class = "smallish">
+Caveat: we use four threads with our method.</p>
+</div>
+
+
+## Simulation Study Results
+
+```{r load_libraries, echo = FALSE, message=FALSE}
+library(MCMCglmm, quietly = TRUE)
+library(kinship2, quietly = TRUE)
+library(igraph, quietly = TRUE)
+```
+
+```{r assign_sim_dat, echo = FALSE}
+# create the family we will use
+fam <- data.frame(id = 1:10, sex = rep(1:2, 5L),
+                  father = c(NA, NA, 1L, NA, 1L, NA, 3L, 3L, 5L, 5L), 
+                  mother = c(NA, NA, 2L, NA, 2L, NA, 4L, 4L, 6L, 6L))
+
+# plot the pedigree
+ped <- with(fam, pedigree(id = id, dadid = father, momid = mother, sex = sex))
+
+# simulates a data set. 
+# 
+# Args:
+#   n_fams: number of families.
+#   beta: the fixed effect coefficients.
+#   sig_sq: the scale parameter.
+sim_dat <- function(n_fams = 250L, beta = c(-3, 1, 2), sig_sq = 3){
+  # setup before the simulations
+  Cmat <- 2 * kinship(ped)
+  n_obs <- NROW(fam)
+  Sig <- diag(n_obs) + sig_sq * Cmat
+  Sig_chol <- chol(Sig)
+  
+  # simulate the data
+  out <- replicate(
+    n_fams, {
+      # simulate covariates
+      X <- cbind(`(Intercept)` = 1, Continuous = rnorm(n_obs), 
+                 Binary = runif(n_obs) > .5)
+      
+      # assign the linear predictor + noise
+      eta <- drop(X %*% beta) + drop(rnorm(n_obs) %*% Sig_chol)
+      
+      # return the list in the format needed for the package
+      list(y = as.numeric(eta > 0), X = X, scale_mats = list(Cmat))
+    }, simplify = FALSE)
+  
+  # add attributes with the true values and return 
+  attributes(out) <- list(beta = beta, sig_sq = sig_sq)
+  out
+}
+
+# concatenates a data set from the sim_dat function.
+concatenate_data <- function(x){
+  # create the concatenated data frame
+  X_all <- do.call(rbind, lapply(x, `[[`, "X"))
+  y_all <- do.call(c    , lapply(x, `[[`, "y"))
+  y_all <- as.numeric(y_all)
+  
+  n_families <- length(x)
+  n_members <- NROW(fam)
+  inc <- rep(1:n_families - 1L, each = n_members)
+  inc <- inc * n_members
+  
+  id <- seq_len(n_members) + inc
+  father_id <- fam$father + inc
+  mom_id <- fam$mother + inc
+  sex <- rep(fam$sex, n_families)
+  
+  dat_all <- data.frame(ID = id, Father_ID = father_id, Mother_ID = mom_id,
+                        Outcome = y_all, family_id = as.integer(factor(inc)), 
+                        sex = sex)
+  dat_all <- cbind(dat_all, X_all)  
+}
+```
+
+```{r do_sims, echo = FALSE, message=FALSE}
+# the seeds we will use
+seeds <- c(60941821L, 30845227L, 17633234L, 79310131L, 85229418L, 21612295L, 73949913L, 57500133L, 57252222L, 63875873L, 55778211L, 21326154L, 36283814L, 7245204L, 58241367L, 38132857L, 2571948L, 35133815L, 16221382L, 24733735L, 28461866L, 92624152L, 42058797L, 93446166L, 12604787L, 32695400L, 88433623L, 30421988L, 89657111L, 74309716L, 76310780L, 87031329L, 36451989L, 18774630L, 76585289L, 31898455L, 55733878L, 99681114L, 37725150L, 99188448L, 66989159L, 20673587L, 47985954L, 42571905L, 53089211L, 18457743L, 96049437L, 70222325L, 86393368L, 45380572L, 81116968L, 48291155L, 89755299L, 69891073L, 1846862L, 15263013L, 37537710L, 24144323L, 5592547L, 21386862L, 23254835L, 53175345L, 23651644L, 82951608L, 49669937L, 53555447L, 49184987L, 8794223L, 34847097L, 26709043L, 30600548L, 8492848L, 71358252L, 23513193L, 75184122L, 72107226L, 1188113L, 27375563L, 56816302L, 26365677L, 69687049L, 53553756L, 41517720L, 76120783L, 32705509L, 49863328L, 14950823L, 64794764L, 8228366L, 17704066L, 37762560L, 96608760L, 97055078L, 51441364L, 8297093L, 69737435L, 64236096L, 8438069L, 28846936L, 74723637L)
+
+# perform the simulation study
+get_file_name <- function(s, prefix)
+  file.path("cache", "direct-genetic-study", paste0(prefix, "-", s, ".RDS"))
+
+res <- lapply(seeds, function(s){
+  set.seed(s)
+  f     <- get_file_name(s, "pedmod")
+  f_dat <- get_file_name(s, "data")
+  
+  # run the study if the file does not exists
+  if(!file.exists(f) || !file.exists(f_dat)){
+    # simulate the data set
+    dat <- sim_dat()  
+    saveRDS(list(dat, dat_all = concatenate_data(dat)), 
+            f_dat)
+    
+    # estimate the model
+    library(pedmod)
+    est_time <- system.time({
+      ll_terms <- get_pedigree_ll_terms(dat, max_threads = 4L)
+      
+      start <- pedmod_start(ll_terms, dat, maxvls = 1000L, minvls = 200L, 
+                            n_threads = 4L)
+      
+      opt_out_quick <- pedmod_opt(
+        ptr = ll_terms, par = start$par, maxvls = 5000L, abs_eps = 0, 
+        rel_eps = 1e-2, minvls = 500L, use_aprx = TRUE, n_threads = 4L)
+      
+      opt_out <- pedmod_opt(
+        ptr = ll_terms, par = opt_out_quick$par, abs_eps = 0, use_aprx = TRUE, 
+        n_threads = 4L, 
+        maxvls = 25000L, rel_eps = 1e-3, minvls = 5000L)
+    })
+    
+    opt_out$time <- est_time
+    saveRDS(opt_out, f)
+  }
+  
+  # load the results
+  out <- readRDS(f)
+  
+  # report and return
+  message(paste0(capture.output(out$par), collapse = "\n"))
+  message(sprintf("Time: %14.2f", out$time["elapsed"]))
+  
+  out
+})
+```
+
+```{r comp_bias, echo = FALSE}
+# compute the bias and average computation times along with standard errors
+est <- sapply(res, `[[`, "par")
+est[4, ] <- exp(est[4, ])
+rownames(est)[4] <- "Sigma"
+tis <- sapply(res, `[[`, "time")["elapsed", ]
+
+tmp <- sim_dat(1)
+truth <- c(attr(tmp, "beta"), attr(tmp, "sig_sq"))
+
+# re-scale the fixed effects and scale parameters.
+# 
+# Args:
+#   x: estimated parameters. An p x n matrix should be used if there are n 
+#      different estimates.
+#   n_scales: number of scale parameters on the standard deviation scale.
+standardize_estimates <- function(x, n_scales){
+  if(is.matrix(x))
+    return(apply(x, 2L, standardize_estimates, n_scales = n_scales))
+  scales <- tail(x, n_scales)
+  c(head(x, -n_scales) / sqrt(1 + sum(scales)), scales / (1 + sum(scales)))
+}
+
+err <- standardize_estimates(est, 1L) - standardize_estimates(truth, 1L)
+
+# compute the mean and standard error
+comp_bias <- function(x, MARGIN = 1L)
+  list(bias = apply(x, MARGIN, mean), 
+       SE   = apply(x, MARGIN, sd) / sqrt(dim(x)[if(MARGIN == 1L) 2L else 1L]))
+
+# save it in one object
+add_genetic_res <- list(bias = comp_bias(rbind(err, Time = tis)), 
+                        data = list(data = est, time = tis))
+```
+
+```{r assign_fit_mcmc, echo = FALSE}
+# estimates the model with MCMCglmm.
+# 
+# Args:
+#   s: the seed to use.
+fit_mcmc <- function(s, verbose = FALSE){
+  # load in the data from the data folder
+  f <- get_file_name(s, "MCMCglmm")
+  
+  if(!file.exists(f)){
+    library(MCMCglmm)
+    # set the prior. Note that R's variance is fixed . We need to account for 
+    # this later. I fixed it to a small value as multiple sources state that the 
+    # MCMCglmm package is sensitive to over-/underflow issues the probit link 
+    # function (some state linear predictors should be in +/-7), E.g. see
+    #   https://stat.ethz.ch/pipermail/r-sig-mixed-models/2010q3/004006.html
+    # prior <- list(R = list(V = 0.1, fix = 1), G = list(G1 = list(
+    #   # inverse gamma (shape: nu/2, scale: nu * V / 2) 
+    #   # see https://stat.ethz.ch/pipermail/r-sig-mixed-models/2011q2/016198.html
+    #   #V = 1, nu = 2)),
+    #   # F-distribution with nu and alpha.V degrees of freedom
+    #   V = 1, nu = 1, alpha.mu=0,  alpha.V = 10)), 
+    #   B = list(mu = rep(0, 3), V = diag(5^2, 3)))
+    
+    # we use family = "threshold" such that we get the standard 
+    # parameterisation. See 
+    #   https://stat.ethz.ch/pipermail/r-sig-mixed-models/2017q4/026115.html
+    #   https://stat.ethz.ch/pipermail/r-sig-mixed-models/2015q1/023176.html
+    prior <- list(R = list(V = 1, fix = 1), G = list(G1 = list(
+      # F-distribution with 1 and nu degrees of freedom
+      V = 1, nu = 10, alpha.mu = 0,  alpha.V = 1)), 
+      B = list(mu = rep(0, 3), V = diag(10^2, 3)))
+    
+    # prepare the data
+    dat <- readRDS(get_file_name(s, "data"))
+    dat_all <- dat$dat_all
+    mcmc_dat <- dat_all[, setdiff(colnames(dat_all), 
+                                  c("Father_ID", "Mother_ID", "family_id"))]
+    colnames(mcmc_dat)[colnames(mcmc_dat) == "ID"] <- "animal"
+    pedigree_data <- setNames(dat_all[, c("ID", "Father_ID", "Mother_ID")], 
+                              c("animal", "sire", "dam"))
+    
+    # run MCMC
+    set.seed(s)
+    mcmc_time <- system.time(
+      mcmc_fit <- MCMCglmm(
+        Outcome ~ Continuous + Binary, random = ~ animal, family = "threshold",
+        prior = prior, pedigree = pedigree_data, data = mcmc_dat, nitt = 1e6, 
+        burnin = 1e5, thin = 100, slice = TRUE, verbose = verbose))
+    
+    mcmc_fit$time <- mcmc_time
+    saveRDS(mcmc_fit, f)
+  }
+  
+  # load, report, and return 
+  out <- readRDS(f)
+  message(paste0(capture.output(summary(out)), collapse = "\n"))
+  out
+}
+```
+
+```{r get_mcmc_res, message=FALSE, echo = FALSE}
+# get the results
+MCMCglmm_res <- lapply(head(seeds, 10L), fit_mcmc)
+pedmod_res <- lapply(head(seeds, 10L), function(s)
+  readRDS(get_file_name(s, "pedmod")))
+
+est_mcmc <- sapply(MCMCglmm_res, function(x){
+  beta <- x$Sol
+  scale <- x$VCV[, "animal"]
+  samps <- standardize_estimates(rbind(t(beta), scale), n_scales = 1L)
+  
+  mode <- c(posterior.mode(x$Sol), Scale = posterior.mode(x$VCV[, "animal"]))
+  
+  cbind(
+    mean = rowMeans(samps),
+    median = apply(samps, 1L, median), 
+    mode = standardize_estimates(mode, 1L))
+}, simplify = "array")
+est_pedmod <- sapply(pedmod_res, function(x)
+  c(x$par[1:3], Scale = exp(x$par[4])))
+
+# get the computation time
+tis_mcmc   <- sapply(MCMCglmm_res, `[[`, "time")["elapsed", ]
+tis_pedmod <- sapply(pedmod_res  , `[[`, "time")["elapsed", ]
+
+# compute the means and compare with pedmod
+tmp <- sim_dat(1)
+truth <- c(attr(tmp, "beta"), attr(tmp, "sig_sq"))
+truth <- standardize_estimates(truth, 1L)
+bias_MCMCglmm_mean <- comp_bias(
+  rbind(est_mcmc[, "mean", ] - truth, 
+        Time = tis_mcmc))
+bias_MCMCglmm_mode <- comp_bias(
+  rbind(est_mcmc[, "mode", ] - truth, 
+        Time = NA_real_))
+bias_pedmod        <- comp_bias(
+  rbind(standardize_estimates(est_pedmod, 1L) - truth, 
+        Time = tis_pedmod))
+
+# compute stats for effective sample size
+MCMCglmm_ess <- sapply(MCMCglmm_res, function(x)
+  c(effectiveSize(x$Sol), Var = unname(effectiveSize(x$VCV[, "animal"]))), 
+  simplify = "array")
+MCMCglmm_ess_mean <- apply(MCMCglmm_ess, 1L, mean)
+MCMCglmm_ess_sd <- apply(MCMCglmm_ess, 1L, sd)
+
+# create the list with the results to save
+mcmc_comp_res <- list(
+  bias = list(MCMCglmm_mean = bias_MCMCglmm_mean, 
+              bias_MCMCglmm_mode = bias_MCMCglmm_mode, 
+              pedmod = bias_pedmod), 
+  data = list(MCMCglmm_res = est_mcmc, 
+              pedmod_res = est_pedmod,
+              MCMCglmm_ess_mean = MCMCglmm_ess_mean, 
+              MCMCglmm_ess_sd = MCMCglmm_ess_sd))
+
+# show the table with many samples
+tab <- do.call(rbind, add_genetic_res$bias)
+rownames(tab) <- c("Bias", "SE")
+colnames(tab)[colnames(tab) == "(Intercept)"] <- "Intercept"
+mult <- 100
+tab[, colnames(tab) != "Time"] <- tab[, colnames(tab) != "Time"] * 100
+colnames(tab) <- sapply(colnames(tab), function(x)
+  switch (
+    x,
+    Intercept = "$\\beta_0$", 
+    Continuous = "$\\beta_1$", 
+    Binary = "$\\beta_2$", 
+    Sigma = "$\\sigma_g$", 
+    Time = "Time", 
+    stop()))
+
+tab_ratio <- tab 
+tab_ratio[2, 1:4] <- tab_ratio["Bias", 1:4]/tab_ratio["SE", 1:4]
+tab_ratio[2, "Time"] <- NA_real_
+rownames(tab_ratio)[2] <- "Bias / SE"
+knitr::kable(tab_ratio)
+```
+
+<p class = "smallish">
+Bias estimates estimated using `r length(seeds)` data sets. 
+The bias estimates are multiplied by `r mult`. The last column shows the 
+average estimation time in seconds. The standard error for the latter is 
+`r tab["SE", "Time"]`. The last row shows the bias estimates divided by the 
+standard errors.</p>
+
+## Results: Comparison with MCMC
+
+```{r show_mcmc_res, echo = FALSE}
+tab <- lapply(mcmc_comp_res$bias, function(x) do.call(rbind, x))
+nams <- names(tab)
+nams <- sapply(nams, function(x) 
+  switch (x, 
+          MCMCglmm_mean = "MCMC (mean)", 
+          bias_MCMCglmm_mode = "MCMC (mode)", 
+          pedmod = "New method", 
+          stop()))
+tab <- do.call(rbind, tab)
+rownames(tab) <- unlist(lapply(nams, function(x) c(x, "SE")))
+colnames(tab)[colnames(tab) == "(Intercept)"] <- "Intercept"
+
+tab[, colnames(tab) != "Time"] <- tab[, colnames(tab) != "Time"] * 100
+colnames(tab) <- sapply(colnames(tab), function(x)
+  switch (
+    x,
+    Intercept = "$\\beta_0$", 
+    Continuous = "$\\beta_1$", 
+    Binary = "$\\beta_2$", 
+    scale =,
+    Sigma = "$\\sigma_g$", 
+    Time = "Time", 
+    stop()))
+
+tab_ratio <- tab
+is_even <- 1:NROW(tab) %% 2 == 0
+tab_ratio[is_even, ] <- tab[!is_even, ] / tab[is_even, ]
+tab_ratio[is_even, "Time"] <- NA
+rownames(tab_ratio)[is_even] <- "Bias / SE"
+
+knitr::kable(tab_ratio)
+```
+
+<p class = "smallish">
+Bias estimates using `r dim(mcmc_comp_res$data$MCMCglmm_res)[3]` data sets. 
+The bias estimates are multiplied by `r mult`.
+The last column shows average the estimation time in seconds. 
+The "Bias / SE" rows show the bias estimates divided by the standard 
+errors.</p>
+
+## Simplifying the Real Application
+
+Want to avoid the composite likelihood like procedure and use as much 
+information from the pedigree as possible. 
+
+<p class = "fragment">
+Use the Swedish Multi-Generation Registry [@Ekbom10] 
+like @Mahjani20 to study OCD.</p>
+
+<div class = "fragment w-small">
+Most families are small but one is very large with 618.162 members with 
+167.279 members with observed outcomes.
+<p class = "smallish">
+Want to avoid 167.279 dimensional integration!</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Dependencies as a Graph</h2>
+<!--/html_preserve-->
+
+```{r plot_as_graph, echo = FALSE}
+par(mar = c(1, 1, 1, 1), mfcol = c(1, 2))
+plot(ped)
+graph_dat <- create_igraph_input(ped)
+plot(graph.data.frame(graph_dat, directed = FALSE), 
+      vertex.size = 10, vertex.color = "gray")
+```
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Dependencies as a Graph (continued)</h2>
+<!--/html_preserve-->
+
+```{r larger_ped, echo = FALSE}
+dat <- data.frame(
+  id = 1:48,
+  mom = c(NA, NA, 2L, 2L, 2L, NA, NA, 7L, 7L, 7L, 3L, 3L, 3L, 3L, NA, 15L, 15L, 43L, 18L, NA, NA, 21L, 21L, 9L, 9L, 9L, 9L, NA, NA, 29L, 29L, 29L, 30L, 30L, NA, NA, 36L, 36L, 36L, 38L, 38L, NA, NA, 43L, 43L, 43L, 32L, 32L),
+  dad = c(NA, NA, 1L, 1L, 1L, NA, NA, 6L, 6L, 6L, 8L, 8L, 8L, 8L, NA, 4L, 4L, 42L, 5L, NA, NA, 20L, 20L, 22L, 22L, 22L, 22L, NA, NA, 28L, 28L, 28L, 23L, 23L, NA, NA, 35L, 35L, 35L, 31L, 31L, NA, NA, 42L, 42L, 42L, 45L, 45L),
+  sex = c(1L, 2L, 2L, 1L, 1L, 1L, 2L, 1L, 2L, 2L, 2L, 1L, 1L, 1L, 2L, 2L, 2L, 2L, 1L, 1L, 2L, 1L, 1L, 2L, 1L, 1L, 2L, 1L, 2L, 2L, 1L, 2L, 2L, 2L, 1L, 2L, 1L, 2L, 1L, 2L, 1L, 1L, 2L, 2L, 1L, 1L, 2L, 2L))
+
+ped_larger <- with(dat, pedigree(id = id, dadid = dad, momid = mom, sex = sex))
+par(mar = c(1, 1, 1, 1))
+plot(ped_larger)
+```
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Dependencies as a Graph (continued)</h2>
+<!--/html_preserve-->
+
+```{r graph_larger_ped, echo = FALSE}
+graph_dat <- create_igraph_input(ped_larger)
+par(mar = c(1, 1, 1, 1))
+plot(graph.data.frame(graph_dat, directed = FALSE), 
+      vertex.size = 10, vertex.color = "lightgray", 
+     layout = layout_with_kk)
+```
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Cutting the Graph</h2>
+<!--/html_preserve-->
+
+```{r cut_graph, echo=FALSE}
+library(pedmod)
+partition <- get_max_balanced_partition_pedigree(
+  id = dat$id, father.id = dat$dad, mother.id = dat$mom, 
+  slack = .1)
+
+# highlight the split
+show_split <- function(dat, partition_obj){
+  ped <- with(dat, pedigree(id = id, dadid = dad, momid = mom, sex = sex))
+  g_dat <- create_igraph_input(ped)
+  graph_fam <-  graph.data.frame(g_dat, directed = FALSE)
+  V(graph_fam)$color <- "white"
+  nam <- vertex_attr(graph_fam)$name
+  V(graph_fam)$color[nam %in% partition_obj$set_1] <- "lightblue" 
+  V(graph_fam)$color[nam %in% partition_obj$set_2] <- "lightgray" 
+  par(mar = c(1, 1, 1, 1))
+  plot(graph_fam, vertex.size = 12, vertex.label.cex = .75, 
+       layout = layout_with_kk)
+}
+show_split(dat, partition)
+```
+
+## Reducing the Computational Cost
+<div class = "w-small">
+Removing an edge introduces independence between two individuals 
+<p class = "smallish"> 
+and their ancestor and descendants.</p>
+</div>
+
+<div class = "fragment w-small">
+Removing edges can creates two non-connected families (subgraphs) with 
+$\tilde n_k$ and $\tilde n_l$ individuals (vertices) 
+<p class = "smallish">
+with $\tilde n_k + \tilde n_l = n_i$.</p>
+</p>
+</div>
+
+<div class = "fragment w-small">
+Yields two integrals to be approximated of size $\tilde n_k$ and $\tilde n_l$
+<p class = "smallish">
+rather than one of size $n$.</p>
+</div>  
+
+## Reducing the Computational Cost
+Idea: create $p$ families each of roughly size $n_i / p$ such the number of 
+removed dependencies is minimized.
+
+<div class = "fragment w-small">
+Essentially the $p$-way partition problem.
+<p class = "smallish">
+Many approximations exists without the connection constraint 
+[@Simon97; @Karypis98].</p>
+</div>
+
+<div class = "fragment w-small">
+The data can be simplified to at most 200 dimensional integration 
+by removing 3.164 parent-child links
+<p class = "smallish">
+out of 3.944.737 (`r 100 * 3164 / 3944737` percent reduction)!</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Kinship Matrix</h2>
+<!--/html_preserve-->
+
+```{r kinship_ex, echo = FALSE, fig.width=10}
+# get the new data
+get_reduced_data <- function(dat, removed_edges){
+  for(i in 1:nrow(removed_edges)){
+    . <- function(child, parent){
+      idx   <- which(dat$id       == removed_edges[i, child])
+      idx_m <- which(dat$mom[idx] == removed_edges[i, parent])
+      if(length(idx_m > 0)){
+        dat[idx[idx_m], "mom"] <<- NA_integer_
+        return(TRUE)
+      }
+      idx_d <- which(dat$dad[idx] == removed_edges[i, parent])
+      if(length(idx_d > 0)){
+        dat[idx[idx_d], "dad"] <<- NA_integer_
+        return(TRUE)
+      }
+      FALSE
+    }
+    if(.(1L, 2L))
+      next
+    .(2L, 1L)
+  }
+  
+  dat
+}
+new_dat <- get_reduced_data(dat, partition$removed_edges)
+
+# For some reason, kinship2::pedigree requires that we provide both a father 
+# and mother or none. Therefore, we create a mock object. You can skip this
+get_pedigree_mock <- function(id, dadid, momid, sex){
+  if(is.factor(sex))
+    sex <- as.integer(sex)
+  
+  # checks
+  n <- length(id)
+  stopifnot(n > 0, length(dadid) == n, length(momid) == n, length(sex) == n, 
+            all(is.finite(sex)), all(sex %in% 1:2), 
+            all(is.na(dadid) | dadid %in% id), 
+            all(is.na(momid) | momid %in% id), 
+            all(is.finite(id)))
+  
+  # create objects to return
+  findex <- match(dadid, id, nomatch = 0L)
+  mindex <- match(momid, id, nomatch = 0L)
+  
+  structure(
+    list(famid = rep(1L, n), id = id, findex = findex, mindex = mindex,
+         sex = factor(sex, levels = 1:2, labels = c("male", "famle"))), 
+    class = "pedigree")
+}
+
+
+# plot the old and the new kinship matrix
+K_old <- kinship(ped_larger)
+K_new <- kinship(get_pedigree_mock(new_dat$id, new_dat$dad, new_dat$mom, 
+                                   new_dat$sex))
+
+par(mar = c(1, 1, 3, 1), mfcol = c(1, 2))
+image_plot(K_old, main = "Original kinship matrix")
+image_plot(K_new, main = "New kinship matrix")
+```
+
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Profile Likelihood</h2>
+<!--/html_preserve-->
+
+<img src="fig/Profile likelihood curve-page-001.jpg"/>
+
+<!-- 12111.568 / 60 / 60  -->
+
+<div class = "w-small">
+The above profile likelihood was computed in 3 hours and 22 minutes on 
+Vector.
+<p class = "smallish">
+The MCMC analysis in @Mahjani20 took weeks!</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Extensions</h1>
+<!--/html_preserve-->
+
+## Overview 
+TODO: make overview slide.
+
+## Improvements
+<div class = "w-small">
+Get better starting values.
+<p class = "smallish">
+Make an efficient Gaussian variational approximation or Laplace 
+approximation to get starting values.</p>
+</div>
+
+<div class = "fragment w-small">
+Use stochastic gradient techniques.
+<p class = "smallish">
+Currently, working on a method like suggested by @Byrd16.</p>
+</div>
+
+## Survival Data
+$Y_{ij}^* \in (0,\infty)$ with independent right censoring time 
+$S_{ij} \in (0,\infty)$. 
+
+<p class = "fragment">
+Only observe $Y_{ij} = \min (Y_{ij}^*, S_{ij})$.
+</p>
+
+<div class = "fragment">
+Use a mixed generalized survival model:
+
+$$
+\begin{align*}
+P(Y_{ij}^* > y \mid \epsilon_{ij} = e) &= \Phi(
+  -\vec g(y)^\top\vec\omega - \vec\beta^\top\vec x_{ij} - e) \\
+(\epsilon_{i1}, \dots, \epsilon_{in_i}) &\sim
+  N^{(n_i)}(\vec 0, \mat\Sigma_i(\vec\theta))
+\end{align*}
+$$
+</div>
+
+## Survival Data
+A simple case is $\vec g(y) = \log y$ in which case
+
+$$
+\begin{align*}
+\omega\log Y_{ij}^* &= -\vec\beta^\top\vec x_{ij} + \epsilon_{ij} \\
+\vec\epsilon_i &\sim
+  N^{(n_i)}(\vec 0, \mat I_{n_i} + \mat\Sigma_i(\vec\sigma))
+\end{align*}
+$$
+
+<div class = "fragment w-small">
+
+Or equivalently
+
+$$
+\begin{align*}
+\log Y_{ij}^* &= -\omega^{-1}\vec\beta^\top\vec x_{ij} + \epsilon_{ij} \\
+\vec\epsilon_i &\sim
+  N^{(n_i)}(\vec 0, \omega^{-2}(\mat I_{n_i} + \mat\Sigma_i(\vec\sigma)))
+\end{align*}
+$$
+
+<p class = "smallish">
+Used in the bivariate case by @Szulkin17.</p>
+</div>
+
+<p class = "fragment">
+Bonus: The CDF dimension is equal to the number of censored individuals.</p>
+
+## Inference in ACE Model
+<div class = "w-small">
+Interested in $\sigma_g^2/(1 + \sigma_g^2+ \sigma_e^2)$
+<p class = "smallish">
+the proportion of the variance **on the log scale** explained by 
+additive genetic effects,</p>
+</div>
+
+<div class = "fragment w-small">
+and $\sigma_e^2/(1 + \sigma_g^2+ \sigma_e^2)$
+<p class = "smallish">
+the proportion of the variance **on the log scale** explained by 
+environmental effects.</p>
+</div>
+
+## Survival Data (continued)
+Generally, 
+
+$$
+\begin{align*}
+\vec g(Y_{ij}^*)^\top\vec\omega &= -\vec\beta^\top\vec x_{ij} + \epsilon_{ij} \\
+\vec\epsilon_i &\sim
+  N^{(n_i)}(\vec 0, \mat I_{n_i} + \mat\Sigma_i(\vec\sigma))
+\end{align*}
+$$
+
+More flexible.
+
+## Inference in ACE Model
+<div class = "w-small">
+Interested in $\sigma_g^2/(1 + \sigma_g^2+ \sigma_e^2)$
+<p class = "smallish">
+the proportion of the variance **on the** 
+$h(y) = \vec g(y)^\top\vec\omega$ **scale** explained by 
+additive genetic effects,</p>
+</div>
+
+<div class = "fragment w-small">
+and $\sigma_e^2/(1 + \sigma_g^2+ \sigma_e^2)$
+<p class = "smallish">
+the proportion of the variance **on the**
+$h(y) = \vec g(y)^\top\vec\omega$ 
+**scale** explained by environmental effects.</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Other Projects</h1>
+
+<!--/html_preserve-->
+
+## Variational Approximations
+<div class = "w-small">
+Recall: I work on variational approximations in biostatistic.
+<p class = "smallish">
+A way of approximating integrals when estimating models. Often very fast.</p>
+</div>
+
+<div class = "w-small fragment">
+Used variational approximations for mixed flexible parametric models.
+<p class = "smallish">
+E.g. to account for the hospital being used, repeated measures, 
+environmental effects, dependence between twins, etc.</p>
+</div>
+
+## Estimating Variational Approximations
+<div class = "w-small">
+Variational approximations easily involves optimization with many parameters.
+<p class = "smallish">
+In the thousands or even a millions.</p>
+</div>
+
+<div class = "w-small fragment">
+Implemented generic optimization methods that use the structure of the 
+function being optimized.
+<p class = "smallish">
+Seen ten fold and 100 fold reductions in estimation time.
+See [github.com/boennecd/psqn](https://github.com/boennecd/psqn) and
+[github.com/boennecd/psqn-va-ex](https://github.com/boennecd/psqn-va-ex).</p>
+</div>
+
+<p class = "fragment">
+Have seen 20 times faster estimation time compared with a Laplace approximation 
+from `lme4` in some examples and with lower bias.</p>
+
+## Projects Not Mentioned Today
+Preliminary work on applying variational approximations for joint 
+survival and marker models.
+
+<p class = "fragment">
+Has applications e.g. with kidney data to 
+characterise trajectories of biomarkers of kidney function decline while 
+accounting for diabetic complications, glycated hemoglobin (HbA1c) and 
+medications.</p>
+
+## Imputation Method
+<div class = "w-small">
+Improve upon the approximate EM-algorithm by @zhao19 used for imputation of 
+missing values. 
+<p class = "smallish">
+See [github.com/boennecd/mdgc](https://github.com/boennecd/mdgc).</p>
+</div>
+
+<div class = "fragment w-small">
+Can provide joint imputation for continuous, binary, ordinal, and multinomial 
+data.
+<p class="smallish">
+See @Christoffersen21.</p>
+</div>
+
+<p class = "fragment">
+Based on a similar approximation as used for the family data.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Conclusions</h1>
+<!--/html_preserve-->
+
+## Conclusions
+Extended the estimation method suggested by @Pawitan04. 
+
+<div class = "fragment w-small">
+Showed that the new C++ implementation is fast 
+<p class = "smallish">
+for large data sets with moderate to high dimensional integrals per 
+cluster.</p>
+</div>
+
+<p class = "fragment">
+Discussed extensions to other types of outcomes.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="center final">
+<h1>Thank You!</h1>
+
+<div class="w-small">
+<p class="smallish">The presentation is at  
+<a href="https://rpubs.com/boennecd/KTH-Pre-Meb-Meeting">rpubs.com/boennecd/KTH-Pre-Meb-Meeting</a>.</p>
+<p class="smallish">The markdown is at  
+<a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
+<p class="smallish">The R package is at
+<a href="https://github.com/boennecd/pedmod">github.com/boennecd/pedmod</a>.</p>
+<p class="smallish">References are on the next slide.</p>
+</div>
+
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<section>
+<h1>References</h1>
+
+<!--/html_preserve-->
