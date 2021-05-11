@@ -1,3 +1,7 @@
+### MEB Tuesday Meetings Spring 2021: Genetic and Environmental Effects Estimation
+[Code](/MEB-pedmod/MEB-pedmod.Rmd) and presentation at 
+[RPubs](https://rpubs.com/boennecd/MEB-pedmod).
+
 ### KTH Group Meeting April 2021: Mixed Effect Models for Pedigree Data
 [Code](/KTH-Pre-Meb-Meeting/KTH-Pre-Meb-Meeting.Rmd) and presentation at 
 [RPubs](https://rpubs.com/boennecd/KTH-Pre-Meb-Meeting).
