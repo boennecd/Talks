@@ -124,7 +124,7 @@ div.logo-kth {
 }
 
 .reveal section > img, .reveal section > p > img, div.column > p > img {
-  max-height: 37vh;
+  max-height: 35vh;
   height: auto;
   width: auto;
   border: none;

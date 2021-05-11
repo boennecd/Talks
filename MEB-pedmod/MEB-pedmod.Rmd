@@ -93,13 +93,13 @@ Worked with default models which mostly are survival models.</p>
 Postdoc supervised by Keith, Mark, and Hedvig Kjellström from KTH. 
 
 <div class = "fragment w-small">
-Work on variational approximations in biostatistic.
+Work on variational approximations in biostatistics.
 <p class = "smallish">
 A way of approximating integrals when estimating models. Often very fast.</p>
 </div>
 
 <div class = "w-small fragment">
-Has almost nothing to with today's topic!
+Has almost nothing to do with today's topic!
 <p class = "smallish">
 Except also having to do with integral approximations.</p>
 </div>
@@ -146,11 +146,16 @@ plot(ex_dat)
 Suppose that the above is family $i$ for which we 
 observe $Y_{i1},\dots Y_{i10} \in \{0, 1\}$.
 <p class = "smallish">
-Circles are females and squares are male.</p>
+Circles are females and squares are males.</p>
 </div>
 
-## Obsessive-compulsive Disorder Study
-TODO...
+## OCD Study
+Genes are known to have an impact on the risk of
+obsessive-compulsive disorder (OCD).
+
+<p class = "fragment">
+Genetic and environmental influences on a maternal phenotype can affect the
+phenotype of the child, in turn.</p>
 
 <div class = "fragment w-small">
 @Mahjani20 look at direct genetic effects and maternal effects on OCD 
@@ -158,19 +163,31 @@ TODO...
 controlling for sex and age of the mother.</p>
 </div>
 
+## ASD Study
+Both rheumatoid arthritis (RA) and autism spectrum disorder (ASD) seem to be 
+effected by genes and share risk factors.
+
+<p class = "fragment">
+Interesting to study the potential genetic link with RA in mothers and ASD in 
+children.</p>
+
+<p class = "fragment">
+Joint work with Evora Hailin Zhu, Benjamin Yip, and Sven.</p>
+
 ## Research Questions
 Want to estimate unobserved genetic effects, environmental effects, 
 paternal effects, etc. for binary outcomes.
 
 <div class ="fragment w-small">
-Other outcomes have been studied in the department. TODO: add more studies.
+Other outcomes have been studied in the department.
 <p class = "smallish">
-E.g. pre-eclamptic events, 
-melanoma onset, preterm birth, and autism spectrum disorder.
-[@Pawitan04; @Lindstroem06; @Svensson09; @yip2018; @Bai19].</p>
+E.g. pre-eclamptic events, melanoma onset, schizophrenia and bipolar disorder, 
+and preterm birth
+[@Pawitan04; @Lindstroem06; @Svensson09; @Lichtenstein09; @yip2018; @Bai19].</p>
 </div>
 
-## Liability-Threshold Models
+## Liability-threshold Models
+<div class = "w-small">
 $$
 Y_{ij} = \begin{cases}
   1 & \vec x_{ij}^\top\vec\beta + \epsilon_{ij} > 0 \\
@@ -178,21 +195,16 @@ Y_{ij} = \begin{cases}
 \end{cases}
 $$
 
-where $\epsilon_{ij}$ is standard normally distributed. 
+where $\epsilon_{ij}$ is standard normally distributed. We observe the 
+$Y_{ij}$s which are zero or one.
+<p class = "smallish">
+It is a GLM with $\Phi(P(Y_{ij} = 1)) = \vec x_{ij}^\top\vec\beta$ 
+where $\Phi$ is the standard normal CDF.</p>
+</div>
 
 <p class="fragment"> 
 There is a latent score $x_{ij}^\top\vec\beta + \epsilon_{ij}$ and we observe
 $Y_{ij} = 1$ if this exceeds the threshold zero.</p>
-
-
-<div class = "fragment w-small">
-Implies that
-
-$$
-\Phi(P(Y_{ij} = 1)) = \vec x_{ij}^\top\vec\beta.
-$$
-<p class = "smallish">A GLM. $\Phi$ is the standard normal CDF.</p>
-</div>
 
 <p class = "fragment">
 This choice allows us to use fast methods later.</p>
@@ -200,7 +212,7 @@ This choice allows us to use fast methods later.</p>
 <!--html_preserve-->
 </section>
 <section class="center-horiz">
-<h2>Liability-Threshold Models</h2>
+<h2>Liability-threshold Models (continued)</h2>
 <!--/html_preserve-->
 
 ```{r lt_model_illu, echo = FALSE}
@@ -211,10 +223,20 @@ grid()
 abline(v = .8, lty = 2)
 arrows(x0 = c(1, .6), x1 = c(1 + 1.5, .6 - 1.5), 
        y0 = c(.05, .05), y1 = c(.05, .05), code = 2)
-text(expression(paste(y["ij"], " = ", 1)), x = 1.3, y = .07)
-text(expression(paste(y["ij"], " = ", 0)), x = .3, y = .07)
+text(expression(paste(Y["ij"], " = ", 1)), x = 1.3, y = .07)
+text(expression(paste(Y["ij"], " = ", 0)), x = .3, y = .07)
 text(expression(paste(-x["ij"]^"T", beta)), x = 1.1, y = .35)
 ```
+
+## The Kinship Matrix
+Want to add additive genetic effects.
+
+<div class = "fragment w-small">
+Use random effects with a correlation matrix given by the kinship matrix.
+<p class = "smallish">
+Entries are the probability that a randomly selected allele from a locus will be
+identical by descent between two individuals.</p>
+</div>
 
 <!--html_preserve-->
 </section>
@@ -225,9 +247,10 @@ text(expression(paste(-x["ij"]^"T", beta)), x = 1.1, y = .35)
 ```{r show_ped, echo = FALSE}
 par(mar = c(1, 1, 1, 1), mfcol = c(1, 2))
 plot(ex_dat)
-image_plot <- function(K, ...){
-  col <- gray.colors(n = 20, start = 1, end = 0)
-  image(K[, NCOL(K):1], col = col,  xaxt = 'n', yaxt = 'n', bty = "n", ...)
+image_plot <- function(K, ..., zlim = c(-.5, .5)){
+  col <- colorRampPalette(c("darkorange", "white", "black"))(21)
+  image(K[, NCOL(K):1], col = col,  xaxt = 'n', yaxt = 'n', bty = "n", ..., 
+        zlim = zlim)
 }
 library(kinship2, quietly = TRUE)
 image_plot(kinship(ex_dat))
@@ -253,7 +276,7 @@ $$
 Y_{ij} &= \begin{cases}
   1 & \vec x_{ij}^\top\vec\beta + \epsilon_{ij} + g_{ij} > 0 \\
   0 & \text{otherwise}
-\end{cases}
+\end{cases}.
 \end{align*}
 $$
 </div>
@@ -281,7 +304,7 @@ par(mar = c(1, 1, 1, 1), mfcol = c(1, 2))
 plot(ex_dat)
 E <- matrix(0., 10, 10)
 E[c(1:3, 6), c(1:3, 6)] <- 1
-image_plot(E)
+image_plot(E, zlim = c(-2, 2))
 ```
 
 <div class = "w-small">
@@ -296,11 +319,30 @@ Scale matrix for the environmental effect.
 <h2>Example (continued)</h2>
 <!--/html_preserve-->
 
+```{r add_rep_show_ped, echo = FALSE}
+par(mar = c(1, 1, 1, 1), mfcol = c(1, 2))
+plot(ex_dat)
+diag(E)[1:2] <- diag(E)[1:2] + 1
+image_plot(E, zlim = c(-2, 2))
+```
+
+<div class = "w-small">
+Scale matrix for the environmental effect.
+<p class = "smallish">
+1 and 2 have other environments.</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz" data-transition="fade-in fade-out">
+<h2>Example (continued)</h2>
+<!--/html_preserve-->
+
 ```{r 1_rep_show_ped, echo = FALSE}
 par(mar = c(1, 1, 1, 1), mfcol = c(1, 2))
 plot(ex_dat)
-E[c(3:4, 7:8), c(3:4, 7:8)] <- 1
-image_plot(E)
+E[c(3:4, 7:8), c(3:4, 7:8)] <- E[c(3:4, 7:8), c(3:4, 7:8)] + 1
+image_plot(E, zlim = c(-2, 2))
 ```
 
 <div class = "w-small">
@@ -311,15 +353,34 @@ Scale matrix for the environmental effect.
 
 <!--html_preserve-->
 </section>
-<section class="center-horiz" data-transition="fade-in slide-out">
+<section class="center-horiz" data-transition="fade-in fade-out">
+<h2>Example (continued)</h2>
+<!--/html_preserve-->
+
+```{r add_1_rep_show_ped, echo = FALSE}
+par(mar = c(1, 1, 1, 1), mfcol = c(1, 2))
+plot(ex_dat)
+diag(E)[4] <- diag(E)[4] + 1 
+image_plot(E, zlim = c(-2, 2))
+```
+
+<div class = "w-small">
+Scale matrix for the environmental effect.
+<p class = "smallish">
+4 has another environment.</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz" data-transition="fade-in fade-out">
 <h2>Example (continued)</h2>
 <!--/html_preserve-->
 
 ```{r 2_rep_show_ped, echo = FALSE}
 par(mar = c(1, 1, 1, 1), mfcol = c(1, 2))
 plot(ex_dat)
-E[c(5:6, 9:10), c(5:6, 9:10)] <- 1
-image_plot(E)
+E[c(5:6, 9:10), c(5:6, 9:10)] <- E[c(5:6, 9:10), c(5:6, 9:10)] + 1
+image_plot(E, zlim = c(-2, 2))
 ```
 
 <div class = "w-small">
@@ -328,7 +389,27 @@ Scale matrix for the environmental effect.
 5, 6, 9, and 10 share an environment.</p>
 </div>
 
+<!--html_preserve-->
+</section>
+<section class="center-horiz" data-transition="fade-in slide-out">
+<h2>Example (continued)</h2>
+<!--/html_preserve-->
+
+```{r add_2_rep_show_ped, echo = FALSE}
+par(mar = c(1, 1, 1, 1), mfcol = c(1, 2))
+plot(ex_dat)
+diag(E)[5] <- diag(E)[5] + 1
+image_plot(E, zlim = c(-2, 2))
+```
+
+<div class = "w-small">
+Scale matrix for the environmental effect.
+<p class = "smallish">
+5 has another environment.
+</div>
+
 ## Adding Environmental Effects
+$e_{ij}$ is the environmental effect for individual $j$ in family $i$.
 Define $\mat C_{ie}$ as in the previous slide and let:
 
 $$(e_{i1},\dots,e_{i10})^\top \sim N^{(10)}(\vec 0, \sigma_e^2 \mat C_{ie}).$$
@@ -337,23 +418,11 @@ $$(e_{i1},\dots,e_{i10})^\top \sim N^{(10)}(\vec 0, \sigma_e^2 \mat C_{ie}).$$
 The ACE model is:
 
 $$
-\begin{align*}
-Y_{ij} &= \begin{cases}
+Y_{ij} = \begin{cases}
   1 & \vec x_{ij}^\top\vec\beta + \epsilon_{ij} + g_{ij} + e_{ij} > 0 \\
   0 & \text{otherwise}
-\end{cases} \\
-\epsilon_{ij} &\sim N(0, 1) \\
-(g_{i1}, \dots, g_{in_i})^\top & 
-  \sim N^{(n_i)}(\vec 0; \sigma_g^2 \mat C_{ig}) \\
-(e_{i1}, \dots, e_{in_i})^\top & 
-  \sim N^{(n_i)}(\vec 0; \sigma_e^2 \mat C_{ie}). \\
-\end{align*}
+\end{cases}
 $$
-
-<p class = "smallish">
-with $\mat C_{ig}$ being two times the kinship matrix and $\mat C_{ie}$ is 
-a matrix as defined before.</p>
-</div>
 
 ## Inference
 <div class = "w-small">
@@ -384,7 +453,7 @@ Y_{ij} &= \begin{cases}
 $$
 
 ## Arbitrary Number of Effects
-May want paternal effect or maternal effect. 
+May want paternal effects or maternal effects. 
 
 <div class = "fragment w-small">
 May want other definitions of environments. 
@@ -408,8 +477,8 @@ Y_{ij} &= \begin{cases}
 \end{cases} \\
 (\epsilon_{i1}, \dots, \epsilon_{in_i})^\top & 
   \sim N^{(n_i)}(\vec 0; \mat I_{n_i} + 
-  \mat\Sigma(\vec\sigma)) \\
-\mat\Sigma(\vec\sigma) &= \sum_{k = 1}^K\sigma_k^2 \mat L_{ik} 
+  \mat\Sigma_i(\vec\sigma)) \\
+\mat\Sigma_i(\vec\sigma) &= \sum_{k = 1}^K\sigma_k^2 \mat L_{ik}. 
 \end{align*}
 $$
 
@@ -421,7 +490,8 @@ The likelihood has no simple (closed form) expression
 <div class = "fragment w-small">
 ... but can expressed as integrals that have been extensively studied.
 <p class = "smallish">
-Used by @Pawitan04, @Lindstroem06, @Svensson09, @yip2018, and @Bai19. </p>
+Used by @Pawitan04, @Lindstroem06, @Svensson09, @Lichtenstein09, @yip2018, and 
+@Bai19. </p>
 </div>
 
 ## Previous Work
@@ -435,8 +505,7 @@ Have to use derivative-free optimization. This is slow.</p>
 To simplify the computation, they do not use all data by
 
  - using discretized covariates,
- - omitting observations,
- - ignoring information from the pedigree, and
+ - omitting observations and information from the pedigree, and
  - using a composite likelihood like procedure
  
 <p class = "smallish">
@@ -444,18 +513,29 @@ where individuals with cousin both on their mother and father side is
 repeated twice.</p>
 </div>
 
-## New Method and Implementation
+## Previous Work (continued)
+Does not efficiently use all data. 
+
+<div class = "fragment w-small"> 
+May lead to less efficient estimator.
+<p class = "smallish">
+Higher variance thus requiring more observations.</p>
+</div>
+
+<p class = "fragment">
 Goal: faster estimation method such that we can use all (or almost all) data.
+</p>
+
+## New Method and Implementation
+Method with gradient approximations.
 
 <p class = "fragment">
-Method with gradient approximations.</p>
-
-<p class = "fragment">
-A faster approximation and implementation that supports computation in 
+A faster approximation and an implementation that supports computation in 
 parallel.</p>
 
 <p class = "fragment">
-Works for an arbitrary number of effects, $K$.</p>
+Works for an arbitrary number of user defined effects, $K$ and 
+$\mat L_{i1},\dots,\mat L_{iK}$.</p>
 
 <p class = "fragment">
 The implementation is in the pedmod package.</p>
@@ -474,7 +554,7 @@ See e.g. MCMCglmm [@Hadfield10] and BLUPF90 [@BLUPF90].</p>
 </div>
 
 <div class = "fragment w-small">
-Very slow!
+Does take all information into account but very slow!
 <p class = "smallish">
 Fitting a single model took weeks for @Mahjani20.</p>
 </div> 
@@ -488,28 +568,30 @@ Fitting a single model took weeks for @Mahjani20.</p>
 
 <section>
 <section class="large-first center slide level2">
-<h1>Marginal Likelihood</h1>
+<h1>The Likelihood</h1>
 <!--/html_preserve-->
 
 ## Overview
-Show the marginal likelihood. 
+Show the likelihood. 
 
 <p class = "fragment">
-At a high level, mention what have done before and how we extended it.</p>
+At a high level, mention what has been done before and how we extend it.</p>
 
 ## Maximum Likelihood
 
 Find the MLE:
 
 $$
-\argmax_{\vec\beta,\vec\sigma} \sum_{i = 1}^m\log 
+\max_{\vec\beta,\vec\sigma} \sum_{i = 1}^m\log 
   L_i(\vec\beta,\vec\sigma)
 $$
 
 
-where $L_i$ is the marginal likelihood of family (cluster) $i$.
+where $L_i$ is the likelihood of family (cluster) $i$.
 
-## The Marginal Likelihood
+## The Likelihood
+The likelihood of family $i$:
+
 <div class = "w-small">
 
 $$
@@ -533,21 +615,22 @@ $\mat\Omega$ evaluated at $\vec x$.</p>
 Point: need CDF approximation.</p>
 
 ## Importance Sampling
-@Genz92 and @Genz02 develop an efficient importance sampling procedure
-for the CDF with:
-
-a. A heuristic variable re-ordering. 
-b. Randomized Korobov rules [randomized quasi-Monte Carlo; see @Niederreiter1972; @Keast73; @Cranley76].
-
-## New Code 
 <div class = "w-small">
-Rewritten most of the Fortran code by @Genz02 in C++. 
-<p class ="smallish">
-Used in the mvtnorm package [@Genz20].</p>
+@Genz92 and @Genz02 develop an efficient importance sampling procedure
+to approximates the $\Phi^{(K)}$.
+<p class = "smallish">
+Available in Fortran and in R through the mvtnorm package [@Genz20].</p>
 </div>
 
-<p class = "fragment">
-Added fast $\Phi$ and $\Phi^{-1}$ approximations.</p>
+## New Code 
+Rewritten most of the code by @Genz02 in C++. 
+
+<div class = "fragment w-small">
+Added fast approximations of the standard normal distribution CDF and its 
+inverse.
+<p class = "smallish">
+The main bottleneck in the algorithm.</p>
+</div>
 
 <div class = "w-small fragment">
 Added support for computation in parallel. 
@@ -558,8 +641,8 @@ Seems compute-bound.</p>
 <div class = "w-small fragment">
 Added gradient approximations.
 <p class = "smallish">
-Like @Hajivassiliou96 but with all of the above, re-ordering, and
-randomized Korobov rules.</p>
+Like @Hajivassiliou96 but with all additional extension of @Genz92 and 
+@Genz02.</p>
 </div>
 
 <!--html_preserve-->
@@ -593,26 +676,28 @@ additive genetic effect.
 Same pedigree as earlier.</p>
 </div>
 
-<div class = "fragment">
-$$\begin{align*}
-Y_{ij} &= \begin{cases}
-  1 & \beta_0 + \beta_1X_{ij} + \beta_2 B_{ij} + \epsilon_{ij} > 0 \\
-  0 & \text{otherwise}
-\end{cases} \\
-(\epsilon_{i1}, \dots, \epsilon_{i10})^\top &\sim 
-  N^{(10)}(\vec 0, \mat I_{10} + \sigma_g^2\mat C_{ig}) 
-\end{align*}$$
-
-<p>
-$X_{ij}\sim N(0, 1)$, $B_{ij}\sim \text{Bin}(0.5, 1)$ are observed.</p>
-</div>
-
 <div class = "w-small fragment">
 Compare with MCMCglmm.
 <p class = "smallish">
 Caveat: we use four threads with our method.</p>
 </div>
 
+## The Model
+
+$$\begin{align*}
+Y_{ij} &= \begin{cases}
+  1 & \beta_0 + \beta_1x_{ij1} + \beta_2 x_{ij2} + \epsilon_{ij} > 0 \\
+  0 & \text{otherwise}
+\end{cases} \\
+(\epsilon_{i1}, \dots, \epsilon_{i10})^\top &\sim 
+  N^{(10)}(\vec 0, \mat I_{10} + \sigma_g^2\mat C_{ig}) \\
+(\beta_0, \beta_1, \beta_2,\sigma_2^2) &= (-3, 1, 2, 3).
+\end{align*}$$
+
+$x_{ij1}\sim N(0, 1)$, $x_{ij2}\sim \text{Bin}(0.5, 1)$ are observed.
+
+<p class = "fragment">
+Discretization will yield the wrong result.</p>
 
 ## Simulation Study Results
 
@@ -974,11 +1059,14 @@ information from the pedigree as possible.
 Use the Swedish Multi-Generation Registry [@Ekbom10] 
 like @Mahjani20 to study OCD.</p>
 
+<p class = "fragment">
+Most families are small ...</p>
+
 <div class = "fragment w-small">
-Most families are small but one is very large with 618.162 members with 
-167.279 members with observed outcomes.
+... but one is very large with 618162 members with 
+167279 members with observed outcomes.
 <p class = "smallish">
-Want to avoid 167.279 dimensional integration!</p>
+Want to avoid 167279 dimensional integration!</p>
 </div>
 
 <!--html_preserve-->
@@ -1015,7 +1103,7 @@ plot(ped_larger)
 
 <!--html_preserve-->
 </section>
-<section class="center-horiz">
+<section class="center-horiz" data-transition="slide-in fade-out">
 <h2>Dependencies as a Graph (continued)</h2>
 <!--/html_preserve-->
 
@@ -1029,7 +1117,7 @@ plot(graph.data.frame(graph_dat, directed = FALSE),
 
 <!--html_preserve-->
 </section>
-<section class="center-horiz">
+<section class="center-horiz" data-transition="fade-in slide-out">
 <h2>Cutting the Graph</h2>
 <!--/html_preserve-->
 
@@ -1039,27 +1127,70 @@ partition <- get_max_balanced_partition_pedigree(
   id = dat$id, father.id = dat$dad, mother.id = dat$mom, 
   slack = .1)
 
+# For some reason, kinship2::pedigree requires that we provide both a father 
+# and mother or none. Therefore, we create a mock object. You can skip this
+get_pedigree_mock <- function(id, dadid, momid, sex){
+  if(is.factor(sex))
+    sex <- as.integer(sex)
+  
+  # checks
+  n <- length(id)
+  stopifnot(n > 0, length(dadid) == n, length(momid) == n, length(sex) == n, 
+            all(is.finite(sex)), all(sex %in% 1:2), 
+            all(is.na(dadid) | dadid %in% id), 
+            all(is.na(momid) | momid %in% id), 
+            all(is.finite(id)))
+  
+  # create objects to return
+  findex <- match(dadid, id, nomatch = 0L)
+  mindex <- match(momid, id, nomatch = 0L)
+  
+  structure(
+    list(famid = rep(1L, n), id = id, findex = findex, mindex = mindex,
+         sex = factor(sex, levels = 1:2, labels = c("male", "famle"))), 
+    class = "pedigree")
+}
+
 # highlight the split
 show_split <- function(dat, partition_obj){
-  ped <- with(dat, pedigree(id = id, dadid = dad, momid = mom, sex = sex))
+  ped <- with(dat, get_pedigree_mock(
+    id = id, dadid = dad, momid = mom, sex = sex))
   g_dat <- create_igraph_input(ped)
   graph_fam <-  graph.data.frame(g_dat, directed = FALSE)
   V(graph_fam)$color <- "white"
   nam <- vertex_attr(graph_fam)$name
   V(graph_fam)$color[nam %in% partition_obj$set_1] <- "lightblue" 
-  V(graph_fam)$color[nam %in% partition_obj$set_2] <- "lightgray" 
+  V(graph_fam)$color[nam %in% partition_obj$set_2] <- "lightgreen" 
   par(mar = c(1, 1, 1, 1))
-  plot(graph_fam, vertex.size = 12, vertex.label.cex = .75, 
+  plot(graph_fam, vertex.size = 10, vertex.label.cex = .75, 
        layout = layout_with_kk)
 }
+
+# very manual!
+partition$set_1 <- c(partition$set_1, 35L:41)
+partition$set_2 <- c(partition$set_2, 15:17)
+
 show_split(dat, partition)
+```
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Cutting the Graph (continued)</h2>
+<!--/html_preserve-->
+
+```{r cut_graph_sep, echo=FALSE}
+dat_tmp <- within(dat, {
+  dad[id == 47] <- mom[id == 48] <- dad[id == 9] <- mom[id == 9] <- NA_integer_
+})
+show_split(dat_tmp, partition)
 ```
 
 ## Reducing the Computational Cost
 <div class = "w-small">
 Removing an edge introduces independence between two individuals 
 <p class = "smallish"> 
-and their ancestor and descendants.</p>
+and between their ancestor and descendants.</p>
 </div>
 
 <div class = "fragment w-small">
@@ -1073,7 +1204,7 @@ with $\tilde n_k + \tilde n_l = n_i$.</p>
 <div class = "fragment w-small">
 Yields two integrals to be approximated of size $\tilde n_k$ and $\tilde n_l$
 <p class = "smallish">
-rather than one of size $n$.</p>
+rather than one of size $n_i$.</p>
 </div>  
 
 ## Reducing the Computational Cost
@@ -1084,14 +1215,14 @@ removed dependencies is minimized.
 Essentially the $p$-way partition problem.
 <p class = "smallish">
 Many approximations exists without the connection constraint 
-[@Simon97; @Karypis98].</p>
+[@Simon97; @Karypis98]. The partitions need not to be connected.</p>
 </div>
 
 <div class = "fragment w-small">
 The data can be simplified to at most 200 dimensional integration 
-by removing 3.164 parent-child links
+by removing 3164 parent-child links
 <p class = "smallish">
-out of 3.944.737 (`r 100 * 3164 / 3944737` percent reduction)!</p>
+out of 3944737 (`r 100 * 3164 / 3944737` percent reduction)!</p>
 </div>
 
 <!--html_preserve-->
@@ -1156,11 +1287,18 @@ get_pedigree_mock <- function(id, dadid, momid, sex){
 K_old <- kinship(ped_larger)
 K_new <- kinship(get_pedigree_mock(new_dat$id, new_dat$dad, new_dat$mom, 
                                    new_dat$sex))
+K_new[K_new != K_old] <- -K_old[K_new != K_old]
 
 par(mar = c(1, 1, 3, 1), mfcol = c(1, 2))
 image_plot(K_old, main = "Original kinship matrix")
 image_plot(K_new, main = "New kinship matrix")
 ```
+
+<div class = "w-small">
+The orange colored entries are equal to zero in the new kinship matrix. 
+<p class = "smallish">
+The two matrices are otherwise identical.</p>
+</div>
 
 
 <!--html_preserve-->
@@ -1193,7 +1331,10 @@ The MCMC analysis in @Mahjani20 took weeks!</p>
 <!--/html_preserve-->
 
 ## Overview 
-TODO: make overview slide.
+Cover ways of reducing the computation time.
+
+<p class = "fragment">
+Show extensions to survival data.</p>
 
 ## Improvements
 <div class = "w-small">
@@ -1211,21 +1352,21 @@ Currently, working on a method like suggested by @Byrd16.</p>
 
 ## Survival Data
 $Y_{ij}^* \in (0,\infty)$ with independent right censoring time 
-$S_{ij} \in (0,\infty)$. 
+$C_{ij} \in (0,\infty)$. 
 
 <p class = "fragment">
-Only observe $Y_{ij} = \min (Y_{ij}^*, S_{ij})$.
+Only observe $Y_{ij} = \min (Y_{ij}^*, C_{ij})$.
 </p>
 
 <div class = "fragment">
-Use a mixed generalized survival model:
+Use a mixed flexible parametric survival model:
 
 $$
 \begin{align*}
 P(Y_{ij}^* > y \mid \epsilon_{ij} = e) &= \Phi(
   -\vec g(y)^\top\vec\omega - \vec\beta^\top\vec x_{ij} - e) \\
 (\epsilon_{i1}, \dots, \epsilon_{in_i}) &\sim
-  N^{(n_i)}(\vec 0, \mat\Sigma_i(\vec\theta))
+  N^{(n_i)}(\vec 0, \mat\Sigma_i(\vec\sigma))
 \end{align*}
 $$
 </div>
@@ -1249,7 +1390,7 @@ $$
 \begin{align*}
 \log Y_{ij}^* &= -\omega^{-1}\vec\beta^\top\vec x_{ij} + \epsilon_{ij} \\
 \vec\epsilon_i &\sim
-  N^{(n_i)}(\vec 0, \omega^{-2}(\mat I_{n_i} + \mat\Sigma_i(\vec\sigma)))
+  N^{(n_i)}(\vec 0, \omega^{-2}(\mat I_{n_i} + \mat\Sigma_i(\vec\sigma))).
 \end{align*}
 $$
 
@@ -1258,7 +1399,8 @@ Used in the bivariate case by @Szulkin17.</p>
 </div>
 
 <p class = "fragment">
-Bonus: The CDF dimension is equal to the number of censored individuals.</p>
+Bonus: The dimension of the integrals are equal to the number of censored 
+individuals.</p>
 
 ## Inference in ACE Model
 <div class = "w-small">
@@ -1282,7 +1424,7 @@ $$
 \begin{align*}
 \vec g(Y_{ij}^*)^\top\vec\omega &= -\vec\beta^\top\vec x_{ij} + \epsilon_{ij} \\
 \vec\epsilon_i &\sim
-  N^{(n_i)}(\vec 0, \mat I_{n_i} + \mat\Sigma_i(\vec\sigma))
+  N^{(n_i)}(\vec 0, \mat I_{n_i} + \mat\Sigma_i(\vec\sigma)).
 \end{align*}
 $$
 
@@ -1320,7 +1462,7 @@ $h(y) = \vec g(y)^\top\vec\omega$
 
 ## Variational Approximations
 <div class = "w-small">
-Recall: I work on variational approximations in biostatistic.
+Recall: I work on variational approximations in biostatistics.
 <p class = "smallish">
 A way of approximating integrals when estimating models. Often very fast.</p>
 </div>
@@ -1332,11 +1474,20 @@ E.g. to account for the hospital being used, repeated measures,
 environmental effects, dependence between twins, etc.</p>
 </div>
 
+## Joint Survival and Marker Models
+Preliminary work on applying variational approximations for joint 
+survival and marker models.
+
+<p class = "fragment">
+Has applications e.g. with kidney data to 
+characterise trajectories of biomarkers of kidney function decline while 
+accounting for diabetic complications and medications.</p>
+
 ## Estimating Variational Approximations
 <div class = "w-small">
 Variational approximations easily involves optimization with many parameters.
 <p class = "smallish">
-In the thousands or even a millions.</p>
+In the thousands or even millions.</p>
 </div>
 
 <div class = "w-small fragment">
@@ -1351,16 +1502,6 @@ See [github.com/boennecd/psqn](https://github.com/boennecd/psqn) and
 <p class = "fragment">
 Have seen 20 times faster estimation time compared with a Laplace approximation 
 from `lme4` in some examples and with lower bias.</p>
-
-## Projects Not Mentioned Today
-Preliminary work on applying variational approximations for joint 
-survival and marker models.
-
-<p class = "fragment">
-Has applications e.g. with kidney data to 
-characterise trajectories of biomarkers of kidney function decline while 
-accounting for diabetic complications, glycated hemoglobin (HbA1c) and 
-medications.</p>
 
 ## Imputation Method
 <div class = "w-small">
@@ -1392,18 +1533,39 @@ Based on a similar approximation as used for the family data.</p>
 <h1>Conclusions</h1>
 <!--/html_preserve-->
 
-## Conclusions
-Extended the estimation method suggested by @Pawitan04. 
+## Summary
+Want to study 
 
-<div class = "fragment w-small">
-Showed that the new C++ implementation is fast 
-<p class = "smallish">
-for large data sets with moderate to high dimensional integrals per 
-cluster.</p>
-</div>
+<ul type = "1">
+<li>maternal and genetic influences on OCD and</li> 
+<li class = "fragment">
+potential genetic relations between mothers getting RA and 
+their children getting ASD.</li>
+</ul>
 
 <p class = "fragment">
-Discussed extensions to other types of outcomes.</p>
+Want to use as much information as possible.</p>
+
+<p class = "fragment">
+Provide a faster means of estimating common models and a procedure to 
+simplify the families while ignoring little information.</p>
+
+## Thanks To 
+Advisers: Keith Humphreys, Mark Clements, and ‪Hedvig Kjellström.
+
+Behrang Mahjani, Evora Hailin Zhu, Benjamin Yip, and Sven Sandin.
+
+## Ph.d. Position
+Mark is hiring a Ph.d. student to work on:
+
+<ul>
+ <li>Variational approximations used to estimate penalized mixed flexible 
+     parametric survival models.</li>
+ <li class = "fragment">
+ Variational approximations used in joint survival and marker models.</li>
+ <li class = "fragment">
+ Smooth accelerated failure time models.</li>
+</ul>
 
 <!--html_preserve-->
 </section>
@@ -1418,7 +1580,7 @@ Discussed extensions to other types of outcomes.</p>
 
 <div class="w-small">
 <p class="smallish">The presentation is at  
-<a href="https://rpubs.com/boennecd/KTH-Pre-Meb-Meeting">rpubs.com/boennecd/KTH-Pre-Meb-Meeting</a>.</p>
+<a href="https://rpubs.com/boennecd/MEB-pedmod">rpubs.com/boennecd/MEB-pedmod</a>.</p>
 <p class="smallish">The markdown is at  
 <a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
 <p class="smallish">The R package is at
