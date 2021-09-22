@@ -2,7 +2,7 @@
   text-align: left;
 }
 
-.reveal .slides > section.center-horiz, 
+.reveal .slides > section.center-horiz,
   .reveal .slides > section > section.center-horiz,
   .reveal .slides > section > section.large-first {
   text-align: center;
@@ -23,10 +23,10 @@
 
 .reveal section.front > h1 {
     margin: 10vh 0 0 0;
-    font-size: 1.25em; 
+    font-size: 1.25em;
 }
 
-h1.title + p { 
+h1.title + p {
   margin: 0 0 4vh 0;
   font-size: 1.1em;
 }
@@ -38,8 +38,8 @@ h1.title + p {
 
 /* smaller header inside chapters */
 .reveal section > h1 > div.chapter {
-  line-height: 1em; 
-  display: inline-block; 
+  line-height: 1em;
+  display: inline-block;
   font-size: 85%;
 }
 
@@ -100,7 +100,7 @@ div.logo {
   bottom: 2vh;
   left: 14vh;
   background-size: cover;
-  width: 20vh; /* 1701 / 850 */ 
+  width: 20vh; /* 1701 / 850 */
   height: 10vh;
 }
 
@@ -122,10 +122,11 @@ div.logo-kth {
   overflow-x: hidden;
   max-height: 40vh;
   background-color: #d3d3d338;
+  font-size: 50%;
 }
 
 .reveal section > img, .reveal section > p > img, div.column > p > img {
-  max-height: 45vh;
+  max-height: 40vh;
   height: auto;
   width: auto;
   border: none;

@@ -1,3 +1,4 @@
 .Rhistory
 sim-res/*
 *.tar.gz
+cache/*
