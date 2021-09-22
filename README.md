@@ -1,3 +1,7 @@
+### KTH Group Meeting September 2021: Estimating Joint Survival and Marker Models with VAs
+[Code](/VA-Joint-Models-KTH-21/VA-Joint-Models-KTH-21.Rmd) and presentation at 
+[RPubs](https://rpubs.com/boennecd/VA-Joint-Models-KTH-21).
+
 ### MEB Tuesday Meetings Spring 2021: Genetic and Environmental Effects Estimation
 [Code](/MEB-pedmod/MEB-pedmod.Rmd) and presentation at 
 [RPubs](https://rpubs.com/boennecd/MEB-pedmod).
