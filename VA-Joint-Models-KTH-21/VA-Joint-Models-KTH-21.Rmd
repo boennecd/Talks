@@ -88,8 +88,11 @@ $$
 How is higher than normal breast density related to breast cancer? 
 
 <p class = "fragment">
-Is the risk related to long periods of higher than normal density, the 
-current density only, or large changes over a short period of time?</p>
+Is the risk related to
+
+ - long periods of higher than normal density
+ - the current density only, or
+ - large changes over a short period of time?</p>
 
 <p class = "fragment">
 We need a model for the density, *the marker*, and the risk of 
@@ -192,10 +195,10 @@ plot(c(0, 3), ylim, type = "n", bty = "l", xlab = "Time",
 matpoints(v1$obs_times, v1$ys, pch = 16, col = "Gray28")
 xs <- seq(0, 3, length.out = 1000)
 lines(xs, g_func(xs) %*% fixef_vary_marker + m_func(xs) %*% v1$rngs, 
-      col = "Gray28", lty = 3)
+      col = "Gray28", lty = 3, lwd = 2)
 matpoints(v2$obs_times, v2$ys, pch = 17, col = "DarkBlue")
 lines(xs, g_func(xs) %*% fixef_vary_marker + m_func(xs) %*% v2$rngs, 
-      col = "DarkBlue", lty = 3)
+      col = "DarkBlue", lty = 3, lwd = 2)
 ```
 
 <p class = "smallish">
@@ -234,9 +237,9 @@ plot_marker(
     knots = 1, Boundary.knots = c(0, 3), intercept = TRUE), 
   fixef_vary = fixef_vary_marker, x_range = c(0, 3), vcov_vary = vcov_vary)
 lines(xs, g_func(xs) %*% fixef_vary_marker + m_func(xs) %*% v1$rngs, 
-      col = "Gray28", lty = 3)
+      col = "Gray28", lty = 3, lwd = 2)
 lines(xs, g_func(xs) %*% fixef_vary_marker + m_func(xs) %*% v2$rngs, 
-      col = "DarkBlue", lty = 3)
+      col = "DarkBlue", lty = 3, lwd = 2)
 ```
 
 <p class = "smallish">
@@ -258,11 +261,11 @@ plot_marker(
   fixef_vary = fixef_vary_marker, x_range = c(0, 3), vcov_vary = vcov_vary)
 matpoints(v1$obs_times, v1$ys, pch = 16, col = "Gray28")
 lines(xs, g_func(xs) %*% fixef_vary_marker + m_func(xs) %*% v1$rngs, 
-      col = "Gray28", lty = 3)
+      col = "Gray28", lty = 3, lwd = 2)
 
 matpoints(v2$obs_times, v2$ys, pch = 17, col = "DarkBlue")
 lines(xs, g_func(xs) %*% fixef_vary_marker + m_func(xs) %*% v2$rngs, 
-      col = "DarkBlue", lty = 3)
+      col = "DarkBlue", lty = 3, lwd = 2)
 ```
 
 <p class = "smallish">
@@ -320,7 +323,7 @@ particular_curve <- g_func(xs) %*% fixef_vary_marker + rng_part
 par(mar = c(5, 5, 1, 1), mfcol = c(1, 2), xaxs = "i")
 plot(xs, pop_mean, type = "l", bty = "l", xlab = "Time", ylab = "Marker", 
      ylim = range(pop_mean, particular_curve))
-lines(xs, particular_curve, col = "Gray28", lty = 3)
+lines(xs, particular_curve, col = "Gray28", lty = 3, lwd = 2)
 grid()
 to_show <- c(100, 400, 600, 900) 
 arrows(xs[to_show], pop_mean[to_show], xs[to_show], particular_curve[to_show], 
@@ -349,7 +352,7 @@ rng_part <- m_func(xs, der = 1) %*% v1$rngs
 par(mar = c(5, 5, 1, 1), mfcol = c(1, 2), xaxs = "i")
 plot(xs, pop_mean, type = "l", bty = "l", xlab = "Time", ylab = "Marker", 
      ylim = range(pop_mean, particular_curve))
-lines(xs, particular_curve, col = "Gray28", lty = 3)
+lines(xs, particular_curve, col = "Gray28", lty = 3, lwd = 2)
 grid()
 
 # add gradients
@@ -388,7 +391,7 @@ rng_part <- m_func(xs_use, der = -1) %*% v1$rngs
 par(mar = c(5, 5, 1, 1), mfcol = c(1, 2), xaxs = "i")
 plot(xs, pop_mean, type = "l", bty = "l", xlab = "Time", ylab = "Marker", 
      ylim = range(pop_mean, particular_curve))
-lines(xs, particular_curve, col = "Gray28", lty = 3)
+lines(xs, particular_curve, col = "Gray28", lty = 3, lwd = 2)
 polygon(c(xs, rev(xs)), c(pop_mean, rev(particular_curve)), col = gray(0, .05),
         border = NA)
 grid()
@@ -536,47 +539,54 @@ $$
 
 ## The Likelihood
 
-The likelihood is intractable. It requires evaluation of expression like 
+The likelihood is intractable. Let $\vec\zeta$ be the model parameters and 
+$l_i(\vec\zeta)$ be the log likelihood term of individual $i$. 
+
+$l_i(\vec\zeta)$ is of the form 
 
 $$
-E\left(
-  g(\vec U_i)h_{ij}(t\mid \vec U_i, \vec\xi_i)
+\exp(l_i(\vec\zeta)) = E\left(
+  g_i(\vec U_i)h_{ij}(t\mid \vec U_i, \vec\xi_i)
   \exp\left(-\int_0^t h_{ij}(s\mid \vec U_i, \vec\xi_i)ds\right)\right)
 $$
 
-for some function $g$.
+<div class = "w-small">
+for some function $g_i$
+<p class = "smallish">
+with implicit depends on $\vec\zeta$.
+</p></div>
 
 ## Variational Approximations
 
-Select some distribution $q_{\vec\theta}$ for $\theta\in \Theta$. If $l_i$ is 
-the log likelihood term of individual $i$ with outcome $\vec y_i$
+Given distribution $q^{(i)}_{\vec\theta}$ for $\theta\in \Theta_i$ and outcomes
+$\vec y_i$
 
 $$
 \begin{align*}
 l_i(\vec\zeta) &= \log p_i(\vec y_i) 
-  = \log \int q_{\vec\theta}(\vec U)
-    \log \left(\frac{p_i(\vec y_i, \vec U)\big/ q_{\vec\theta}(\vec U)}
-    {p_i(\vec U\mid\vec y_i)\big/ q_{\vec\theta}(\vec U)}\right) d \vec U\\
-  &= \log \int q_{\vec\theta}(\vec U)
+  = \log \int q^{(i)}_{\vec\theta}(\vec U)
+    \log \left(\frac{p_i(\vec y_i, \vec U)\big/ q^{(i)}_{\vec\theta}(\vec U)}
+    {p_i(\vec U\mid\vec y_i)\big/ q^{(i)}_{\vec\theta}(\vec U)}\right) d \vec U\\
+  &= \log \int q^{(i)}_{\vec\theta}(\vec U)
     \left(
       \log \left(\frac{p_i(\vec y_i, \vec U)}
-      {q_{\vec\theta}(\vec U)}\right) d \vec U +
-      \log \left(\frac{q_{\vec\theta}(\vec U)}
+      {q^{(i)}_{\vec\theta}(\vec U)}\right) d \vec U +
+      \log \left(\frac{q^{(i)}_{\vec\theta}(\vec U)}
       {p_i(\vec U\mid\vec y_i)}\right)
     \right)d \vec U \\
-  &\geq \log \int q_{\vec\theta}(\vec U)
+  &\geq \log \int q^{(i)}_{\vec\theta}(\vec U)
     \log \left(\frac{p_i(\vec y_i, \vec U)}
-    {q_{\vec\theta}(\vec U)}\right) d \vec U 
+    {q^{(i)}_{\vec\theta}(\vec U)}\right) d \vec U 
   = \tilde l_i(\vec\zeta, \vec\theta)
 \end{align*}
 $$
 
 <p class = "fragment">
-Equality if $p_i(\vec U\mid\vec y_i) = q_{\vec\theta}(\vec U)$.</p>
+Equality if $p_i(\vec U\mid\vec y_i) = q^{(i)}_{\vec\theta}(\vec U)$.</p>
 
 ## Approximate Maximum Likelihood
 
-Let $\vec\zeta$ be the model parameters. Then we assume that 
+We assume that
 
 $$
 \text{argmax}_{\vec\zeta} \sum_{i = 1}^n l_i(\vec\zeta) 
@@ -598,13 +608,13 @@ as the problem is partially separable.
 
 ## The Variational Distribution
 
-For a given variational distribution $q_{\vec\theta}$, we need to be 
+For a given variational distribution $q^{(i)}_{\vec\theta}$, we need to be 
 able to easily evaluate 
 
- - the entropy: $-E_{q_{\vec\theta}}(\log q_{\vec\theta}(\vec U))$.
- - the first and second moment: $E_{q_{\vec\theta}}(\vec U)$ and 
-   $E_{q_{\vec\theta}}(\vec U\vec U^\top)$. 
- - the moment generating function: $E_{q_{\vec\theta}}(\exp(\vec t^\top\vec U))$.
+ - the entropy: $-E_{q^{(i)}_{\vec\theta}}(\log q^{(i)}_{\vec\theta}(\vec U))$.
+ - the first and second moment: $E_{q^{(i)}_{\vec\theta}}(\vec U)$ and 
+   $E_{q^{(i)}_{\vec\theta}}(\vec U\vec U^\top)$. 
+ - the moment generating function: $E_{q^{(i)}_{\vec\theta}}(\exp(\vec t^\top\vec U))$.
 
 <p class = "fragment">
 Not strong requirements!</p>
@@ -615,7 +625,7 @@ Implemented with a multivariate normal distribution.
 
 <div class = "w-small fragment">
 Can be extended with e.g. with multivariate t-distribution, 
-skew normal distribution, or combination thereof. 
+skew normal distribution, or a combination thereof. 
 <p class = "smallish">
 Will give a tighter lower bound, but may be harder to evaluate or harder to 
 optimize (more saddle points or local maximums).
@@ -935,7 +945,7 @@ knitr::kable(to_show, digits = 4)
 ## Details
 
 <div class = "w-small">
-The joineRML makes no assumption about the baseline hazard, 
+joineRML makes no assumption about the baseline hazard, 
 $\exp(\vec g_1(s)^\top\vec\beta_1)$.
 <p class = "smallish">
 This is computationally challenging with many individuals.</p>
@@ -1335,7 +1345,7 @@ mult <- 100
 
 Average computation time was 
 $`r mean(comp_times)` \pm `r sd(comp_times) / sqrt(length(comp_times))`$
-seconds.
+seconds. `r length(seeds)` data sets are sampled.
 
 <div class = "fragment">
 
@@ -1375,8 +1385,15 @@ fmt_bias(bias_association, mult)
 <p class = "smallish">
 Bias estimates for the association parameters,
 $\vec\alpha_1$ and $\vec\alpha_2$, are shown above multiplied by `r mult`.
-The SE columns are the standard errors.
+The SE columns are the standard errors. The true values are shown below.
 </p>
+
+```{r association_truth}
+to_show <- do.call(cbind, associations)
+rownames(to_show) <- paste("Marker", 1:2)
+colnames(to_show) <- c("Terminal", "Observation")
+knitr::kable(to_show)
+```
 
 </div>
 
@@ -1410,10 +1427,17 @@ fmt_bias(bias_fixef_surv, mult)
 ```
 
 <p class = "smallish">
-Bias estimates for the time-varying fixed effects of the survival outcomes, 
+Bias estimates for the fixed effects of the survival outcomes, 
 $\vec\delta_1$ and $\vec\delta_2$, are shown above multiplied by `r mult`.
-The SE columns are the standard errors.
+The SE columns are the standard errors. The true values are shown below.
 </p>
+
+```{r surv_fixef_true}
+to_show <- append_NA(fixef_surv)
+rownames(to_show) <- character(NROW(to_show))
+colnames(to_show) <- c("Terminal", "Observation")
+knitr::kable(to_show)
+```
 
 ## Results
 
@@ -1446,10 +1470,17 @@ fmt_bias(bias_fixef_vary_surv, mult)
 ```
 
 <p class = "smallish">
-Bias estimates for the fixed effects of the survival outcomes, 
+Bias estimates for the log baseline hazard of the survival outcomes, 
 $\vec\omega_1$ and $\vec\omega_2$, are shown above multiplied by `r mult`.
-The SE columns are the standard errors.
+The SE columns are the standard errors. The true values are shown below.
 </p>
+
+```{r surv_vary_fixef_true}
+to_show <- append_NA(fixef_vary_surv)
+rownames(to_show) <- character(NROW(to_show))
+colnames(to_show) <- c("Terminal", "Observation")
+knitr::kable(to_show)
+```
 
 ## Results 
 
@@ -1475,8 +1506,15 @@ fmt_bias_vcov(comp_bias_vcov(est_vcov_vary, vcov_vary), mult)
 <p class = "smallish">
 Bias estimates for the covariance matrix of the random effects, $\Psi$,
 are shown above multiplied by `r mult`. The last columns show the standard 
-errors.
+errors. The true values are shown below.
 </p>
+
+```{r vcov_vary_true}
+to_show <- vcov_vary
+to_show[upper.tri(to_show)] <- NA
+rownames(to_show) <- character(NROW(to_show))
+knitr::kable(to_show)
+```
 
 ## Results 
 
@@ -1490,8 +1528,15 @@ fmt_bias_vcov(comp_bias_vcov(est_vcov_marker, vcov_marker), mult)
 <p class = "smallish">
 Bias estimates for the covariance matrix of the markers' error term, $\Sigma$,
 are shown above multiplied by `r mult`. The last columns show the standard 
-errors.
+errors. The true values are shown below.
 </p>
+
+```{r vcov_marker_true}
+to_show <- vcov_marker
+to_show[upper.tri(to_show)] <- NA
+rownames(to_show) <- character(NROW(to_show))
+knitr::kable(to_show)
+```
 
 ## Results 
 
@@ -1505,8 +1550,15 @@ fmt_bias_vcov(comp_bias_vcov(est_vcov_surv, vcov_surv), mult)
 <p class = "smallish">
 Bias estimates for the covariance matrix of the frailties, $\Xi$,
 are shown above multiplied by `r mult`.  The last columns show the standard 
-errors.
+errors. The rue values are shown below.
 </p>
+
+```{r vcov_surv_true}
+to_show <- vcov_surv
+to_show[upper.tri(to_show)] <- NA
+rownames(to_show) <- character(NROW(to_show))
+knitr::kable(to_show)
+```
 
 
 ## Details
@@ -1577,7 +1629,7 @@ Useful for approximate likelihood ratio based confidence intervals.
 Considering other variational approximations will be interesting if bias is 
 an issue in some models.
 <p class = "smallish">
-Recall that the requirements on the variational distribution, $q_{\vec\theta}$,
+Recall that the requirements on the variational distribution, $q^{(i)}_{\vec\theta}$,
 are not large!
 </p></div>
 
