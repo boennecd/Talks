@@ -1,3 +1,7 @@
+### SeRC Meeting 2021: Variational Approximations in Survival Analysis
+[Code](/SeRC-meeting-2021/SeRC-meeting-2021.Rmd) and presentation at 
+[RPubs](https://rpubs.com/boennecd/SeRC-meeting-2021).
+
 ### KTH Group Meeting September 2021: Estimating Joint Survival and Marker Models with VAs
 [Code](/VA-Joint-Models-KTH-21/VA-Joint-Models-KTH-21.Rmd) and presentation at 
 [RPubs](https://rpubs.com/boennecd/VA-Joint-Models-KTH-21).

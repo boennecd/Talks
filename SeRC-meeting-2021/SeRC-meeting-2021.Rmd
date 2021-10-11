@@ -1,0 +1,418 @@
+---
+title: "Variational Approximations in Survival Analysis"
+bibliography: ref.bib
+biblio-style: apa
+output: 
+  revealjs::revealjs_presentation:
+    css: styles.css
+    theme: black
+    center: false
+    transition: slide
+    highlight: monochrome
+    self_contained: true
+    reveal_options:
+      slideNumber: true
+    includes:
+      in_header: header.html
+      after_body: doc_suffix.html
+---
+
+## dummy slide
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.height = 5, cache.path = "cache/", 
+                      message = FALSE, error = FALSE, warning = FALSE)
+.par_use <- list(cex = 1.33, cex.lab = 1.2)
+options(digits = 3, knitr.kable.NA = '')
+```
+
+<!--html_preserve-->
+<script>
+(function() {
+  document.getElementById("dummy-slide").remove(); 
+  
+  var front_div = document.getElementsByTagName("section")[0];
+  front_div.classList.add("front");
+  front_div.classList.add("center");
+  
+  // conference/where this is at
+  var where_at = document.createElement("p");
+  var where_at_text = document.createElement("i");
+  var node = document.createTextNode("SeRC Meeting 2021");
+  where_at_text.appendChild(node);
+  where_at.appendChild(where_at_text);
+  where_at.style.margin = "0.1em";
+  where_at.style.fontSize = "75%";
+  front_div.appendChild(where_at);
+  
+  // add author 
+  var credit_div = document.createElement('div');
+  credit_div.innerHTML += "<div class='w-small'><p>Benjamin Christoffersen</p><p class='smallish'>KI, Department of Medical Epidemiology and Biostatistics, <a href='mailto:benjamin.christoffersen@ki.se'>benjamin.christoffersen@ki.se</a></p><p class='smallish'>KTH, Division of Robotics, Perception and Learning, <a href='mailto:benchr@kth.se'>benchr@kth.se</a></p></div>";
+  credit_div.classList.add("authors");
+  front_div.appendChild(credit_div);
+})();
+</script>
+<!--end dummy slide-->
+
+</section>
+
+<section>
+<section class="large-first center slide level2">
+<h1>Project Overview</h1>
+<!--/html_preserve-->
+
+<div style="display: none;">
+$$
+\renewcommand\vec{\boldsymbol}
+\def\bigO#1{\mathcal{O}(#1)}
+\def\Cond#1#2{\left(#1\,\middle|\, #2\right)}
+\def\mat#1{\boldsymbol{#1}}
+\def\der{{\mathop{}\!\mathrm{d}}}
+\def\argmax{\text{arg}\,\text{max}}
+\def\Prob{\text{P}}
+\def\Expec{\text{E}}
+\def\logit{\text{logit}}
+\def\diag{\text{diag}}
+$$
+</div>
+
+## General Problem: Fitting Mixed Models
+
+<div class = "w-small">
+Have outcomes $\vec Y$ 
+<p class = "smallish">
+plausibly of heterogeneous types. E.g. a complication (yes/no), 
+time-to-diagnosis (continuous or interval), or blood measurements
+(continuous).</p>
+</div>
+
+<div class = "fragment w-small">
+Relate the outcomes with an unobserved random effects $\vec U$ with density 
+$h_{\vec\omega}(\vec u)$ and a conditional density 
+$g_{\vec\omega}(\vec y \mid \vec u)$ 
+<p class = "smallish">
+depending model parameter $\vec\omega$.</p></div>
+
+<div class = "fragment w-small">
+Thus, the log likelihood is 
+
+$$
+l(\vec y,\vec\omega) = \log \int h_{\vec\omega}(\vec u)g_{\vec\omega}(\vec y \mid \vec u)d\vec u.
+$$
+<p class = "smallish">
+Needed for model estimation. $g$ and $h$ are usually easy to evaluate pointwise 
+but no closed form solution.</p>
+</div>
+
+## Issue
+
+Current methods and implementations are often slow or too biased. 
+
+<p class = "fragment">
+Researchers restrict their models and questions because of these 
+constraints.</p>
+
+## Non-Variational Approximations Work
+<div class = "w-small">
+Study of approximation methods for a commonly used and broad class of mixed 
+models.
+<p class = "smallish">
+Draft has been submitted.</p></div>
+
+<div class = "w-small fragment">
+Lead to imputation method for mixed data types. 
+<p class = "smallish">
+Article is accepted at the Asian Conference on Machine Learning. The
+software has 3197 downloads and a draft is at @christoffersen2021asymptotically.</p>
+</div>
+
+## Non-Variational Approximations Work
+
+<div class = "w-small ">
+Lead to a fast and precise estimation method for common heritability models. 
+<p class = "smallish">
+Mature draft to be submitted. Started collaborations with Behrang Mahjani 
+(ISMMS, New York), Benjamin Yip (CUHK; Hong Kong), and Sven Sandin 
+(ISMMS, New York).
+</p></div>
+
+<div class = "fragment">
+Data sets include: 
+
+ - The Swedish National Patient Register.
+ - The Swedish Multi-Generation Registry.
+
+</div>
+
+## Variational Approximations
+Replace the log likelihood with a lower bound for some $\vec\theta\in\Theta$:
+
+<div class = "w-small fragment">
+
+$$
+\begin{align*}
+l(\vec y, \vec\omega)
+  &\geq \tilde l(\vec y, \vec\omega, \vec\theta).
+\end{align*}
+$$
+<p class = "smallish">
+$\tilde l(\vec y, \vec\omega, \vec\theta)$ usually requires one-dimensional 
+integration at worst.
+</p></div>
+
+<p class = "fragment">
+A "by-product" is an approximation of the conditional distribution of the random 
+effects given the data.</p>
+
+<div class = "w-small fragment">
+Typically have $n$ outcomes
+<p class = "smallish">
+and work with $l^{(i)}$, $h^{(i)}_{\vec\omega}$, 
+$g^{(i)}_{\vec\omega}$, 
+$q_{\vec\theta_i}^{(i)}$, $\Theta_i$, and 
+$\tilde l^{(i)}$.</p></div>
+
+## Variational Approximations (Cont.)
+
+Approximate maximum likelihood
+
+$$
+\text{arg max}_{\vec\omega} \sum_{i = 1}^{n}l^{(i)}(\vec y_i, \vec\omega) 
+  \approx \text{arg max}_{\vec\omega} 
+  \sum_{i = 1}^{n} \max_{\vec\theta_i}\tilde l^{(i)}(\vec y_i, \vec\omega, \vec\theta_i).
+$$
+
+<div class = "fragment w-small">
+Very fast pointwise evaluation but many more parameters!
+<p class = "smallish">
+10,000 to millions with register data sets.</p></div>
+
+<div class = "w-small fragment">
+Gradient descent or limited-memory BFGS are too slow.
+<p class = "smallish">
+We have developed special methods.</p></div>
+
+## Comparison with Machine Learning
+
+ML goal is often the performance of the left-hand side of 
+
+<div class = "w-small">
+$$
+E_{q_{\hat{\vec\theta}_i}}(f_{\hat{\vec\omega}}(\vec U)) \approx 
+  E_{p_{\hat{\vec\omega}}}(g_{\hat{\vec\omega}}(\vec U))  
+$$
+
+<p class = "smallish">
+where $q$ is a distribution chosen for the variational approximation and $p$ 
+is the true conditional distribution of the random effects. Other quantities 
+using $q_{\hat{\vec\theta}_i}$ are also used. The precision of the 
+approximation is not the focus.</p></div>
+
+<div class = "fragment w-small">
+In statistics, the interest is usually on a precise approximation of
+
+$$
+\text{arg max}_{\vec\omega} \sum_{i = 1}^{n}l^{(i)}(\vec y_i, \vec\omega) 
+  \approx \text{arg max}_{\vec\omega} 
+  \sum_{i = 1}^{n} \max_{\vec\theta_i}\tilde l^{(i)}(\vec y_i, \vec\omega, \vec\theta_i).
+$$
+
+<p class = "smallish">
+Often requires a tight lower bound! $\vec\omega$ is also of much lower 
+dimension.</p>
+</div>
+
+## Concrete Work
+
+<div class = "w-small">
+Developed a variational approximations for a class of mixed survival models. 
+<p class = "smallish">
+Draft have been submitted.</p></div>
+
+<div class = "fragment w-small">
+Working on joint survival and marker models. 
+<p class = "smallish">
+Seen up to two orders of magnitude faster estimation and only small bias in 
+preliminary studies. Plan collaboration with Juan Jesus Carrero (KI) and 
+Maya Alsheh Ali (KI).</p>
+</div>
+
+<div class = "fragment">
+Data sets include:
+
+ - Electronic health records. 
+ - Images. 
+
+</div>
+
+## Concrete Work (cont.)
+
+<div class = "w-small">
+Implemented a library to optimize partially separable functions.
+<p class = "smallish">
+A header-only C++ library with an R interface and 5142 downloads.</p></div>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<section>
+<section  class="large-first center slide level2">
+<h1>Optimizing Variational Approximations</h1>
+<!--/html_preserve-->
+
+## Example of Computation Times
+<div class = "w-small">
+Toy example with a mixed logistic regression with six random effects per 
+$n = 1000$ observations.
+<p class = "smallish">
+E.g. an observation is a student taking multiple tests, or multiple patients 
+at the same doctor. Random effects: person or doctor specific effects.
+</p></div>
+
+<p class = "fragment">
+Sampled five data sets.
+</p>
+
+## Example of Computation Times
+
+```{r run_time_ex}
+tab <- read.table(text ="Mean Meadian
+ Laplace         105.3204  73.671
+ GVA               2.5618   2.423
+ GVA4   0.8038   0.768
+ GVA_LBFGS        24.6358  23.298")
+rownames(tab) <- c("lme4", "psqn (our)", "psqn (our; 4 threads)", "LBFGS")
+knitr::kable(tab)
+```
+
+<p class = "smallish">
+Running times are in seconds. lme4: a Laplace 
+approximation from the lme4 package, psqn: uses our psqn package, and 
+LBFGS: uses limited-memory BFGS. From 
+https://github.com/boennecd/psqn-va-ex.</p>
+
+<p class = "fragment">
+The Laplace approximation even has higher bias in this example!</p>
+
+## Methods
+
+1. Recursive method. 
+2. Newton's method. 
+3. Quasi-Newton using the partial separability.
+
+## Recursive Method
+
+Solve 
+$\widehat{\vec\theta}_i(\vec\omega) = \text{arg max}_{\vec\theta_i}\tilde l^{(i)}(\vec y_i, \vec\omega, \vec\theta_i)$
+for $i = 1,\dots,n$.
+
+<div class = "fragment">
+Take one step of Newton’s method to update $\vec\omega$ to find the maximum of
+
+$$
+\text{arg max}_{\vec\omega} 
+  \sum_{i = 1}^n\tilde l^{(i)}\left(\vec y_i, \vec\omega, \widehat{\vec\theta}_i(\vec\omega)
+  \right)
+$$
+</div>
+
+<div class = "fragment w-small">
+Repeat if not converged.
+<p class = "smallish">
+The Hessian in the second step can be efficiently 
+computed.
+Similar to the method suggested by @Ormerod12.</p>
+</div>
+
+## Newton's Method 
+Use Newton's method to solve
+
+$$
+\text{arg max}_{\vec\omega,\vec\theta_1,\dots,\vec\theta_n} 
+  \sum_{i = 1}^{n} \tilde l^{(i)}(\vec y_i, \vec\omega, \vec\theta_i).
+$$
+
+<div class = "fragment w-small">
+Solve the Hessian using e.g. conjugate gradient.
+<p class = "smallish">
+The Hessian is very sparse and has a arrowhead matrix-like structure.
+</p></div>
+
+## Using the Partial Separability
+<div class = "w-small">
+Approximate the Hessian of each $\tilde l^{(i)}$ using BFGS.
+<p class = "smallish">
+Do not have to compute or implement the Hessian.</p>
+</div>
+
+
+<div data-fragment-index=1 class = "fragment">
+Use a quasi-Newton method to solve 
+
+$$
+\text{arg max}_{\vec\omega,\vec\theta_1,\dots,\vec\theta_n} 
+  \sum_{i = 1}^{n} \tilde l^{(i)}(\vec y_i, \vec\omega, \vec\theta_i) 
+$$
+</div>
+
+<div class = "fragment w-small" data-fragment-index=1>
+with the Hessian approximation. Solve with conjugate gradient. 
+<p class = "smallish">
+Implemented in the psqn package. Used in the example.</p>
+</div>
+
+
+## Remarks
+The problems are commonly
+
+ - embarrassing parallel. 
+ - easy to make cache-friendly implementation for.
+ 
+<div class = "fragment w-small">
+Automatic differentiation can be used for the gradient or Hessian.
+<p class = "smallish">
+A fast implementation like @Hogan14 gives only a moderate overhead. We are 
+using the very similar implementation from @savine2018modern. 
+</p></div>
+
+## Summary 
+
+Variational approximation can be used to enable researchers to fit models that 
+where not possible before...
+
+<p class = "fragment">
+... but this requires special methods for optimizing the lower bound.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<section>
+<section class="center final">
+<h1>Thank You!</h1>
+
+<div class="w-small">
+<p class="smallish">The presentation is at  
+<a href="https://rpubs.com/boennecd/SeRC-meeting-2021">rpubs.com/boennecd/SeRC-meeting-2021</a>.</p>
+<p class="smallish">The markdown is at  
+<a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
+<p class="smallish">The psqn package is on CRAN and at 
+<a href="https://github.com/boennecd/psqn">github.com/boennecd/psqn</a>.</p>
+<p class="smallish">The imputation package, mdgc, is on CRAN and at 
+<a href="https://github.com/boennecd/mdgc">github.com/boennecd/mdgc</a>.</p>
+<p class="smallish">References are on the next slide.</p>
+</div>
+
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+<section>
+<h1>References</h1>
+
+<!--/html_preserve-->
