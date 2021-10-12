@@ -199,7 +199,7 @@ ML goal is often the performance of the left-hand side of
 <div class = "w-small">
 $$
 E_{q_{\hat{\vec\theta}_i}}(f_{\hat{\vec\omega}}(\vec U)) \approx 
-  E_{p_{\hat{\vec\omega}}}(g_{\hat{\vec\omega}}(\vec U))  
+  E_{p_{\hat{\vec\omega}}}(f_{\hat{\vec\omega}}(\vec U))  
 $$
 
 <p class = "smallish">
