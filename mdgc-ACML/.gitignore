@@ -1,0 +1,10 @@
+.Rhistory
+sim-res/*
+*.tar.gz
+cache/*
+rsconnect/*
+
+*.aux
+*.log
+*.out
+*.synctex.gz

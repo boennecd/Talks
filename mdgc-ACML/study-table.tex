@@ -1,0 +1,43 @@
+\documentclass[convert]{standalone} 
+
+
+\usepackage{etoolbox}
+\usepackage{siunitx}
+\usepackage{microtype}
+\usepackage{booktabs}
+
+% same width bold font. See
+%   https://tex.stackexchange.com/a/88963/162406
+%   https://tex.stackexchange.com/a/334323/162406
+%   https://tex.stackexchange.com/a/300826/162406
+\newcommand\bftab{\fontseries{b}\selectfont}
+\robustify\bftab
+\sisetup{% siunitx
+  detect-weight=true,
+  detect-family=true,
+  separate-uncertainty=true}
+  
+\begin{document}
+
+\begingroup\tiny
+\begin{tabular}{llS[table-format = 1.4(4)]S[table-format = 1.3(3)]S[table-format = 1.3(3)]S[table-format = 1.3(3)]|S[table-format = 2.2(2)]}
+  \toprule
+Data set & Method & {Binary} & {Ordinal} & {Continuous} & {Multinomial} & {Time} \\
+  \midrule
+Simulation & RQMC (our) & \bftab 0.3051(64) & \bftab 0.647(6) & \bftab 0.883(13) & \bftab 0.535(5) & 47.05(99) \\
+   & missForest & 0.3451(65) & 0.692(6) & 0.949(11) & 0.603(6) & \bftab 8.72(25) \\
+   & imputeFAMD & 0.3573(74) & 0.701(6) & 0.929(11) & 0.613(7) & 81.19(38) \\
+   [.35em] Cholesterol & RQMC (our) & 0.3009(12) & \bftab 0.679(2) &  & \bftab 0.538(2) & 10.64(83) \\
+   & missForest & 0.4022(46) & 0.696(3) &  & 0.700(8) & \bftab 2.88(12) \\
+   & imputeFAMD & \bftab 0.2994(11) & 0.691(2) &  & 0.564(3) & 5.61(27) \\
+   [.35em] Rent & RQMC (our) & \bftab 0.1096(7) & \bftab 0.370(4) & \bftab 0.731(3) & \bftab 0.890(2) & 173.55(54) \\
+   & missForest & 0.1408(9) & 0.389(4) & 0.757(4) & 0.903(2) & \bftab 19.07(70) \\
+   & imputeFAMD & 0.1121(8) & 0.537(5) & 0.777(3) & 0.959(2) & 102.97(224) \\
+   [.35em] Colon & RQMC (our) & \bftab 0.2217(14) & \bftab 0.223(2) & 1.029(8) & 0.659(4) & 28.73(91) \\
+   & missForest & 0.2666(25) & 0.394(5) & 1.060(7) & \bftab 0.614(4) & \bftab 11.50(44) \\
+   & imputeFAMD & 0.2275(14) & 0.223(2) & \bftab 1.017(7) & 0.671(4) & 51.42(98) \\
+   \bottomrule
+\end{tabular}
+\endgroup
+
+\end{document}
