@@ -1,3 +1,11 @@
+### KTH Group Meeting October 2021: Computational Concerns with Mixed Models
+[Code](/Comp-Mixed-Models/Comp-Mixed-Models.Rmd) and presentation at 
+[RPubs](https://rpubs.com/boennecd/Comp-Mixed-Models).
+
+### ACML 2021: Asymptotically Exact and Fast Gaussian Copula Models for Imputation of Mixed Data Types
+[Code](/mdgc-ACML/mdgc-ACML.Rmd) and presentation at 
+[RPubs](https://rpubs.com/boennecd/mdgc-ACML).
+
 ### SeRC Meeting 2021: Variational Approximations in Survival Analysis
 [Code](/SeRC-meeting-2021/SeRC-meeting-2021.Rmd) and presentation at 
 [RPubs](https://rpubs.com/boennecd/SeRC-meeting-2021).

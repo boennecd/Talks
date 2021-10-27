@@ -1,0 +1,1106 @@
+---
+title: "Computational Concerns with Mixed Models"
+output: 
+  revealjs::revealjs_presentation:
+    css: styles.css
+    theme: black
+    center: false
+    transition: slide
+    highlight: monochrome
+    self_contained: true
+    reveal_options:
+      slideNumber: true
+    includes:
+      in_header: header.html
+      after_body: doc_suffix.html
+---
+
+## dummy slide
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.height = 5, cache.path = "cache/", 
+                      message = FALSE, error = FALSE, warning = FALSE)
+.par_use <- list(cex = 1.33, cex.lab = 1.2)
+options(digits = 3, knitr.kable.NA = '')
+```
+
+<!--html_preserve-->
+<script>
+(function() {
+  document.getElementById("dummy-slide").remove(); 
+  
+  var front_div = document.getElementsByTagName("section")[0];
+  front_div.classList.add("front");
+  front_div.classList.add("center");
+  
+  // conference/where this is at
+  var where_at = document.createElement("p");
+  var where_at_text = document.createElement("i");
+  var node = document.createTextNode("Group Meeting 2021");
+  where_at_text.appendChild(node);
+  where_at.appendChild(where_at_text);
+  where_at.style.margin = "0.1em";
+  where_at.style.fontSize = "75%";
+  front_div.appendChild(where_at);
+  
+  // add author 
+  var credit_div = document.createElement('div');
+  credit_div.innerHTML += "<div class='w-small'><p>Benjamin Christoffersen</p><p class='smallish'>KI, Department of Medical Epidemiology and Biostatistics, <a href='mailto:benjamin.christoffersen@ki.se'>benjamin.christoffersen@ki.se</a></p><p class='smallish'>KTH, Division of Robotics, Perception and Learning, <a href='mailto:benchr@kth.se'>benchr@kth.se</a></p></div>";
+  credit_div.classList.add("authors");
+  front_div.appendChild(credit_div);
+})();
+</script>
+<!--end dummy slide-->
+
+</section>
+
+<section>
+<section class="large-first center slide level2">
+<h1>Introduction</h1>
+<!--/html_preserve-->
+
+<div style="display: none;">
+$$
+\renewcommand\vec{\boldsymbol}
+\def\bigO#1{\mathcal{O}(#1)}
+\def\Cond#1#2{\left(#1\,\middle|\, #2\right)}
+\def\mat#1{\boldsymbol{#1}}
+\def\der{{\mathop{}\!\mathrm{d}}}
+\def\argmax{\text{arg}\,\text{max}}
+\def\Prob{\text{P}}
+\def\Expec{\text{E}}
+\def\logit{\text{logit}}
+\def\diag{\text{diag}}
+$$
+</div>
+
+## Running Example
+
+Students attempt multiple tasks. We want to know: 
+
+ 1. How hard is each task?
+ 2. How much do the skill level differs between students?
+
+## Running Example (Cont.)
+
+Unobserved $\vec U_i$ is the skill level of student $i$. 
+
+<div class = "fragment w-small">
+Assume that each $\vec U_i$ has density $g(\cdot;\vec\theta)$.
+<p class = "smallish">
+Parts of $\vec\theta$ quantifies the difference in skill level.
+</p></div>
+
+<div class = "fragment">
+Given skill level $\vec U_i$, the outcomes $\vec Y_i$ 
+(whether each task is completed) has density 
+$h(\cdot\mid\vec u;\vec\theta)$.
+<p class = "smallish">
+Parts of $\vec\theta$ quantifies the difficulty of each test.
+</p></div>
+
+<p class = "fragment">
+Often care only about $\vec\theta$ and not $\vec U_i$.</p>
+
+## Common Mixed Effect Model
+
+The likelihood for individual $i$ is
+
+$$
+\exp f(\vec y_i, \vec u_i;\vec\theta) = g(\vec u_i;\vec\theta) 
+  h(\vec y_i\mid\vec u_i;\vec\theta)
+$$
+
+<p class = "fragment">
+$g(\vec u_i;\vec\theta)$ is similar to a prior in a Bayesian analysis.
+</p>
+
+<div class = "fragment">
+
+The log marginal likelihood for individual $i$ is
+
+$$
+l(\vec\theta;\vec y_i) = \log \int \exp(f(\vec y_i, \vec u;\vec\theta))\der \vec u
+$$
+
+Needed to find the maximum likelihood estimator of $\vec\theta$.
+</div>
+
+## Running Example (Cont.)
+
+Assume $\vec y_i\in\{0,1\}^{n}$ is whether the answer to each task is correct.
+
+<div class = "fragment">
+
+Use a mixed logistic regression
+
+$$
+\begin{align*}
+f(\vec y_i,u_i;\vec\theta) &=
+  \log\phi(u_i;\sigma^2) 
+   \\ 
+&\hspace{25pt}
+   +\sum_{j = 1}^{n}
+   \Big((\eta_j + u_i)y_{ij}
+   -\log(1 + \exp(\eta_j + u_i))\Big)
+\end{align*}
+$$
+
+$\eta_j$: difficulty of task $j$. 
+
+$\sigma^2$: difference between students' skill level.
+</div>
+
+## Concrete example
+<div class = "small">
+Three tasks with $(\eta_1,\eta_2,\eta_3) = (-2, 0, 2)$. 
+<p class = "smallish">
+Assumed know but almost never known in practice and have to be estimated.</p>
+</div>
+
+<p class = "fragment">
+Need an approximation for the log marginal likelihood
+$l(\vec\theta;\vec y_i) = l(\sigma^2;\vec y_i)$</p>
+
+<p class = "fragment">
+We will suppress the dependence on $\vec y_i$ and $i$ and write 
+e.g. $f(u;\vec\theta)$.</p>
+
+<p class = "fragment">
+Use one dimensional $U\in\mathbb R$ for simplicity.</p>
+
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Laplace Approximation</h1>
+<!--/html_preserve-->
+
+## Laplace Approximation
+
+<div class = "w-small">
+$$
+\begin{align*}
+l(\vec\theta) &= \log\int\exp(f(\vec u;\vec\theta))\der \vec u \\
+              &\approx \frac K2\log 2\pi - 
+              \frac 12\log
+              \lVert -f''_{\vec u\vec u}(\vec u_0(\vec\theta);\vec\theta)\rVert
+              + f(\vec u_0(\vec\theta);\vec\theta) \\
+              &= \tilde L(\vec\theta)
+\end{align*}
+$$
+
+<p class = "smallish">
+where $\vec u \in \mathbb R^K$.</p>
+</div>
+
+<div class = "fragment">
+
+$$\vec u_0(\vec\theta) = \text{arg max}_\vec u f(\vec u;\vec\theta)$$
+
+<div class = "w-small">
+and $f''_{\vec u\vec u}(\vec u_0;\vec\theta)$ is negative definite. 
+<p class = "smallish">
+Needed for a maximum and in the proof of the approximation.</p>
+</div></div>
+
+## Running Example
+
+$$
+\begin{align*}
+f'_u(\vec y,u;\vec\theta) &= -\frac u{\sigma^2} + 
+  \sum_{i = 1}^{n_i}\left( y_i - 
+  \frac{\exp(\eta_i + u)}{1 + \exp(\eta_i + u)}\right) \\
+f''_{uu}(\vec y,u;\vec\theta) &= -\frac 1{\sigma^2} - \sum_{i = 1}^{n_i}
+  \frac{\exp(\eta_i + u)}{(1 + \exp(\eta_i + u))^2} \\
+\tilde L(\vec\theta) &= \frac 12\log 2\pi - 
+              \frac 12\log
+              \lVert -f''_{uu}(u_0(\vec\theta);\vec\theta)\rVert
+              + f(u_0(\vec\theta);\vec\theta)
+\end{align*}
+$$
+
+</section>
+<section class="center-horiz" data-transition="slide-in slide-out">
+<h2>Example: Laplace Approximation</h2>
+
+```{r setup_n_laplace, fig.keep="last"}
+# the code is not meant to be fast and could be improved in many ways!
+
+# the complete log likelihood, f
+complete_ll <- Vectorize(\(u, eta, sig, y){
+  eta <- eta + u
+  log_exp1 <- ifelse(eta > 30, eta, log(1 + exp(eta)))
+  dnorm(u, sd = sig, log = TRUE) + sum(eta * y - log_exp1)
+}, "u")
+
+# the marginal likelihood
+marg_ll <- \(eta, sig, y)
+  integrate(\(u) exp(complete_ll(u, eta = eta, sig = sig, y = y)), 
+            -Inf, Inf, rel.tol = .Machine$double.eps^(1/2))$value
+
+# parameter setting
+eta <- c(-2, 0, 2)
+sig <- 1
+combs <- as.matrix(expand.grid(c(0, 1), c(0, 1), c(0, 1)))
+
+true_probs <- apply(combs, 1, marg_ll, eta = eta, sig = sig)
+
+# get points for the true curve
+sig_points <- seq(.1, 2, length.out = 20)
+true_vals <- sapply(sig_points, \(sig){
+  probs <- apply(combs, 1, marg_ll, eta = eta, sig = sig)
+  sum(true_probs * log(probs))
+})
+
+plot_true_curve <- \(){
+  par(mar = c(5, 5, 1, 1))
+  plot(sig_points, true_vals, pch = 16, xlab = expression(sigma), bty = "l",
+       ylab = expression(paste("Log Marginal Likelihood, ", l(theta))))
+  lines(spline(sig_points, true_vals))
+  abline(v = sig, lty = 2)
+  grid()
+}
+plot_true_curve()
+
+# add the Laplace approximation
+laplace <- \(sig){
+  # apply the Laplace approximation for each y
+  out <- apply(combs, 1, \(y){
+    u_max <- optimize(\(u) -complete_ll(u, eta = eta, sig = sig, y = y), 
+                      c(-10, 10), tol = .Machine$double.eps)
+    
+    f <- -u_max$objective
+    eta <- eta + u_max$minimum
+    fpp <- -1/sig^2 - sum(exp(eta) / (1 + exp(eta))^2)
+    
+    log(2 * pi) / 2 - log(-fpp) / 2 + f
+  })
+  
+  sum(true_probs * out)
+}
+
+add_laplace <- \(){
+  laplace_points <- sapply(sig_points, \(sig) laplace(sig))
+  points(sig_points, laplace_points, pch = 17)
+  lines(spline(sig_points, laplace_points), lty = 2)
+}
+add_laplace()
+```
+
+<div style = "text-align:left;">
+<p class = "smallish">
+The continuous line is true curve and the dashed line is the Laplace approximation.
+</p></div>
+
+## Remarks
+
+$$
+\begin{align*}
+l(\vec\theta) \approx \frac K2\log 2\pi - 
+              \frac 12\log
+              \lVert -f''_{\vec u\vec u}(\vec u_0(\vec\theta);\vec\theta)\rVert
+              + f(\vec u_0(\vec\theta);\vec\theta)
+\end{align*}
+$$
+
+Finding $\vec u_0(\vec\theta) = \text{arg max}_\vec u f(\vec u;\vec\theta)$
+is often fast.
+
+<p class = "fragment">
+The Laplace approximation is fast but may be biased.</p>
+
+<div class = "fragment w-small">
+Has nice asymptotics in many cases.
+<p class = "smallish">
+In the running example when there are many tasks done by each student.</p>
+</div>
+
+## Laplace Approximation (Cont.)
+
+$$
+\begin{multline*}
+\tilde L'_{\vec\theta}(\vec\theta) =
+  f'_{\vec\theta}(\vec u_0(\vec\theta);\vec\theta)
+  +\frac 12\left(
+  \nabla_{\vec u}\log
+  \lVert -f''_{\vec u\vec u}(\vec u_0(\vec\theta);\vec\theta)\rVert
+  \right) \\
+  f''_{\vec u\vec u}(\vec u_0(\vec\theta);\vec\theta)^{-1}
+  f''_{\vec u\vec\theta}(\vec u_0(\vec\theta);\vec\theta)
+\end{multline*}
+$$
+
+Point: requires 3rd order derivatives for the gradient.
+
+<div class = "fragment w-small">
+Automatic differentiation implementations
+with higher order derivatives often have a big overhead.
+<p class = "smallish">
+A general approach has been implemented in the `TMB` package.</p>
+</div>
+
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Gaussian Quadrature</h1>
+<!--/html_preserve-->
+
+## Gaussian Quadrature
+
+$$
+\int \omega(u)g(u)\der u \approx \sum_{i = 1}^m w_ig(u_i)
+$$
+
+with nodes $u_1,\dots,u_m$ and weights $w_1,\dots,w_m$. 
+
+<p class = "fragment">
+The approximation is exact for polynomials of degree $2m - 1$ or less.</p>
+
+<p class = "fragment">
+Gauss–Hermite quadrature is often used where $\omega(x) = \exp(-x^2)$.</p>
+
+## Application
+
+$$
+\begin{align*}
+\int\exp f(\vec y,u;\vec\theta) \der u &=
+  \frac 1{\sqrt{2\pi}\sigma}\int
+  \exp\left(
+  -\frac{u^2}{2\sigma^2}\right)
+  h(\vec y\mid u;\vec\theta)\der u \\
+&=  \frac 1{\sqrt{\pi}}\int
+ \underbrace{\exp\left(-u^2\right)}_{\omega(u)}
+  h(\vec y\mid \sqrt 2 \sigma u;\vec\theta)\der u
+\end{align*}
+$$
+
+</section>
+<section class="center-horiz" data-transition="slide-in slide-out">
+<h2>Application (Cont.)</h2>
+
+```{r ghq, fig.show = 'animate', interval=2}
+library(gaussquad)
+rules <- hermite.h.quadrature.rules(8)
+
+use_gh_rule <- \(rule, sig){
+  out <- apply(combs, 1, \(y){
+    out <- sapply(rule$x, \(u){
+      eta <- eta + sqrt(2) * sig *  u
+      log_exp1 <- ifelse(eta > 30, eta, log(1 + exp(eta)))
+      exp(sum(eta * y - log_exp1)) / sqrt(pi)
+    })
+    log(sum(out * rule$w))
+  })
+  
+  sum(true_probs * out)
+}
+
+for(r in rules){
+  plot_true_curve()
+  add_laplace()
+  
+  # add GHQ points
+  vs <- sapply(sig_points, \(s) use_gh_rule(r, sig = s))
+  points(sig_points, vs, pch = 18)
+  lines(spline(sig_points, vs), lty = 3)
+  text(.4, -1.59, labels = sprintf("%2d nodes", NROW(r$x)), cex = 2)
+}
+```
+
+<div style = "text-align:left;">
+<p class = "smallish">
+The continuous line is true curve, the dashed line is the Laplace approximation,
+and the dotted line is the Gauss-Hermite quadrature.
+</p></div>
+
+</section>
+<section class="center-horiz" data-transition="slide-in fade-out">
+<h2>Adaptive Version</h2>
+
+```{r 2pre_adaptive_illustration}
+local({
+  y <- combs[1, ]
+  
+  par(mar = c(5, 5, 1, 1))
+  plot(\(u) exp(complete_ll(u, eta = eta, sig = sig, y = y)), 
+       xlim = c(-4, 4), 
+       ylab = expression(paste(exp(f(u, theta)), " or density")), 
+       xlab = expression(u), 
+       bty = "l", yaxs = "i", xaxs = "i", yaxt = "n")
+  grid()
+  
+  pts <- seq(-4, 4, length.out = 100)
+  dnrms <- dnorm(pts)
+  lines(pts, dnrms * par("usr")[4] * .98 / max(dnrms), lty = 2)  
+  
+  rug(rules[[length(rules)]]$x, ticksize = .1, lwd = 2)
+})
+```
+
+<div style = "text-align:left;">
+<p class = "smallish">
+The integrand (continuous) and $g(\vec u_i;\vec\theta)$ (dashed). 
+The ticks on the first axis are the quadrature nodes, $u_i$.
+</p></div>
+
+</section>
+<section class="center-horiz" data-transition="fade-in slide-out">
+<h2>Adaptive Version</h2>
+
+```{r 3pre_adaptive_illustration}
+local({
+  y <- combs[1, ]
+  
+  par(mar = c(5, 5, 1, 1))
+  plot(\(u) exp(complete_ll(u, eta = eta, sig = sig, y = y)), 
+       xlim = c(-4, 4), 
+       ylab = expression(paste(exp(f(u, theta)), " or density")), 
+       xlab = expression(u), 
+       bty = "l", yaxs = "i", xaxs = "i", yaxt = "n")
+  grid()
+  
+  u_max <- optimize(\(u) -complete_ll(u, eta = eta, sig = sig, y = y), 
+                      c(-10, 10), tol = .Machine$double.eps)
+    
+  eta_p <- eta + u_max$minimum
+  fpp <- -1/sig^2 - sum(exp(eta_p) / (1 + exp(eta_p))^2)
+  scale <- sqrt(2 * (1/-fpp))
+  x_use <- scale * rules[[length(rules)]]$x + u_max$minimum
+  
+  pts <- seq(-4, 4, length.out = 100)
+  dnrms <- dnorm(pts, mean = u_max$minimum, sd = scale / sqrt(2))
+  lines(pts, dnrms * par("usr")[4] * .98 / max(dnrms), lty = 2)  
+  
+  rug(x_use, ticksize = .1, lwd = 2)
+})
+```
+
+<div style = "text-align:left;">
+<p class = "smallish">
+The integrand (continuous) and the shifted and re-scaled weight (dashed). 
+The ticks on the first axis are the quadrature nodes, $u_i$.
+</p></div>
+
+## Adaptive Version (Cont.)
+
+$$
+\begin{align*}
+\int
+  \exp\left(f\left(u;\vec\theta\right)\right)\der u 
+&= \sqrt{2\hat\sigma^2(\vec\theta)}\int
+    \exp(-u^2)\\
+&\hspace{25pt}
+    \cdot \exp\left(u^2 + f\left(
+      \sqrt{2\hat\sigma^2(\vec\theta)} u + 
+      u_0(\vec\theta);\vec\theta\right)\right) \der u \\
+u_0(\vec\theta) &= \text{arg max}_u f\left(u;\vec\theta\right) \\
+\hat\sigma^2(\vec\theta) &= 
+  (-f''_{uu}(u_0(\vec\theta);\vec\theta))^{-1}
+\end{align*}
+$$
+
+</section>
+<section class="center-horiz" data-transition="slide-in slide-out">
+<h2>Application of the Adaptive Version</h2>
+
+```{r aghq, fig.show = 'animate', interval=2}
+use_agh_rule <- \(rule, sig){
+  out <- apply(combs, 1, \(y){
+    u_max <- optimize(\(u) -complete_ll(u, eta = eta, sig = sig, y = y), 
+                      c(-10, 10), tol = .Machine$double.eps)
+    
+    eta_p <- eta + u_max$minimum
+    fpp <- -1/sig^2 - sum(exp(eta_p) / (1 + exp(eta_p))^2)
+    scale <- sqrt(2 * (1/-fpp))
+    x_use <- scale * rule$x + u_max$minimum
+    
+    out <- sapply(x_use, complete_ll, eta = eta, sig = sig, y = y)
+    log(sum(exp(out + rule$x^2) * rule$w * scale))
+  })
+  
+  sum(true_probs * out)
+}
+
+for(r in rules){
+  plot_true_curve()
+  add_laplace()
+  
+  # GHQ points
+  vs <- sapply(sig_points, \(s) use_gh_rule(r, sig = s))
+  points(sig_points, vs, pch = 18)
+  lines(spline(sig_points, vs), lty = 3)
+  
+  # AGHQ points
+  vs <- sapply(sig_points, \(s) use_agh_rule(r, sig = s))
+  points(sig_points, vs, pch = 19, col = "darkblue")
+  lines(spline(sig_points, vs), lty = 3, col = "darkblue")
+  
+  text(.4, -1.59, labels = sprintf("%2d nodes", NROW(r$x)), cex = 2)
+}
+```
+
+<div style = "text-align:left;">
+<p class = "smallish">
+The continuous line is true curve, the dashed line is the Laplace approximation,
+and the dotted (green) line is the (adapted) Gauss-Hermite quadrature.
+</p></div>
+
+## Remarks
+
+<div class = "w-small">
+Often works very well with common models and few random effects.
+<p class = "smallish">
+If $\vec U\in\mathbb R^K$ then say $K \leq 5$.</p>
+</div>
+
+<div class = "w-small fragment">
+The computational complexity is $\bigO{m^K}$.
+<p class = "smallish">
+$m$ is the number of quadrature nodes.</p>
+</div>
+
+<div class = "fragment w-small">
+But many problems do not have many random effects.
+<p class = "smallish">
+$K$ is small.</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Monte Carlo Approximation</h1>
+<!--/html_preserve-->
+
+## Simple Monte Carlo
+
+$$
+\int g(\vec u;\vec\theta) 
+  h(\vec y\mid\vec u;\vec\theta) \der\vec u
+$$
+
+Draw from $g$, evaluate $h$, and take the average.
+
+</section>
+<section class="center-horiz" data-transition="slide-in slide-out">
+<h2>Application of Monte Carlo</h2>
+
+```{r MC_estimator, fig.show='animate', cache = 1, interval=2}
+mc_estimate <- \(n_sample, sig, n_repeat = 25L)
+  replicate(n_repeat, {
+    out <- apply(combs, 1, \(y){
+      out <- sapply(rnorm(n_sample, sd = sig), \(u){
+        eta <- eta + u
+        log_exp1 <- ifelse(eta > 30, eta, log(1 + exp(eta)))
+        sum(eta * y - log_exp1)
+      })
+      mean(exp(out))
+    })
+    
+    sum(log(out) * true_probs)
+  })
+
+set.seed(1)
+n_sample_use <- 20 * 2^(0:5)
+for(n_sample in n_sample_use){
+  plot_true_curve()
+  add_laplace()
+  
+  # add MC estimates
+  mc_res <- sapply(sig_points, mc_estimate, n_sample = n_sample)
+  matplot(sig_points, t(mc_res), pch = 19, add = TRUE, col = gray(0, .2))
+  lines(smooth.spline (rep(sig_points, each = NROW(mc_res)), mc_res), lty = 3)
+  
+  text(.4, -1.59, labels = sprintf("%3d samples", n_sample), cex = 2)
+}
+```
+
+<div style = "text-align:left;">
+<p class = "smallish">
+The continuous line is true curve, the dashed line is the Laplace approximation,
+and the dots are Monte Carlo estimators. The dotted line is an average 
+estimate.
+</p></div>
+
+## Importance Sampling
+
+$$
+\begin{align*}
+\int
+  \exp\left(f\left(u;\vec\theta\right)\right)\der u 
+&= \int
+  \phi\left(u;u_0(\vec\theta),\hat\sigma^2(\vec\theta)\right)
+  \frac{\exp\left(f\left(
+      u;\vec\theta\right)\right)}
+      {\phi\left(u;u_0(\vec\theta),\hat\sigma^2(\vec\theta)\right)} \der u \\
+u_0(\vec\theta) &= \text{arg max}_u f\left(u;\vec\theta\right) \\
+\hat\sigma^2(\vec\theta) &= 
+  (-f''_{uu}(u_0(\vec\theta);\vec\theta))^{-1}
+\end{align*}
+$$
+
+Like the re-scaling and shifting with quadrature.
+
+</section>
+<section class="center-horiz" data-transition="slide-in slide-out">
+<h2>Application of Importance Sampling</h2>
+
+```{r import_estimator, fig.show='animate', cache = 1, interval=2}
+import_estimate <- \(n_sample, sig, n_repeat = 25L)
+  replicate(n_repeat, {
+    out <- apply(combs, 1, \(y){
+      u_max <- optimize(\(u) -complete_ll(u, eta = eta, sig = sig, y = y), 
+                      c(-10, 10), tol = .Machine$double.eps)
+    
+      eta_p <- eta + u_max$minimum
+      fpp <- -1/sig^2 - sum(exp(eta_p) / (1 + exp(eta_p))^2)
+      scale <- sqrt(1/-fpp)
+      
+      out <- sapply(
+        rnorm(n_sample, u_max$minimum, scale), 
+        \(u) complete_ll(u, eta = eta, sig = sig, y = y) - 
+          dnorm(u, u_max$minimum, scale, log = TRUE))
+      mean(exp(out))
+    })
+    
+    sum(log(out) * true_probs)
+  })
+
+set.seed(1)
+for(n_sample in n_sample_use){
+  plot_true_curve()
+  add_laplace()
+  
+  # add importance sampler estimates
+  imp_mc_res <- sapply(sig_points, import_estimate, n_sample = n_sample)
+  matplot(sig_points, t(imp_mc_res), pch = 19, add = TRUE, col = gray(0, .2))
+  lines(smooth.spline (rep(sig_points, each = NROW(imp_mc_res)), imp_mc_res), 
+        lty = 3)
+  
+  text(.4, -1.59, labels = sprintf("%3d samples", n_sample), cex = 2)
+}
+```
+
+<div style = "text-align:left;">
+<p class = "smallish">
+The continuous line is true curve, the dashed line is the Laplace approximation,
+and the dots are importance sampling estimators. The dotted line is an average 
+estimate.
+</p></div>
+
+</section>
+<section class="center-horiz" data-transition="slide-in slide-out">
+<h2>Error Term</h2>
+
+```{r mc_show_error}
+set.seed(1)
+mc_res <- sapply(n_sample_use, mc_estimate, sig = sig)
+imp_mc_res <- sapply(n_sample_use, import_estimate, sig = sig)
+true_val_use <- true_vals[abs(sig_points - sig) < 1e-4]
+mc_err <- abs(t(exp(mc_res)) - exp(true_val_use))
+imp_mc_err <- abs(t(exp(imp_mc_res)) - exp(true_val_use))
+
+par(mar = c(5, 5, 1, 1))
+matplot(n_sample_use * .98, mc_err, col = "black", pch = 16, bty = "l",
+        ylim = range(mc_err, imp_mc_err), xlab = "Number of smaples",
+        log = "xy", ylab = "Marginal Likelihood error")
+matplot(n_sample_use * 1.02, imp_mc_err, col = "darkblue", pch = 17, add = TRUE)
+
+f_mc <- lm(c(log(mc_err)) ~ rep(log(n_sample_use), NCOL(mc_err)))
+f_imp <- lm(c(log(imp_mc_err)) ~ rep(log(n_sample_use), NCOL(mc_err)))
+
+lines(n_sample_use, exp(coef(f_mc)[1] + coef(f_mc)[2] * log(n_sample_use)))
+lines(n_sample_use, exp(coef(f_imp)[1] + coef(f_imp)[2] * log(n_sample_use)),
+      col = "darkblue")
+```
+
+<div style = "text-align:left;">
+<p class = "smallish">
+The error of the estimated marginal likelihood versus the number of samples. 
+The Monte Carlo estimates are black and the importance sampling estimates
+are blue. Lines are from log-log regressions.
+</p></div>
+
+## Remarks
+
+Both estimates are $\bigO{m^{-1/2}}$ where $m$ is the number of samples
+but the constant may differ greatly.
+
+<p class = "fragment">
+Very efficient importance samplers exists for some models.</p>
+
+<div class = "fragment w-small">
+Various variance reduction methods exists.
+<p class = "smallish">
+E.g. antithetic variates and control variates. Effects only the constant.
+</div>
+
+<div class = "fragment w-small">
+Biased estimate of the log marginal likelihood
+<p class = "smallish">
+in finite samples. Usually not an issue.</p></div>
+
+<p class = "fragment">
+Markov chain Monte Carlo and related methods are for higher dimensional 
+problems.</p>
+
+## Quasi-Monte Carlo
+
+Select numbers that are not random but a sequence with a low-discrepancy.
+
+<p class = "fragment">
+Estimates are $\bigO{m^{-1 + \epsilon}}$ where $m$ is the length of the 
+sequence.
+</p>
+
+</section>
+<section class="center-horiz" data-transition="slide-in slide-out">
+<h2>Quasi-Monte Carlo</h2>
+
+```{r QMC, fig.show='animate', cache = 1}
+library(randtoolbox)
+QMC_estimate <- \(seq_len, sig){
+  rng_dim <- NROW(combs)
+  rngs <- halton(seq_len)
+    
+  out <- sapply(1:rng_dim, \(i){
+    y <- combs[i, ]
+    u_max <- optimize(\(u) -complete_ll(u, eta = eta, sig = sig, y = y),
+                      c(-10, 10), tol = .Machine$double.eps)
+
+    eta_p <- eta + u_max$minimum
+    fpp <- -1/sig^2 - sum(exp(eta_p) / (1 + exp(eta_p))^2)
+    scale <- sqrt(1/-fpp)
+    
+    out <- sapply(
+      qnorm(rngs, u_max$minimum, scale), 
+      \(u) complete_ll(u, eta = eta, sig = sig, y = y) - 
+        dnorm(u, u_max$minimum, scale, log = TRUE))
+    mean(exp(out))
+  })
+  
+  sum(log(out) * true_probs)
+}
+
+for(seq_len in n_sample_use){
+  plot_true_curve()
+  add_laplace()
+  
+  # add the QMC estimates
+  qmc_res <- sapply(sig_points, QMC_estimate, seq_len = seq_len)
+  points(sig_points, qmc_res, col = gray(0, .2))
+  lines(spline(sig_points, qmc_res), lty = 3)
+  
+  text(.4, -1.59, labels = sprintf("%3d samples", seq_len), cex = 2)
+}
+```
+
+<div style = "text-align:left;">
+<p class = "smallish">
+The continuous line is true curve, the dashed line is the Laplace approximation,
+and the dotted line is the quasi-Monte Carlo estimates.
+</p></div>
+
+</section>
+<section class="center-horiz" data-transition="slide-in slide-out">
+<h2>Error Term: with Quasi-Monte Carlo</h2>
+
+```{r qmc_show_error}
+qmc_res <- sapply(n_sample_use, QMC_estimate, sig = sig)
+qmc_err <- abs(t(exp(qmc_res)) - exp(true_val_use))
+
+par(mar = c(5, 5, 1, 1))
+matplot(n_sample_use * .98, mc_err, col = "black", pch = 16, bty = "l",
+        ylim = range(mc_err, imp_mc_err), xlab = "Number of smaples",
+        log = "xy", ylab = "Marginal Likelihood error")
+matplot(n_sample_use * 1.02, imp_mc_err, col = "darkblue", pch = 17, add = TRUE)
+points(n_sample_use * 1.04, qmc_err, pch = 18)
+
+f_qmc <- lm(c(log(qmc_err)) ~ log(n_sample_use))
+
+lines(n_sample_use, exp(coef(f_mc)[1] + coef(f_mc)[2] * log(n_sample_use)))
+lines(n_sample_use, exp(coef(f_imp)[1] + coef(f_imp)[2] * log(n_sample_use)),
+      col = "darkblue")
+lines(n_sample_use, exp(coef(f_qmc)[1] + coef(f_qmc)[2] * log(n_sample_use)),
+      lty = 2)
+```
+
+<div style = "text-align:left;">
+<p class = "smallish">
+The error of the estimated marginal likelihood versus the number of samples. 
+The Monte Carlo estimates are black and the importance sampling estimates
+are blue. Lines are from log-log regressions. A line is also added for the 
+quasi-Monte Carlo estimate.
+</p></div>
+
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Variational Approximations</h1>
+<!--/html_preserve-->
+
+## Variational Approximations
+
+Pick some variational distribution with density $q(\cdot;\vec\omega)$ for 
+some $\vec\omega\in\Omega$. Then:
+
+$$
+\begin{align*}
+l(\vec\theta) &= 
+  \log \int q(\vec u;\vec\omega)
+    \log \left(\frac{p(\vec y, \vec u;\vec\theta)\big/ q(\vec u;\vec\omega)}
+    {p(\vec u\mid\vec y)\big/ q(\vec u;\vec\omega)}\right) \der \vec u\\
+  &= \log \int q(\vec u;\vec\omega)
+    \left(
+      \log \left(\frac{p(\vec y, \vec u;\vec\theta)}
+      {q(\vec u;\vec\omega)}\right) +
+      \log \left(\frac{q(\vec u;\vec\omega)}
+      {p(\vec u\mid\vec y;\vec\theta)}\right)
+    \right) \der \vec u \\
+  &\geq \log \int q(\vec u;\vec\omega)
+    \log \left(\frac{p(\vec y, \vec u;\vec\theta)}
+    {q(\vec u;\vec\omega)}\right) \der \vec u 
+  = \tilde l(\vec\theta, \vec\omega)
+\end{align*}
+$$
+
+## Variational Approximations (Cont.)
+
+$$
+l(\vec\theta) \geq \text{arg max}_{\vec\omega} \tilde l(\vec\theta, \vec\omega)
+$$
+
+Maybe very tight (almost equal).
+
+
+## Running Example
+
+We need to evaluate:
+
+The entropy: 
+$-E_{q(\cdot;\vec\omega)}(\log(q(U;\vec\omega)))$.
+
+The first two moments:
+$E_{q(\cdot;\vec\omega)}(U^2)\big/2\sigma^2$ and 
+$E_{q(\cdot;\vec\omega)}(U)y_i$.
+
+The following expectation:
+$E_{q(\cdot;\vec\omega)}(\log(1 + \exp(\eta_i + U)))$.
+
+</section>
+<section class="center-horiz" data-transition="slide-in slide-out">
+<h2>Gaussian Variational Approximation</h2>
+
+```{r GVA, cache = 1, fig.keep="last"}
+gva_lb <- \(sig){
+  out <- apply(combs, 1, \(y){
+    # the lower bound function
+    lb <- \(par){
+      mu <- par[1]
+      lambda <- exp(par[2])
+      sqrt_lambda <- sqrt(lambda)
+      
+      # the entropy term
+      out <- (log(2 * pi * lambda) + 1) / 2
+      
+      # the terms from the other random effect density
+      out <- out - log(2 * pi * sig^2) / 2 - (lambda + mu^2) / (2 * sig^2)
+      
+      # the terms from the outcomes
+      log_partition_terms <- sapply(eta, \(e){
+        integrate(Vectorize(\(u){
+          e <- e + u
+          e <- if(e > 30) e else log(1 + exp(e))
+          e * dnorm(u, mu, sqrt_lambda)
+        }), -Inf, Inf, rel.tol = .Machine$double.eps^(1/2))$value
+      })
+      eta_use <- eta + mu
+      
+      out + sum(eta_use * y - log_partition_terms)
+    }
+    
+    va_pars <- optim(c(0, 0), \(x) -lb(x))
+    -va_pars$value
+  })
+  
+  sum(out * true_probs)
+}
+
+# create plot with the GVA curve
+plot_true_curve()
+add_laplace()
+gva_points <- sapply(sig_points, gva_lb)
+
+add_gva <- \(){
+  points(sig_points, gva_points, pch = 18)
+  lines(spline(sig_points, gva_points), lty = 3)
+}
+add_gva()
+```
+
+<div style = "text-align:left;">
+<p class = "smallish">
+The continuous line is true curve, the dashed line is the Laplace approximation,
+and the dotted line is the lower bound from the Gaussian variational 
+approximation.
+</p></div>
+
+</section>
+<section class="center-horiz" data-transition="slide-in slide-out">
+<h2>Skew-normal VA</h2>
+
+```{r skeq_normal, fig.keep='last', cache = 1}
+snva_lb <- \(sig){
+  out <- apply(combs, 1, \(y){
+    # the lower bound function
+    lb <- \(par){
+      mu <- par[1]
+      lambda <- exp(par[2])
+      skew <- par[3]
+      sqrt_lambda <- sqrt(lambda)
+      delta <- lambda * skew / sqrt(1 + skew^2 * lambda)
+      
+      # the entropy term
+      entropy_sd <- sqrt(skew^2 * lambda)
+      out <- (log(2 * pi * lambda) + 1) / 2 - log(2) - 
+        2 * integrate(
+          \(u) dnorm(u, sd = entropy_sd) * pnorm(u) * pnorm(u, log = TRUE),
+          -Inf, Inf, rel.tol = .Machine$double.eps^(1/2))$value
+      
+      # the terms from the other random effect density
+      mea <- mu + sqrt(2 / pi) * delta
+      va <- lambda - 2 / pi * delta^2
+      out <- out - log(2 * pi * sig^2) / 2 - (va + mea^2) / (2 * sig^2)
+      
+      # the terms from the outcomes
+      log_partition_terms <- sapply(eta, \(e){
+        integrate(Vectorize(\(u){
+          e <- e + u
+          e <- if(e > 30) e else log(1 + exp(e))
+          e * 2 * dnorm(u, mu, sqrt_lambda) * pnorm(skew * (u - mu))
+        }), -Inf, Inf, rel.tol = .Machine$double.eps^(1/2))$value
+      })
+      eta_use <- eta + mea
+      
+      out + sum(eta_use * y - log_partition_terms)
+    }
+    
+    va_pars <- optim(c(0, 0, .1), \(x) -lb(x))
+    if(va_pars$convergence != 0)
+      va_pars <- optim(c(0, 0, .1), \(x) -lb(x), method = "BFGS")
+    -va_pars$value
+  })
+  sum(out * true_probs)
+}
+
+# create plot with the GVA curve
+plot_true_curve()
+add_laplace()
+add_gva()
+
+snva_points <- sapply(sig_points, snva_lb)
+
+add_snva <- \(){
+  points(sig_points, snva_points, pch = 18, col = "darkblue")
+  lines(spline(sig_points, snva_points), lty = 3, col =  "darkblue")
+}
+add_snva()
+```
+
+<div style = "text-align:left;">
+<p class = "smallish">
+The continuous line is true curve, the dashed line is the Laplace approximation,
+and the (blue) dotted line is the lower bound from the 
+Gaussian (skew normal) variational approximation.
+</p></div>
+
+## Remarks
+
+Works quite well in this case but this is not universally true. 
+
+<div class = "w-small fragment">
+The computational complexity of the lower bound is often $\bigO{K^2}$ or 
+$\bigO{K^3}$ at worst
+<p class = "smallish">
+where $\vec U\in\mathbb R^K$.</p>
+</div>
+
+<p class = "fragment"> 
+A more flexible variational distribution can be used if the lower bounds is 
+not tight enough.</p>
+
+<div class = "fragment w-small"> 
+Usually, never has no more than intractable one-dimensional integrals
+<p class = "smallish">
+where quadrature can be used.
+</p></div>
+
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Summary</h1>
+<!--/html_preserve-->
+
+## Summary
+An intractable likelihood is common with mixed models. 
+
+<p class = "fragment">
+The Laplace approximations is fast but may be biased.</p>
+
+<p class = "fragment">
+Gaussian quadrature works well for many low dimensional problems.</p>
+
+<p class = "fragment">
+Monte Carlo approximation are widely applicable but naive applications can have 
+high variance.</p>
+
+<p class = "fragment">
+Variational approximation are fast but may be biased.</p>
+
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<section>
+<section class="center final">
+<h1>Thank You!</h1>
+
+<div class="w-small">
+<p class="smallish">The presentation is at
+<a href="https://rpubs.com/boennecd/Comp-Mixed-Models">rpubs.com/boennecd/Comp-Mixed-Models</a>.</p>
+<p class="smallish">The markdown is at
+<a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
+</div>
+<!--/html_preserve-->
