@@ -1,0 +1,1709 @@
+---
+title: "Estimating Joint Survival and Marker Models"
+bibliography: ref.bib
+biblio-style: apa
+output: 
+  revealjs::revealjs_presentation:
+    css: styles.css
+    theme: black
+    center: false
+    transition: slide
+    highlight: monochrome
+    self_contained: true
+    reveal_options:
+      slideNumber: true
+    includes:
+      in_header: header.html
+      after_body: doc_suffix.html
+---
+
+## dummy slide
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.height = 5, cache.path = "cache/", 
+                      message = FALSE, error = FALSE, warning = FALSE)
+.par_use <- list(cex = 1.33, cex.lab = 1.2)
+options(digits = 3, knitr.kable.NA = '')
+```
+
+<!--html_preserve-->
+<script>
+(function() {
+  document.getElementById("dummy-slide").remove(); 
+  
+  var front_div = document.getElementsByTagName("section")[0];
+  front_div.classList.add("front");
+  front_div.classList.add("center");
+  
+  // add second header
+  var second_head = document.createElement("p");
+  var node = document.createTextNode("with Variational Approximations");
+  second_head.appendChild(node);
+  second_head.style.margin = "0";
+  front_div.appendChild(second_head);
+  
+  // conference/where this is at
+  var where_at = document.createElement("p");
+  var where_at_text = document.createElement("i");
+  var node = document.createTextNode("Biostat Meeting 2021");
+  where_at_text.appendChild(node);
+  where_at.appendChild(where_at_text);
+  where_at.style.margin = "0.1em";
+  where_at.style.fontSize = "75%";
+  front_div.appendChild(where_at);
+  
+  // add author 
+  var credit_div = document.createElement('div');
+  credit_div.innerHTML += "<div class='w-small'><p>Benjamin Christoffersen</p><p class='smallish'>KI, Department of Medical Epidemiology and Biostatistics, <a href='mailto:benjamin.christoffersen@ki.se'>benjamin.christoffersen@ki.se</a></p><p class='smallish'>KTH, Division of Robotics, Perception and Learning, <a href='mailto:benchr@kth.se'>benchr@kth.se</a></p></div>";
+  credit_div.classList.add("authors");
+  front_div.appendChild(credit_div);
+})();
+</script>
+<!--end dummy slide-->
+
+</section>
+
+<section>
+<section class="large-first center slide level2">
+<h1>Introduction</h1>
+<!--/html_preserve-->
+
+<div style="display: none;">
+$$
+\renewcommand\vec{\boldsymbol}
+\def\bigO#1{\mathcal{O}(#1)}
+\def\Cond#1#2{\left(#1\,\middle|\, #2\right)}
+\def\mat#1{\boldsymbol{#1}}
+\def\der{{\mathop{}\!\mathrm{d}}}
+\def\argmax{\text{arg}\,\text{max}}
+\def\Prob{\text{P}}
+\def\Expec{\text{E}}
+\def\logit{\text{logit}}
+\def\diag{\text{diag}}
+$$
+</div>
+
+## Example
+
+How is higher than normal breast density and other variables related 
+to breast cancer? 
+
+<div class = "fragment">
+Is the risk related to
+
+ - long periods of higher than normal density
+ - the current density only, or
+ - large changes over a short period of time?
+ 
+</div>
+
+<p class = "fragment">
+Can be estimated with a joint model for the density, *the marker*, and the risk 
+of breast cancer, *the survival time*.</p>
+
+## Goals
+
+The goals is a fast estimation method for general joint marker and survival 
+models. 
+
+<p class = "fragment">
+Start by defining the model.</p>
+
+## Markers
+
+Individuals' markers are observed at different points in time. 
+
+
+<div class = "fragment">
+We assume that
+ 
+ - Each individual has a mean curve that may differ from the population 
+   mean curve across time.
+ - Observations are noisy.
+ 
+</div>
+
+</section>
+<section class="center-horiz" data-transition="slide-in fade-out">
+<h2>Example: Population Curve</h2>
+
+```{r one_marker_ex}
+# settings for the simulation
+library(VAJointSurv)
+g_func <- function(x, der = 0)
+  t(ns_term(knots = c(.5, 1.5), Boundary.knots = c(0, 3))$eval(x, der = der))
+m_func <- function(x, der = 0)
+  t(ns_term(knots = 1, Boundary.knots = c(0, 3), 
+            intercept = TRUE)$eval(x, der = der))
+
+fixef_vary_marker <- c(1.4, -1.2, -2.1) # beta
+fixef_marker <- c(-.5, 1) # gamma
+
+# Psi 
+vcov_vary <- structure(
+  c(0.18, 0.05, -0.15, 0.05, 0.34, -0.75, -0.15, -0.75, 2.16), 
+  .Dim = c(3L, 3L))
+vcov_marker <- matrix(.3^2, 1) # Sigma
+
+# sample markers
+do_sample <- function(){
+  # sample the observations times
+  obs_times <- sort(runif(20, 0, 3))
+  n_obs <- length(obs_times)
+  
+  # sample the random effects and error term
+  rngs <- drop(mvtnorm::rmvnorm(1, sigma = vcov_vary))
+  errs <- mvtnorm::rmvnorm(n_obs, sigma = vcov_marker)
+  
+  # sample the outcomes
+  ys <- drop(g_func(obs_times) %*% fixef_vary_marker + 
+               m_func(obs_times) %*% rngs + errs) 
+  
+  return(list(obs_times = obs_times, ys = ys, rngs = rngs))
+}
+
+# draw two sets of curves and observations
+set.seed(106)
+v1 <- do_sample()
+v2 <- do_sample()
+xs <- seq(0, 3, length.out = 1000)
+```
+
+```{r three_marker_ex}
+# plot the true mean curve along with 95% confidence pointwise quantiles
+library(VAJointSurv)
+par(mar = c(5, 5, 1, 1), xaxs = "i", cex = 1.2)
+plot_marker(
+  time_fixef = ns_term(
+    knots = c(.5, 1.5), Boundary.knots = c(0, 3)),
+  time_rng = ns_term(
+    knots = 1, Boundary.knots = c(0, 3), intercept = TRUE), 
+  fixef_vary = fixef_vary_marker, x_range = c(0, 3), vcov_vary = vcov_vary)
+```
+
+<p class = "smallish">
+The population mean curve with pointwise quantiles for the individuals' mean
+curves.</p>
+
+</section>
+<section class="center-horiz" data-transition="fade-in fade-out">
+<h2>Example: Population Curve</h2>
+
+```{r four_marker_ex}
+par(mar = c(5, 5, 1, 1), xaxs = "i", cex = 1.2)
+plot_marker(
+  time_fixef = ns_term(
+    knots = c(.5, 1.5), Boundary.knots = c(0, 3)),
+  time_rng = ns_term(
+    knots = 1, Boundary.knots = c(0, 3), intercept = TRUE), 
+  fixef_vary = fixef_vary_marker, x_range = c(0, 3), vcov_vary = vcov_vary)
+lines(xs, g_func(xs) %*% fixef_vary_marker + m_func(xs) %*% v1$rngs, 
+      col = "Gray28", lty = 3, lwd = 2)
+lines(xs, g_func(xs) %*% fixef_vary_marker + m_func(xs) %*% v2$rngs, 
+      col = "DarkBlue", lty = 3, lwd = 2)
+```
+
+<p class = "smallish">
+The population mean curve with pointwise 
+quantiles for the individuals’ mean curves and with curves for 
+two individuals.</p>
+
+</section>
+<section class="center-horiz" data-transition="fade-in slide-out">
+<h2>Example: Population Curve</h2>
+
+```{r five_marker_ex}
+par(mar = c(5, 5, 1, 1), xaxs = "i", cex = 1.2)
+plot_marker(
+  time_fixef = ns_term(
+    knots = c(.5, 1.5), Boundary.knots = c(0, 3)),
+  time_rng = ns_term(
+    knots = 1, Boundary.knots = c(0, 3), intercept = TRUE), 
+  fixef_vary = fixef_vary_marker, x_range = c(0, 3), vcov_vary = vcov_vary)
+matpoints(v1$obs_times, v1$ys, pch = 16, col = "Gray28")
+lines(xs, g_func(xs) %*% fixef_vary_marker + m_func(xs) %*% v1$rngs, 
+      col = "Gray28", lty = 3, lwd = 2)
+
+matpoints(v2$obs_times, v2$ys, pch = 17, col = "DarkBlue")
+lines(xs, g_func(xs) %*% fixef_vary_marker + m_func(xs) %*% v2$rngs, 
+      col = "DarkBlue", lty = 3, lwd = 2)
+```
+
+<p class = "smallish">
+The population mean curve with pointwise 
+quantiles for the individuals’ mean curves and with curves for 
+two individuals and their observed values.</p>
+
+## Formally
+
+$$
+\begin{align*}
+Y_{ij} &= \mu_i(s_{ij}, \vec U_i) + \epsilon_{ij} \\
+\epsilon_{ij} &\sim N(0, \sigma^2) \\
+\mu_{i}(s, \vec U_i) &= \vec x_i^\top\vec\gamma + \vec g(s)^\top\vec\beta + 
+  \vec m(s)^\top\vec U_i \\
+\vec U_i &\sim N^{(R)}(\vec0, \Psi)
+\end{align*}
+$$
+
+<div class = "w-small">
+$\vec x_i^\top\vec\gamma$: fixed effects (offsets). 
+<p class = "smallish">E.g. sex differences.</p>
+</div>
+
+<p class = "fragment">
+$\vec g(s)^\top\vec\beta$: the population mean curve.</p>
+
+<p class = "fragment">
+$\vec m(s)^\top\vec U_i$: difference for individual $i$ to the population 
+curve.</p>
+
+## Time-to-event Outcomes
+We have time-to-event outcomes. 
+
+<p class = "fragment">
+Markers' deviation from the population may be linked to 
+higher or lower risk of the event for each individual.</p>
+
+<p class = "fragment">
+Different ways the two can be linked.</p>
+
+</section>
+<section class="center-horiz" data-transition="slide-in fade-out">
+<h2>Relation to Markers: Current Value</h2>
+
+```{r haz_relation, fig.height=knitr::opts_chunk$get("fig.height") * .67}
+pop_mean <- g_func(xs) %*% fixef_vary_marker
+rng_part <- m_func(xs) %*% v1$rngs
+particular_curve <- g_func(xs) %*% fixef_vary_marker + rng_part
+
+par(mar = c(5, 5, 1, 1), mfcol = c(1, 2), xaxs = "i")
+plot(xs, pop_mean, type = "l", bty = "l", xlab = "Time", ylab = "Marker", 
+     ylim = range(pop_mean, particular_curve))
+lines(xs, particular_curve, col = "Gray28", lty = 3, lwd = 2)
+grid()
+to_show <- c(100, 400, 600, 900) 
+arrows(xs[to_show], pop_mean[to_show], xs[to_show], particular_curve[to_show], 
+       length = .1)
+
+plot(xs, rng_part, type = "l", bty = "l", ylim = range(0, rng_part), 
+     xlab = "Time", ylab = "Current deviation")
+arrows(xs[to_show], rep(0, length(to_show)), 
+       xs[to_show], rng_part[to_show], length = .1)
+grid()
+```
+
+<p class ="smallish">
+A higher level at any given point may lead to higher/lower risk.</p>
+
+</section>
+<section class="center-horiz" data-transition="fade-in fade-out">
+<h2>Relation to Markers: Derivative</h2>
+
+```{r der_haz_relation, fig.height=knitr::opts_chunk$get("fig.height") * .67}
+pop_mean <- g_func(xs) %*% fixef_vary_marker
+rng_part <- m_func(xs) %*% v1$rngs
+particular_curve <- g_func(xs) %*% fixef_vary_marker + rng_part
+rng_part <- m_func(xs, der = 1) %*% v1$rngs
+
+par(mar = c(5, 5, 1, 1), mfcol = c(1, 2), xaxs = "i")
+plot(xs, pop_mean, type = "l", bty = "l", xlab = "Time", ylab = "Marker", 
+     ylim = range(pop_mean, particular_curve))
+lines(xs, particular_curve, col = "Gray28", lty = 3, lwd = 2)
+grid()
+
+# add gradients
+do_grad_points <- xs             [to_show]
+grad_points_y <- particular_curve[to_show]
+g1 <- g_func(do_grad_points, 1) %*% fixef_vary_marker
+g2 <- g1 + m_func(do_grad_points, 1) %*% v1$rngs
+
+plot_slope <- function(x, y, g, col){
+  xs <- x + .2 * c(-1, 1)
+  ys <- y + .2 * c(-1, 1) * g
+  segments(xs[1], ys[1], xs[2], ys[2], col = col)
+}
+invisible(mapply(plot_slope, do_grad_points, grad_points_y, g1, col = "gray40"))
+invisible(mapply(plot_slope, do_grad_points, grad_points_y, g2, col = "black"))
+
+plot(xs, rng_part, type = "l", bty = "l", ylim = range(0, rng_part), 
+     xlab = "Time", ylab = "Derivative of deviation")
+grid()
+```
+
+<p class ="smallish">
+A stepper change at any given point may lead to higher/lower risk.</p>
+
+</section>
+<section class="center-horiz" data-transition="fade-in slide-out">
+<h2>Relation to Markers: Cumulative</h2>
+
+```{r cum_haz_relation, fig.height=knitr::opts_chunk$get("fig.height") * .67}
+pop_mean <- g_func(xs) %*% fixef_vary_marker
+rng_part <- m_func(xs) %*% v1$rngs
+particular_curve <- g_func(xs) %*% fixef_vary_marker + rng_part
+xs_use <- head(xs[-1], -1)
+rng_part <- m_func(xs_use, der = -1) %*% v1$rngs
+
+par(mar = c(5, 5, 1, 1), mfcol = c(1, 2), xaxs = "i")
+plot(xs, pop_mean, type = "l", bty = "l", xlab = "Time", ylab = "Marker", 
+     ylim = range(pop_mean, particular_curve))
+lines(xs, particular_curve, col = "Gray28", lty = 3, lwd = 2)
+polygon(c(xs, rev(xs)), c(pop_mean, rev(particular_curve)), col = gray(0, .05),
+        border = NA)
+grid()
+plot(xs_use, rng_part, type = "l", bty = "l", ylim = range(0, rng_part), 
+     xlab = "Time", ylab = "Cumulative deviation")
+grid()
+```
+
+<p class ="smallish">
+A long period of higher values may lead to higher/lower risk at any given 
+point.</p>
+
+## Survival Model
+
+$$
+\begin{align*}
+h_i(t\mid \vec U_i, \xi_i) &= \exp\left( 
+  \vec z_i^\top\vec \delta + 
+  \omega^\top \vec b(t) + 
+  \alpha  \vec m(t)^\top\vec U_i + \xi_i
+  \right) \\
+\xi_i &\sim N(0, \Xi)
+\end{align*}
+$$
+
+<div class = "w-small">
+$\vec z_i^\top\vec \delta$: fixed effects (offsets). 
+<p class = "smallish">E.g. sex differences.</p>
+</div>
+
+<p class = "fragment">
+$\vec\omega^\top \vec b(t)$: the log baseline hazard function.</p>
+
+<div class = "w-small fragment">
+$\alpha\vec m(t)^\top\vec U_i$: individual specific deviation.
+<p class = "smallish">
+Shared with the marker!
+</p></div>
+
+<div class = "w-small fragment">
+$\xi_i$: individual specific deviation.
+<p class = "smallish">
+Not shared with the marker.
+</p></div>
+
+## Informative Observation Process
+<div class = "w-small">
+Markers may dependent on the likelihood of an observation.
+<p class = "smallish">
+People with a worse health status may tend to have worse marker values **and**
+have more measurements.
+</p></div>
+
+<p class = "fragment">
+Such dependencies can be handled with joint models [@Gasparini20].</p>
+
+## More Markers
+
+We may $L$ different markers rather than one
+
+$$
+\begin{align*}
+\vec Y_{ij}&= \vec\mu_i(s_{ij}, \vec U_i) + \vec\epsilon_{ij} \\
+\epsilon_{ij} &\sim N^{(L)}(\vec 0, \Sigma) \\
+\mu_{i1}(s, \vec U_i) &= \vec x_{i1}^\top\vec\gamma_1 + \vec g_1(s)^\top\vec\beta_1 + 
+  \vec m_1(s)^\top\vec U_{i1} \\
+\vdots &\hphantom{=}\vdots\\\
+\mu_{iL}(s, \vec U_i) &= \vec x_{iL}^\top\vec\gamma_L + \vec g_L(s)^\top\vec\beta_L + 
+  \vec m_L(s)^\top\vec U_{iL} \\
+\vec U_i  &= \begin{pmatrix}
+    \vec U_{i1} \\ \vdots \\ \vec U_{iL}
+  \end{pmatrix}\sim N^{(R)}(\vec0, \Psi). 
+\end{align*}
+$$
+
+## More Survival Types
+
+$$\begin{align*}
+G(s) &= \begin{pmatrix} 
+  \vec g_1(s)^\top & 0^\top & \cdots & \vec 0^\top \\
+  \vec 0^\top & \vec g_2(s)^\top & \ddots & \vdots \\
+  \vdots & \ddots & \ddots & \vec 0^\top \\
+  \vec 0^\top & \cdots & \vec 0^\top & \vec g_L(s)^\top \end{pmatrix} \\
+\vec\gamma &=(\vec \gamma_1^\top,\dots,\vec\gamma_L^\top)^\top,
+\end{align*}$$
+  
+and define $M(s)$, $X_i$, and $\vec\beta$ similarly. Then 
+
+$$\vec\mu_i(s_{ij}, \vec U_i) = X_i\vec\gamma + G(s_{ij})\vec\beta + M(s_{ij})\vec U_i.$$
+
+## More Survival Types
+
+We may have $H$ different survival types rather than one 
+
+$$
+\begin{align*}
+h_{i1}(t\mid \vec U_i, \vec\xi_i) &= \exp\left( 
+  \vec z_{i1}^\top\vec \delta_1 + 
+  \omega_1^\top \vec b_1(t) + 
+  \vec\alpha_1^\top M(t)\vec U_i + \xi_{i1}
+  \right) \\
+\vdots &\hphantom{=}\vdots \\
+h_{iH}(t\mid \vec U_i,\vec \xi_i) &= \exp\left(  
+  \vec z_{iL}^\top\vec \delta_H + 
+  \omega_H^\top\vec b_H(t) + 
+  \vec\alpha_H^\top M(t)\vec U_i + \xi_{iH}
+  \right) \\
+\vec\xi_i = \begin{pmatrix}\xi_{i1} \\ \vdots \\ \xi_{iH}\end{pmatrix}
+  &\sim N^{(H)}(\vec 0, \Xi)
+\end{align*}
+$$
+
+## Alternative Parameterization
+
+Simplify the notation to 
+
+$$
+\mu_{i}(s, \vec U_i) = \vec x_i(s)^\top\vec\gamma + 
+  \vec m(s)^\top\vec U_i 
+$$
+
+<p class = "fragment">
+Could let the hazard depend on $\mu_{i}(s, \vec U_i)$ rather than
+$\vec m(s)^\top\vec U_i$.</p>
+
+## Alternative Parameterization (Cont.)
+
+Suppose $\vec z_i(t) = (\widetilde{\vec z}_i(t)^\top, \vec x_i(s)^\top)^\top$. 
+Then
+
+$$
+\begin{align*}
+h_i(t\mid \vec U_i, \xi_i) &= \exp\big( 
+  \vec z_i(t)^\top\vec \delta + 
+  \alpha  \vec m(t)^\top\vec U_i + \xi_i
+  \big) \\
+  &= \exp\big( 
+  \widetilde{\vec z}_i(t)^\top\vec \delta_1 +
+  \vec x_i(t)^\top\vec (\vec\delta_2 - \alpha\vec\gamma) \\
+&\hspace{40pt}
+  + \alpha \mu_{i}(s, \vec U_i) + \xi_i
+  \big)
+\end{align*}
+$$
+
+<p class = "fragment">
+$\alpha$ has the same interpretation unless $\vec x_i(s)$ is **not** 
+a linear combination of $\vec z_i(t)$. 
+</p>
+
+## Alternative Parameterization (Cont.)
+
+<div class = "w-small">
+The latter may be more efficient but assumes that the effect of the 
+covariates is $\alpha\vec\gamma$
+<p class = "smallish">
+if $\vec x_i(t)$ is **not** a linear combination of $\vec z_i(t)$.</p>
+</div>
+
+<div class = "fragment w-small">
+Typically, we pick a very flexible baseline hazard so only leaving out a 
+covariate will matter
+<p class = "smallish">
+unless we include time-varying covariate effects.</p></div>
+
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Likelihood and Approximations</h1>
+<!--/html_preserve-->
+
+## The Likelihood
+<div class = "w-small">
+The likelihood is intractable. 
+<p class = "smallish">
+Need an approximation.</p></div>
+
+<p class = "fragment">
+Let $\vec\zeta$ be the model parameters and 
+$l_i(\vec\zeta)$ be the log likelihood term of individual $i$.</p>
+
+## Variational Approximations
+
+Given a distribution with density
+$q^{(i)}_{\vec\theta}$ for $\theta\in \Theta_i$ and outcomes
+$\vec y_i$, the particular variational approximation we use is the lower bound 
+
+$$
+l_i(\vec\zeta) \geq \int q^{(i)}_{\vec\theta}(\vec U)
+    \log \left(\frac{p_i(\vec y_i, \vec U)}
+    {q^{(i)}_{\vec\theta}(\vec U)}\right) d \vec U 
+  = \tilde l_i(\vec\zeta, \vec\theta)
+$$
+
+<p class = "fragment">
+Typically, much faster to evaluate.</p>
+
+## Variational Approximations (Cont.)
+
+$$
+\begin{align*}
+l_i(\vec\zeta) &= \log p_i(\vec y_i) 
+  = \int q^{(i)}_{\vec\theta}(\vec U)
+    \log \left(\frac{p_i(\vec y_i, \vec U)\big/ q^{(i)}_{\vec\theta}(\vec U)}
+    {p_i(\vec U\mid\vec y_i)\big/ q^{(i)}_{\vec\theta}(\vec U)}\right) d \vec U\\
+  &= \int q^{(i)}_{\vec\theta}(\vec U)
+    \Bigg(
+      \log \left(\frac{p_i(\vec y_i, \vec U)}
+      {q^{(i)}_{\vec\theta}(\vec U)}\right) d \vec U +
+      \underbrace{\log \left(\frac{q^{(i)}_{\vec\theta}(\vec U)}
+      {p_i(\vec U\mid\vec y_i)}\right)}_{\text{KL divergence}}
+    \Bigg)d \vec U \\
+  &\geq \int q^{(i)}_{\vec\theta}(\vec U)
+    \log \left(\frac{p_i(\vec y_i, \vec U)}
+    {q^{(i)}_{\vec\theta}(\vec U)}\right) d \vec U 
+  = \tilde l_i(\vec\zeta, \vec\theta)
+\end{align*}
+$$
+
+<p class = "fragment">
+Equality if $p_i(\vec U\mid\vec y_i) = q^{(i)}_{\vec\theta}(\vec U)$.</p>
+
+## Approximate Maximum Likelihood
+
+$$
+\text{argmax}_{\vec\zeta} \sum_{i = 1}^n l_i(\vec\zeta) 
+  \approx \text{argmax}_{\vec\zeta} 
+  \max_{\vec\theta_1,\dots,\vec\theta_n} 
+  \sum_{i = 1}^n\tilde l_i(\vec\zeta, \vec\theta_i)
+$$
+
+<p class = "fragment"> 
+The latter problem has many parameters but the problem is partially separable.
+</p>
+
+<div class = "fragment w-small"> 
+Can develop an efficient Newton-like method [@Ormerod11] or use the 
+psqn package [@Christoffersen21] 
+<p class = "smallish">
+as the problem is partially separable.
+</p></div>
+
+## Implementation
+
+Implemented with a multivariate normal distribution. 
+
+<p class = "fragment">
+Written in C++ with support for computation in parallel.</p>
+
+<div class = "fragment w-small">
+Uses an extension of the reverse mode automatic differentiation implementation 
+from @savine2018modern. 
+<p class = "smallish">
+Similar to the Adept library [@Hogan14]. A gradient implementation will 
+reduce the computation time.</p></div>
+
+<div class = "fragment w-small">
+Supports left-truncation, partly observed markers, 
+<p class = "smallish">
+cumulative, current value, and derivatives in the hazards, 
+mixtures thereof, and more.</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Simulation Study</h1>
+<!--/html_preserve-->
+
+## Overview
+
+Make a comparison with the Monte Carlo based joineRML package [@Hickey18].
+
+<p class = "fragment">
+Simulation study to check the bias of the VA.</p>
+
+```{r pre_comp_sim_clean_up}
+rm(list = ls())
+```
+
+## Comparison with joineRML
+
+```{r joineRML_setup}
+# settings for the simulation
+library(VAJointSurv)
+g1_basis <- ns_term(knots = c(3.33, 6.67), Boundary.knots = c(0, 10))
+g2_basis <- ns_term(knots = c(3.33, 6.67), Boundary.knots = c(0, 10))
+g_funcs <- list(\(x) t(g1_basis$eval(x)),
+                \(x) t(g2_basis$eval(x)))
+m1_basis <- poly_term(degree = 1, raw = TRUE, intercept = TRUE)
+m2_basis <- poly_term(degree = 0, raw = TRUE, intercept = TRUE)
+m_funcs <- list(\(x) t(m1_basis$eval(x)),
+                \(x) t(m2_basis$eval(x)))
+
+fixef_vary_marker <- list(c(1.4, -1.2, .4), c(-.5, .67, 1)) # beta
+fixef_marker <- list(c(-.5, 1), c(.25, -.4)) # gamma
+
+vcov_vary <- structure(c(0.021875, 5e-04, -0.003125, 5e-04, 0.012, -0.0015, -0.003125, -0.0015, 0.02), .Dim = c(3L, 3L))
+vcov_marker <- matrix(c(.2^2, 0, 0, .1^2), 2)
+
+# the survival parameters
+fixef_surv <- c(-3, .4)
+association <- c(-1, 2)
+fixef_vary_surv <- c(.5, .1, -.015)
+fvar <- matrix(1e-6^2, 1)
+
+b_basis <- poly_term(degree = 3, raw = TRUE)
+b_func <- \(x) t(b_basis$eval(x))
+
+# simulates from the model by sampling a given number of individuals
+library(mvtnorm)
+library(SimSurvNMarker)
+sim_dat <- function(n_ids){
+  # simulate the outcomes
+  gl_dat <- get_gl_rule(100L)
+  dat <- lapply(1:n_ids, function(id){
+    # draw the censoring time and the random effects
+    cens <- min(10, rexp(1, 1/8))
+    U <- drop(rmvnorm(1, sigma = vcov_vary))
+    
+    # simulate the survival outcome
+    rng_surv <- rnorm(1, sd = sqrt(fvar))
+    Z <- c(1, runif(1, -1, 1))
+    log_haz_offset <- sum(Z * fixef_surv) + rng_surv
+
+    expansion <- function(x)
+      cbind(b_func(x), m_funcs[[1]](x) %*% U[1:2],
+            m_funcs[[2]](x) * U[3])
+
+    # the conditional survival function
+    surv_func <- function(ti)
+      eval_surv_base_fun(
+        ti = ti, omega = c(fixef_vary_surv, association), b_func = expansion,
+        gl_dat = gl_dat, delta = log_haz_offset)
+
+    # simulate the event
+    rng_i <- runif(1)
+    root_func <- function(x) rng_i - surv_func(x)
+    if(root_func(cens) < 0){
+      y <- cens
+      event <- 0
+    } else {
+      root <- uniroot(root_func, c(0, cens), tol = 1e-6)
+      y <- root$root
+      event <- 1
+    }
+
+    # format the data
+    Z <- matrix(Z, 1)
+    colnames(Z) <- paste0("Z_", 1:NCOL(Z) - 1L)
+
+    surv_data <- cbind(y = y, event = event, Z[, -1, drop = FALSE], id = id)
+    
+    # handle the markers
+    marker_data <- lapply(1:2, function(type){
+      # sample the observations times
+      obs_time <- cumsum(c(0, rexp(20, .5)))
+      obs_time <- obs_time[obs_time < y]
+      n_obs <- length(obs_time)
+      
+      # sample the fixed effects
+      X <- cbind(1, rnorm(n_obs))
+      colnames(X) <- paste0("X", 1:NCOL(X) - 1L)
+      
+      # sample the outcomes
+      eta <- X %*% fixef_marker[[type]] +
+        g_funcs[[type]](obs_time) %*% fixef_vary_marker[[type]] +
+        m_funcs[[type]](obs_time) %*% U[if(type == 1) 1:2 else 3]
+      
+      y <- eta + rnorm(n_obs, sd = sqrt(vcov_marker[type, type]))
+      
+      cbind(Y = drop(y), X[, -1, drop = FALSE], type = type, time = obs_time,
+            id = id)
+    })
+
+    list(marker_data = do.call(rbind, marker_data), surv_data = surv_data)
+  })
+
+  # combine the data and return
+  marker_data <- as.data.frame(do.call(
+    rbind, lapply(dat, `[[`, "marker_data")))
+  marker_data$id <- as.integer(marker_data$id)
+  marker_data$type <- as.integer(marker_data$type)
+  # the order does not matter
+  marker_data <- marker_data[sample.int(NROW(marker_data)), ]
+
+  surv_data <- as.data.frame(do.call(
+    rbind, lapply(dat, `[[`, "surv_data")))
+  surv_data$id <- as.integer(surv_data$id)
+  # the order does not matter
+  surv_data <- surv_data[sample.int(NROW(surv_data)), ]
+
+  list(marker_data = marker_data, surv_data = surv_data)
+}
+
+# the number of individuals we will sample
+n_obs <- 300L
+```
+
+<div class = "w-small">
+Two different types of markers observed at different points in time. 
+<p class = "smallish">
+Can only estimate the diagonal of $\Sigma$.
+</p></div>
+
+<p class = "fragment">
+One terminal time-to-event outcome for each individual.</p>
+
+<p class = "fragment">
+We sample `r n_obs` individuals.</p>
+
+<div class = "w-small fragment">
+Only three random effects per individual to keep it simple.
+<p class = "smallish">
+A random intercept and a random slope for the first marker and a random intercept
+for the second marker.
+</p></div>
+
+</section>
+<section class="center-horiz">
+<h2>Mean Curves for the First Marker</h2>
+
+```{r marker_one_joineRML}
+par(mar = c(5, 5, 1, 1), cex = 1.2)
+plot_marker(
+  time_fixef = g1_basis, time_rng = m1_basis, 
+  fixef_vary = fixef_vary_marker[[1]], x_range = c(0, 10), 
+  vcov_vary = vcov_vary[1:2, 1:2], ylab = "Marker 1")
+```
+
+</section>
+<section class="center-horiz">
+<h2>Mean Curves for the Second Marker</h2>
+
+```{r marker_two_joineRML}
+par(mar = c(5, 5, 1, 1), cex = 1.2)
+plot_marker(
+  time_fixef = g2_basis, time_rng = m2_basis, 
+  fixef_vary = fixef_vary_marker[[2]], x_range = c(0, 10), 
+  vcov_vary = vcov_vary[3, 3], ylab = "Marker 2")
+```
+
+</section>
+<section class="center-horiz">
+<h2>Pointwise Quantiles of the Hazard</h2>
+
+```{r hazard_joineRML}
+par(mar = c(5, 5, 1, 1), cex = 1.2)
+plot_surv(time_fixef = b_basis, time_rng = list(m1_basis, m2_basis), 
+          x_range = c(0, 10), fixef_vary = fixef_vary_surv, 
+          vcov_vary = vcov_vary, frailty_var = fvar, ps = c(.1, .5, .9), 
+          log_hazard_shift = fixef_surv[1], associations = association)
+```
+
+<p class = "smallish">
+The lines are the 10%, 50%, and 90% pointwise quantiles.</p>
+
+## Results
+
+```{r sim_fit_joineRML, cache = 1}
+# draw a data set
+set.seed(1)
+dat <- sim_dat(n_obs)
+
+library(joineRML, quietly = TRUE)
+library(splines)
+set.seed(1)
+joineRML_time <- system.time(
+  joineRML_fit <- mjoint(
+    formLongFixed = list(
+      Y1 = Y ~ X1 + ns(time, knots = c(3.33, 6.67), Boundary.knots = c(0, 10)), 
+      Y2 = Y ~ X1 + ns(time, knots = c(3.33, 6.67), Boundary.knots = c(0, 10))), 
+    formLongRandom = list(Y1 = ~ time | id, 
+                          Y2 = ~ 1 | id),
+    formSurv = Surv(y, event) ~ Z_1,
+    data = list(subset(dat$marker_data, type == 1) , 
+                subset(dat$marker_data, type == 2)),
+    survData = dat$surv_data, 
+    timeVar = "time", 
+    control = list(type = "sobol"), 
+    pfs = FALSE))
+
+# create the object we need to estimate the model with the VA and fit the model
+VA_time <- system.time({
+  marker_1 <- marker_term(
+      Y ~ X1, id = id, subset(dat$marker_data, type == 1),
+      time_fixef = ns_term(
+        time, knots = c(3.33, 6.67), Boundary.knots = c(0, 10)),
+      time_rng = poly_term(time, degree = 1, raw = TRUE, intercept = TRUE))
+  marker_2 <- marker_term(
+      Y ~ X1, id = id, subset(dat$marker_data, type == 2),
+      time_fixef = ns_term(
+        time, knots = c(3.33, 6.67), Boundary.knots = c(0, 10)),
+      time_rng = poly_term(time, degree = 0, raw = TRUE, intercept = TRUE))
+  
+  surv_obj <- surv_term(
+    Surv(y, event) ~ Z_1, id = id, dat$surv_data,
+    time_fixef = ns_term(y, df = 6, Boundary.knots = c(0, 10)))
+  
+  comp_obj <- joint_ms_ptr(markers = list(marker_1, marker_2),
+                           survival_terms = surv_obj, max_threads = 4L)
+  
+  # get the starting values
+  start_val <- joint_ms_start_val(comp_obj)
+  
+  # find the maximum lower bound
+  opt_out <- joint_ms_opt(comp_obj, par = start_val, max_it = 1000L, 
+                          pre_method = 1L, cg_tol = .2, c2 = .1)
+})
+```
+
+<div class = "w-small">
+The estimation time was `r joineRML_time["elapsed"]` with joineRML and 
+`r VA_time["elapsed"]` with the new method
+<p class = "smallish">
+using four threads.
+</p></div>
+
+<div class = "fragment">
+The estimated associations parameters, $\vec\alpha_1$, are shown below.
+
+```{r association_joineRML}
+to_show <- rbind(truth = association, 
+      joineRML = tail(coef(joineRML_fit)$gamma, 2), 
+      VA = 
+        joint_ms_format(comp_obj, opt_out$par)$survival[[1]]$associations)
+colnames(to_show) <- paste("Marker", 1:2)
+knitr::kable(to_show)
+```
+
+</div>
+
+## Results
+
+```{r vcov_vary_joineRML}
+fmt <- \(x) {
+  x[upper.tri(x)] <- NA
+  x
+}
+
+to_show <- cbind(fmt(coef(joineRML_fit)$D), NA, 
+                 fmt(joint_ms_format(comp_obj, opt_out$par)$vcov$vcov_vary))
+colnames(to_show) <- character(NCOL(to_show))
+colnames(to_show)[c(1, 5)] <- c("joineRML", "VA")
+knitr::kable(to_show, digits = 4)
+```
+
+<p class = "smallish">
+The estimated covariance matrix of the random effects, $\Psi$, is shown above.
+The true values are shown below.</p>
+
+```{r true_vcov_vary_joineRML}
+to_show <- matrix(fmt(vcov_vary), NROW(to_show), 
+                  dimnames = list(rownames(to_show), NULL))
+rownames(to_show) <- character(NROW(to_show))
+colnames(to_show) <- c("True values", character(NCOL(to_show) - 1L))
+knitr::kable(to_show, digits = 4)
+```
+
+## Details
+
+<div class = "w-small">
+joineRML makes no assumption about the baseline hazard, 
+$\exp(\vec g_1(s)^\top\vec\beta_1)$.
+<p class = "smallish">
+This is computationally challenging with many individuals.</p>
+</div>
+
+<p class = "fragment">
+Sobol sequences are used with joineRML.</p>
+
+<p class = "fragment">
+Both markers have a standard normal distributed covariate and the time-to-event
+outcome has $\text{Unif}(-1, 1)$ covariate.</p>
+
+<p class = "fragment">
+Observation times are drawn with increments that are exponentially distributed 
+with rate 0.5.</p>
+
+## Second Simulation Study
+
+```{r pre_sim_clean_up, include = FALSE}
+rm(list = ls())
+gc()
+```
+
+```{r sim_config}
+# settings for the simulation
+library(VAJointSurv)
+g1_basis <- ns_term(knots = c(3.33, 6.67), Boundary.knots = c(0, 10))
+g2_basis <- poly_term(degree = 2L, raw = TRUE)
+g_funcs <- list(\(x) t(g1_basis$eval(x)),
+                \(x) t(g2_basis$eval(x)))
+
+m1_basis <- ns_term(knots = numeric(), Boundary.knots = c(0, 10), 
+                    intercept = TRUE)
+m2_basis <- poly_term(degree = 1L, raw = TRUE, intercept = TRUE)
+m_funcs <- list(\(x) t(m1_basis$eval(x)),
+                \(x) t(m2_basis$eval(x)))
+
+fixef_vary_marker <- list(c(1.4, 1.2, -2.1), c(.5, -.02)) # beta
+fixef_marker <- list(c(-.5, 2), 1) # gamma
+
+# Psi
+vcov_vary <- structure(c(0.35, 0.08, -0.05, 0.01, 0.08, 1.92, -0.24, -0.04,
+                   -0.05, -0.24, 0.32, 0.09, 0.01, -0.04, 0.09, 0.12),
+                 .Dim = c(4L, 4L))
+vcov_marker <- matrix(c(.3^2, .15^2, .15^2, .2^2), 2)
+
+# settings for the survival outcomes. The survival parameters
+vcov_surv <- matrix(c(.2^2, .15^2, .15^2, .25^2), 2) # Xi 
+
+fixef_surv <- list(c(-1, .25), .2)
+associations <- list(c(.6, -.3), c(-.7, .3))
+fixef_vary_surv <- list(c(.5, .1, -.2, .11),
+                          c(-1, -.25))
+
+b1_basis <- bs_term(knots = 5, Boundary.knots = c(0, 10))
+b2_basis <- ns_term(knots = 5, Boundary.knots = c(0, 10))
+b_funcs <- list(\(x) t(b1_basis$eval(x)),
+                \(x) t(b2_basis$eval(x)))
+
+# simulates from the model by sampling a given number of individuals
+library(mvtnorm)
+library(SimSurvNMarker)
+sim_dat <- function(n_ids){
+  # simulate the outcomes
+  gl_dat <- get_gl_rule(100L)
+  dat <- lapply(1:n_ids, function(id){
+    # sample the terminal event time and the censoring time
+    cens <- min(rexp(1, rate = 1/10), 10)
+    U <- drop(rmvnorm(1, sigma = vcov_vary))
+
+    frailties <- drop(rmvnorm(1, sigma = vcov_surv))
+    Z1 <- c(1, runif(1, -1, 1))
+    log_haz_offset <- sum(Z1 * fixef_surv[[1]]) + frailties[1]
+
+    # assign the conditional hazard function
+    expansion <- function(x, b_func)
+      cbind(b_func(x), m_funcs[[1]](x) %*% U[1:2],
+            m_funcs[[2]](x) %*% U[3:4])
+    surv_func <- function(ti, fixef_vary_surv, associations, b_func){
+      formals(expansion)$b_func <- b_func
+      eval_surv_base_fun(
+        ti = ti, omega = c(fixef_vary_surv, associations), b_func = expansion,
+        gl_dat = gl_dat, delta = log_haz_offset)
+    }
+
+    # sample the survival time
+    rng <- runif(1)
+    root_func <- function(x, rng)
+      rng - surv_func(x, fixef_vary_surv = fixef_vary_surv[[1]],
+                      associations = associations[[1]], b_func = b_funcs[[1]])
+
+    if(root_func(cens, rng) < 0){
+      # the observation is censored
+      y_terminal <- cens
+      event <- 0
+    } else {
+      # find the event time
+      root <- uniroot(root_func, c(0, cens), tol = 1e-6, rng = rng)
+      y_terminal <- root$root
+      event <- 1
+
+    }
+
+    terminal_outcome <- cbind(y = y_terminal, event = event, Z1 = Z1[2],
+                              id = id)
+
+    # clean up
+    rm(list = setdiff(ls(), c("y_terminal", "terminal_outcome", "expansion",
+                              "surv_func", "frailties", "U", "id")))
+
+    # simulate the observations times
+    Z2 <- 1
+    log_haz_offset <- sum(Z2 * fixef_surv[[2]]) + frailties[2]
+
+    root_func <- function(x, left_trunc_surv, rng)
+      rng - surv_func(x, fixef_vary_surv = fixef_vary_surv[[2]],
+                      associations = associations[[2]], b_func = b_funcs[[2]]) /
+      left_trunc_surv
+
+    max_sample <- 1000L
+    left_trunc_surv <- 1
+    Z2 <- matrix(rep(Z2, each = max_sample), max_sample)
+    event <- y <- lf_trunc <- rep(NA_real_, max_sample)
+    lf_trunc_i <- 0
+    for(i in 1:max_sample){
+      # sample a random uniform variable and invert the survival function
+      rng_i <- runif(1)
+      lf_trunc[i] <- lf_trunc_i
+
+      if(root_func(y_terminal, left_trunc_surv, rng_i) < 0){
+        # the observation is right-censored and we can exit
+        y[i] <- y_terminal
+        event[i] <- 0
+        break
+      }
+
+      # we need to invert the survival function to find the observation time
+      root <- uniroot(root_func, c(lf_trunc_i, y_terminal), tol = 1e-6,
+                      left_trunc_surv = left_trunc_surv, rng = rng_i)
+      lf_trunc_i <- y[i] <- root$root
+      event[i] <- 1
+      left_trunc_surv <- surv_func(
+        y[i], fixef_vary_surv = fixef_vary_surv[[2]], associations = associations[[2]],
+        b_func = b_funcs[[2]])
+      if(left_trunc_surv < .Machine$double.eps)
+        break
+    }
+
+    colnames(Z2) <- paste0("Z", 1:NCOL(Z2) - 1L)
+    obs_process <- cbind(lf_trunc = lf_trunc[1:i], y = y[1:i],
+                         event = event[1:i], Z2[1:i, -1, drop = FALSE],
+                         id = id)
+
+    # clean up
+    rm(list = setdiff(ls(), c("terminal_outcome", "U", "id",
+                              "obs_process")))
+
+    # sample the number of outcomes and the fixed effect covariates
+    obs_time <- c(0, obs_process[obs_process[, "event"] == 1, "y"])
+    n_obs <- length(obs_time)
+    X1 <- cbind(1, rnorm(n_obs))
+    X2 <- matrix(1, n_obs)
+    colnames(X1) <- paste0("X1_", 1:NCOL(X1) - 1L)
+    colnames(X2) <- paste0("X2_", 1:NCOL(X2) - 1L)
+    X <- list(X1, X2)
+
+    # sample the outcomes
+    eta <- sapply(1:2, function(i)
+      X[[i]] %*% fixef_marker[[i]] +
+        drop(g_funcs[[i]](obs_time)) %*% fixef_vary_marker[[i]] +
+        drop(m_funcs[[i]](obs_time)) %*% U[1:2 + (i == 2) * 2])
+
+    ys <- eta + rmvnorm(n_obs, sigma = vcov_marker)
+    colnames(ys) <- paste0("Y", 1:2)
+
+    # mask some observations
+    do_mask <- sample.int(3L, n_obs, replace = TRUE)
+    ys[do_mask == 2, 1] <- NA
+    ys[do_mask == 3, 2] <- NA
+
+    X <- do.call(cbind, lapply(X, function(x) x[, -1, drop = FALSE]))
+    marker_data <- cbind(ys, X, time = obs_time, id = id)
+
+    return(list(marker_data = marker_data, obs_process = obs_process,
+                terminal_outcome = terminal_outcome))
+  })
+
+  # combine the data and return
+  marker_data <- as.data.frame(do.call(
+    rbind, lapply(dat, `[[`, "marker_data")))
+  marker_data$id <- as.integer(marker_data$id)
+  # the order does not matter
+  marker_data <- marker_data[sample.int(NROW(marker_data)), ]
+
+  obs_process <- as.data.frame(do.call(
+    rbind, lapply(dat, `[[`, "obs_process")))
+  obs_process$id <- as.integer(obs_process$id)
+  # the order does not matter
+  obs_process <- obs_process[sample.int(NROW(obs_process)), ]
+
+  terminal_outcome <- as.data.frame(do.call(
+    rbind, lapply(dat, `[[`, "terminal_outcome")))
+  terminal_outcome$id <- as.integer(terminal_outcome$id)
+  # the order does not matter
+  terminal_outcome <- terminal_outcome[sample.int(NROW(terminal_outcome)), ]
+
+  list(marker_data = marker_data, obs_process = obs_process,
+       terminal_outcome = terminal_outcome)
+}
+
+# the seeds we will use
+seeds <- c(87368669L, 8477551L, 19055580L, 5344079L, 74133976L, 65817574L, 30897210L, 63070292L, 96774908L, 89116927L, 79764324L, 31641694L, 43035646L, 49645945L, 4915197L, 83042711L, 61417141L, 78359936L, 78343299L, 1612821L, 58370525L, 13687374L, 26991447L, 69147285L, 93733664L, 44038265L, 14913346L, 34869392L, 8263039L, 9074034L, 31180124L, 87447531L, 32723195L, 48724340L, 38805203L, 1722587L, 84277918L, 7594921L, 74798375L, 48671701L, 5910257L, 56350035L, 24049537L, 15291525L, 11148901L, 86042786L, 81810402L, 65490253L, 51001702L, 14623224L, 93589444L, 34342948L, 27944643L, 23418493L, 37766623L, 154545L, 91513547L, 15496758L, 70964359L, 86726449L, 65670022L, 32844036L, 59394557L, 81129657L, 1990929L, 60916848L, 43254077L, 63926868L, 30213683L, 42184382L, 80299244L, 32675702L, 69976045L, 81262006L, 83945207L, 13144107L, 37986741L, 68631749L, 82556835L, 1010763L, 61994622L, 6953118L, 6722054L, 79660841L, 30112040L, 61917670L, 26587430L, 83202509L, 11572478L, 5131375L, 70877633L, 3546371L, 8097726L, 85873386L, 56202395L, 83526932L, 1843553L, 46577206L, 45651805L, 37480591L)
+seeds <- head(seeds, 61)
+n_obs <- 1000L
+```
+
+<div class = "w-small">
+Two different types of markers  
+<p class = "smallish">
+observed possible on the same points in time.</p>
+</div>
+
+<p class = "fragment">
+A terminal time-to-event outcome.</p>
+
+<p class = "fragment">
+An informative observation process.</p>
+
+<p class = "fragment">
+We sample `r n_obs` individuals.</p>
+
+<p class = "fragment">
+Four random effects for the markers and two for the frailties, 
+$\vec\xi_i$, per individual.</p>
+
+</section>
+<section class="center-horiz">
+<h2>Mean Curves for the First Marker</h2>
+
+```{r one_sim_marker_curve}
+library(VAJointSurv)
+par(mar = c(5, 5, 1, 1))
+plot_marker(
+  time_fixef = g1_basis,
+  time_rng = m1_basis,
+  fixef_vary = fixef_vary_marker[[1]], x_range = c(0, 10),
+  vcov_vary = vcov_vary[1:2, 1:2], ylab = "Marker 1")
+```
+
+</section>
+<section class="center-horiz">
+<h2>Mean Curves for the Second Marker</h2>
+
+```{r two_sim_marker_curve}
+plot_marker(
+  time_fixef = g2_basis,
+  time_rng = m2_basis,
+  fixef_vary = fixef_vary_marker[[2]], x_range = c(0, 10),
+  vcov_vary = vcov_vary[3:4, 3:4], ylab = "Marker 2")
+```
+
+</section>
+<section class="center-horiz">
+<h2>Hazard Curves: Terminal event</h2>
+
+```{r terminal_sim_haz}
+plot_surv(
+  time_fixef = b1_basis,
+  time_rng = list(m1_basis, m2_basis),
+  x_range = c(0, 10), fixef_vary = fixef_vary_surv[[1]],
+  vcov_vary = vcov_vary, frailty_var = vcov_surv[1, 1], ps = c(.1, .5, .9),
+  associations = associations[[1]], log_hazard_shift = fixef_surv[[1]][1],
+  ylab = "Terminal event")
+```
+
+<p class = "smallish">
+The lines are the 10%, 50%, and 90% pointwise quantiles.</p>
+
+</section>
+<section class="center-horiz">
+<h2>Hazard Curves: Observation Process</h2>
+
+```{r obs_sim_haz}
+plot_surv(
+  time_fixef = b2_basis,
+  time_rng = list(m1_basis, m2_basis),
+  x_range = c(0, 10), fixef_vary = fixef_vary_surv[[2]],
+  vcov_vary = vcov_vary, frailty_var = vcov_surv[2, 2], ps = c(.1, .5, .9),
+  associations = associations[[2]], log_hazard_shift = fixef_surv[[2]][1],
+  ylab = "Observation process")
+```
+
+<p class = "smallish">
+The lines are the 10%, 50%, and 90% pointwise quantiles.</p>
+
+```{r do_sims}
+library(survival)
+level <- .95
+sim_res <- lapply(seeds, function(s){
+  f_out <- file.path("sim-res", sprintf("obs-process-%d-%d.RDS", n_obs, s))
+  
+  if(!file.exists(f_out)){
+    # sample the data set
+    set.seed(s)
+    dat <- sim_dat(n_obs)
+    
+    # get object to optimize the lower bound
+    fit_time <- system.time({
+      marker_1 <- marker_term(
+        Y1 ~ X1_1, id = id, subset(dat$marker_data, !is.na(Y1)),
+        time_fixef = ns_term(time, knots = c(3.33, 6.67), Boundary.knots = c(0, 10)),
+        time_rng = ns_term(time, knots = numeric(), Boundary.knots = c(0, 10),
+                           intercept = TRUE))
+      marker_2 <- marker_term(
+        Y2 ~ 1, id = id, subset(dat$marker_data, !is.na(Y2)),
+        time_fixef = poly_term(time, degree = 2, raw = TRUE),
+        time_rng = poly_term(time, degree = 1, raw = TRUE, intercept = TRUE))
+      
+      surv_terminal <- surv_term(
+        Surv(y, event) ~ Z1, id = id, dat$terminal_outcome,
+        time_fixef = bs_term(y, knots = 5, Boundary.knots = c(0, 10)))
+      surv_obs <- surv_term(
+        Surv(lf_trunc, y, event) ~ 1, id = id, dat$obs_process,
+        time_fixef = ns_term(y, knots = 5, Boundary.knots = c(0, 10)))
+      
+      comp_obj <- joint_ms_ptr(markers = list(marker_1, marker_2),
+                               survival_terms = list(surv_terminal, surv_obs),
+                               max_threads = 4L)
+      
+      # get the starting values and optimize
+      start_val <- joint_ms_start_val(comp_obj)
+      opt_out <- joint_ms_opt(comp_obj, par = start_val, max_it = 10000L,
+                              pre_method = 1L, cg_tol = .2, c2 = .1)
+    })
+    
+    # compute the approximate CI
+    which_prof <- comp_obj$indices$survival[[1]]$associations[1]
+    pl_time <- system.time({
+      pl_dat <- joint_ms_profile(
+        object = comp_obj, opt_out = opt_out, which_prof = which_prof, 
+        max_it = 10000L, pre_method = 1L, cg_tol = .2, c2 = .1, 
+        delta = .2)
+    })
+      
+    saveRDS(list(par = joint_ms_format(comp_obj, opt_out$par), 
+                 opt_info = opt_out[c("value", "info", "counts")],
+                 lb_start = attr(start_val, "value"), 
+                 time = fit_time, level = level, pl_dat = pl_dat, 
+                 pl_time = pl_time), f_out)
+  }
+  
+  # load, print to the console, and return
+  out <- readRDS(f_out)
+ 
+  message(sprintf(
+    "\nLower bound (starting value), conv code, time: %12.2f (%.2f) %2d %8.2f",
+    -out$opt_info$value, -out$lb_start, out$opt_info$info, out$time["elapsed"]))
+  
+  . <- function(x)
+    message(paste0(capture.output(print(x, na.print = ".")), collapse = "\n"))
+  
+  message("Marker parameters")
+  for(i in 1:2){
+    .(c(out$par$markers[[i]]$fixef, NA, fixef_marker[[i]]))
+    .(c(out$par$markers[[i]]$fixef_vary, NA, fixef_vary_marker[[i]]))
+  }
+  
+  message("Survival parameters")
+   for(i in 1:2){
+    .(c(out$par$survival[[i]]$fixef, NA, fixef_surv[[i]]))
+    .(c(out$par$survival[[i]]$fixef_vary, NA, fixef_vary_surv[[i]]))
+    .(c(out$par$survival[[i]]$associations, NA, associations[[i]]))
+   }
+  
+  show_vcov <- function(est, truth){
+    fmt <- function(x){
+      out <- x
+      diag(out) <- sqrt(diag(x))
+      out[lower.tri(out)] <- cov2cor(x)[lower.tri(x)]
+      out[upper.tri(out)] <- NA_real_
+      out
+    }
+    
+    message(paste0(capture.output(print(
+      cbind(fmt(est), NA, fmt(truth)), na.print = ".")), 
+      collapse = "\n"))
+  }
+  
+  message("\nvcov_marker")
+  show_vcov(out$par$vcov$vcov_marker, vcov_marker)
+  message("vcov_surv")
+  show_vcov(out$par$vcov$vcov_surv, vcov_surv)
+  message("vcov_vary")
+  show_vcov(out$par$vcov$vcov_vary, vcov_vary)
+  message(sprintf("confidence interval (time %.2f)", out$pl_time["elapsed"]))
+  message(paste0(capture.output(out$pl_dat$confs), collapse = "\n"))
+  
+  out
+})
+```
+
+## Results
+
+```{r stats}
+# format the output
+sim_res <- lapply(sim_res, \(x){
+  names(x$par$markers) <- paste("Marker", seq_along(x$par$markers))
+  names(x$par$survival) <- c("Terminal", "Observation")
+  # TODO: hard coded
+  x$covered <- 
+    x$pl_dat$confs[1] <  associations[[1]][1] &&
+    x$pl_dat$confs[2] >= associations[[1]][1]
+    
+  x
+})
+
+# get the computation times
+comp_times <- sapply(sim_res, \(x) x$time["elapsed"])
+```
+
+Average computation time was 
+$`r mean(comp_times)` \pm `r sd(comp_times) / sqrt(length(comp_times))`$
+seconds. `r length(seeds)` data sets are sampled.
+
+<div class = "fragment">
+
+```{r association_stats}
+est_association <- sapply(
+  sim_res, \(x) sapply(x$par$survival, `[[`, "associations", 
+                       simplify = "array"), 
+  simplify = "array")
+
+comp_bias <- \(error){
+  n_dim <- length(dim(error))
+  stopifnot(n_dim > 1)
+  bias <- apply(error, 1:(n_dim - 1L), mean)
+  se <- apply(error, 1:(n_dim - 1L), sd) / sqrt(dim(error)[n_dim])
+  list(bias = bias, se = se)
+}
+
+fmt_bias <- \(x, digits = 6){
+  out <- with(x, Map(
+    cbind, 
+    split(bias, rep(1:NCOL(bias), each = NROW(bias))), 
+    split(se, rep(1:NCOL(se), each = NROW(se)))))
+  out <- do.call(cbind, out)
+  colnames(out) <- rep("SE", NCOL(out))
+  colnames(out)[(seq_len(NCOL(x$bias)) - 1L) * 2L + 1L] <-
+    colnames(x$bias)
+  rownames(out) <- rownames(x$bias)
+  if(is.null(rownames(out)))
+    rownames(out) <- character(NROW(out))
+  knitr::kable(out, digits = digits)
+}
+bias_association <- comp_bias(est_association - c(do.call(cbind, associations)))
+rownames(bias_association$bias) <- paste("Marker", 1:2)
+fmt_bias(bias_association)
+```
+
+<p class = "smallish">
+Bias estimates for the association parameters,
+$\vec\alpha_1$ and $\vec\alpha_2$, are shown above.
+The SE columns are the standard errors. The true values are shown below.
+</p>
+
+```{r association_truth}
+to_show <- do.call(cbind, associations)
+rownames(to_show) <- paste("Marker", 1:2)
+colnames(to_show) <- c("Terminal", "Observation")
+knitr::kable(to_show)
+```
+
+</div>
+
+</section>
+<section class="center-horiz">
+<h2>Approximate Likelihood Ratio</h2>
+
+```{r approx_LR}
+pl_dat <- sim_res[[1]]$pl_dat
+par(mar = c(5, 5, 1, 1))
+with(pl_dat, {
+  plot(xs, p_log_Lik, pch = 16, bty = "l",
+       xlab = expression(paste("Association parameter, ", alpha[11])), 
+       ylab = "Approximate log profile likelihood")
+  grid()
+  smooth_est <- smooth.spline(xs, p_log_Lik)
+  lines(predict(smooth_est, seq(min(xs), max(xs), length.out = 100)))
+  abline(v = confs, lty = 3)
+  # TODO: hard coded
+  abline(v = associations[[1]][1], lty = 2)
+})
+```
+
+<div style = "text-align: left;">
+<p class = "smallish">
+Approximate log profile likelihood for one association 
+parameter with one data set. Dotted lines: 95% confidence interval limits 
+(`r pl_dat$confs[1]`, `r pl_dat$confs[2]`). Dashed line: true value.</p>
+</div>
+
+## Approximate Likelihood Ratio (cont.)
+
+<div class = "w-small">
+Coverage of an approximate 95% likelihood ratio based confidence interval is
+`r mean(sapply(sim_res, getElement, "covered")) * 100`%.
+<p class = "smallish">
+based on `r length(seeds)` data sets.</p> 
+</div>
+
+<p class = "fragment">
+The average computation time was 
+`r mean(sapply(sim_res, getElement, "pl_time")["elapsed", ])` seconds.
+</p>
+
+<p class = "fragment">
+Computationally efficient approximation Wald intervals can be implemented.</p>
+
+## Results
+
+```{r surv_fixef_stats}
+est_fixef_surv <- lapply(
+  sim_res, \(x) sapply(x$par$survival, `[[`, "fixef", 
+                       simplify = "array"))
+
+append_NA <- \(x){
+  handle_inner <- \(z){
+    lens <- lengths(z)
+    too_small <- lens < max(lens)
+    if(!any(too_small))
+      return(z)
+    z[too_small] <- 
+      lapply(z[too_small], \(v) c(v, rep(NA, max(lens) - length(v))))
+    simplify2array(z)
+  }
+  
+  if(!is.list(x[[1]]))
+    return(handle_inner(x))
+  
+  sapply(x, handle_inner, simplify = "array")
+}
+  
+est_fixef_surv <- append_NA(est_fixef_surv)
+bias_fixef_surv <- comp_bias(est_fixef_surv - c(append_NA(fixef_surv)))
+fmt_bias(bias_fixef_surv)
+```
+
+<p class = "smallish">
+Bias estimates for the fixed effects of the survival outcomes, 
+$\vec\delta_1$ and $\vec\delta_2$, are shown above.
+The SE columns are the standard errors. The true values are shown below.
+</p>
+
+```{r surv_fixef_true}
+to_show <- append_NA(fixef_surv)
+rownames(to_show) <- character(NROW(to_show))
+colnames(to_show) <- c("Terminal", "Observation")
+knitr::kable(to_show)
+```
+
+## Results
+
+```{r surv_vary_fixef_stats}
+est_fixef_vary_surv <- lapply(
+  sim_res, \(x) sapply(x$par$survival, `[[`, "fixef_vary", 
+                       simplify = "array"))
+
+append_NA <- \(x){
+  handle_inner <- \(z){
+    lens <- lengths(z)
+    too_small <- lens < max(lens)
+    if(!any(too_small))
+      return(z)
+    z[too_small] <- 
+      lapply(z[too_small], \(v) c(v, rep(NA, max(lens) - length(v))))
+    simplify2array(z)
+  }
+  
+  if(!is.list(x[[1]]))
+    return(handle_inner(x))
+  
+  sapply(x, handle_inner, simplify = "array")
+}
+  
+est_fixef_vary_surv <- append_NA(est_fixef_vary_surv)
+bias_fixef_vary_surv <- 
+  comp_bias(est_fixef_vary_surv - c(append_NA(fixef_vary_surv)))
+fmt_bias(bias_fixef_vary_surv)
+```
+
+<p class = "smallish">
+Bias estimates for the log baseline hazard of the survival outcomes, 
+$\vec\omega_1$ and $\vec\omega_2$, are shown above.
+The SE columns are the standard errors. The true values are shown below.
+</p>
+
+```{r surv_vary_fixef_true}
+to_show <- append_NA(fixef_vary_surv)
+rownames(to_show) <- character(NROW(to_show))
+colnames(to_show) <- c("Terminal", "Observation")
+knitr::kable(to_show)
+```
+
+## Results 
+
+```{r est_vcov_vary}
+est_vcov_vary <- sapply(sim_res, \(x) x$par$vcov$vcov_vary, simplify = "array")
+
+comp_bias_vcov <- \(est, truth){
+  truth[upper.tri(truth)] <- NA
+  comp_bias(est - c(truth))
+}
+
+fmt_bias_vcov <- \(x){
+  out <- cbind(x$bias, NA, x$se)
+  colnames(out) <- character(NCOL(out))
+  colnames(out)[c(1L, 2L + NCOL(x$bias))] <- c("Bias", "SE")
+  rownames(out) <- character(NROW(out))
+  knitr::kable(out, digits = 6)
+}
+
+fmt_bias_vcov(comp_bias_vcov(est_vcov_vary, vcov_vary))
+```
+
+<p class = "smallish">
+Bias estimates for the covariance matrix of the random effects, $\Psi$,
+are shown above. The last columns show the standard 
+errors. The true values are shown below.
+</p>
+
+```{r vcov_vary_true}
+to_show <- vcov_vary
+to_show[upper.tri(to_show)] <- NA
+rownames(to_show) <- character(NROW(to_show))
+colnames(to_show) <- c("True values", character(NCOL(to_show) - 1L))
+knitr::kable(to_show)
+```
+
+## Results 
+
+```{r est_vcov_marker}
+est_vcov_marker <- sapply(
+  sim_res, \(x) x$par$vcov$vcov_marker, simplify = "array")
+
+fmt_bias_vcov(comp_bias_vcov(est_vcov_marker, vcov_marker))
+```
+
+<p class = "smallish">
+Bias estimates for the covariance matrix of the markers' error term, $\Sigma$,
+are shown above. The last columns show the standard 
+errors. The true values are shown below.
+</p>
+
+```{r vcov_marker_true}
+to_show <- vcov_marker
+to_show[upper.tri(to_show)] <- NA
+rownames(to_show) <- character(NROW(to_show))
+colnames(to_show) <- c("True values", character(NCOL(to_show) - 1L))
+knitr::kable(to_show)
+```
+
+## Results 
+
+```{r est_vcov_surv}
+est_vcov_surv <- sapply(
+  sim_res, \(x) x$par$vcov$vcov_surv, simplify = "array")
+
+fmt_bias_vcov(comp_bias_vcov(est_vcov_surv, vcov_surv))
+```
+
+<p class = "smallish">
+Bias estimates for the covariance matrix of the frailties, $\Xi$,
+are shown above.  The last columns show the standard 
+errors. The rue values are shown below.
+</p>
+
+```{r vcov_surv_true}
+to_show <- vcov_surv
+to_show[upper.tri(to_show)] <- NA
+rownames(to_show) <- character(NROW(to_show))
+colnames(to_show) <- c("True values", character(NCOL(to_show) - 1L))
+knitr::kable(to_show)
+```
+
+## Details
+
+<p class = "smallish">
+$\vec g_1$ and $\vec m_1$ are natural cubic splines with boundary knots at 
+$(0, 10)$.  $\vec g_1$ has interior knots at $\{3.33,6.67\}$. The first marker 
+has a standard normally distrusted covariate.</p>
+
+<p class = "fragment smallish">
+$\vec g_2$ and $\vec m_2$ are polynomials without and with an intercept and 
+degree 2 and 1. The second marker has no covariates.</p>
+
+<p class = "fragment smallish">
+The terminal event has a B-spline basis with 
+boundary knots at $(0,10)$ and an interior knot at $5$. There is a 
+$\text{Unif}(-1, 1)$ covariate.</p>
+
+<p class = "fragment smallish">
+The observation process has a natural cubic spline with 
+boundary knots at $(0,10)$ and an interior knot at $5$. 
+There is no covariates.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Extensions and Conclusions</h1>
+<!--/html_preserve-->
+
+## Conclusions
+Introduced variational approximations.
+
+<p class = "fragment">
+Showed that they can yield fast estimates of joint survival and marker 
+models.</p>
+
+<p class = "fragment">
+Simulation studies suggest that the bias is low.</p>
+
+## Models
+Extension to competing events and multi-state models.
+
+<p class = "fragment">
+Time-varying covariate effects and interval censoring are simple extensions 
+mathematically but not implemented.
+</p>
+
+## Variational Approximations
+The lower bound requires 
+
+ - the entropy: $-E_{q^{(i)}_{\vec\theta}}(\log q^{(i)}_{\vec\theta}(\vec U))$.
+ - the first two moments: $E_{q^{(i)}_{\vec\theta}}(\vec U)$ and 
+   $E_{q^{(i)}_{\vec\theta}}(\vec U\vec U^\top)$. 
+ - the moment generating function: $E_{q^{(i)}_{\vec\theta}}(\exp(\vec t^\top\vec U))$.
+
+<div class = "fragment w-small">
+Other distributions also have reasonably easy expressions of these 
+quantities.
+<p class = "smallish">
+Extension will give tighter lower bounds but may take longer to 
+evaluate or be harder to optimize.</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="center final">
+<h1>Thank You!</h1>
+
+<div class="w-small">
+<p class="smallish">The presentation is at  
+<a href="https://rpubs.com/boennecd/MEB-VAJointSurv">rpubs.com/boennecd/MEB-VAJointSurv</a>.</p>
+<p class="smallish">The markdown is at  
+<a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
+<p class="smallish">The implementation is at 
+<a href="https://github.com/boennecd/VAJointSurv">github.com/boennecd/VAJointSurv</a>.</p>
+<p class="smallish">The psqn package is on CRAN and at 
+<a href="https://github.com/boennecd/psqn">github.com/boennecd/psqn</a>.</p>
+<p class="smallish">References are on the next slide.</p>
+</div>
+
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+<section>
+<h1>References</h1>
+
+<!--/html_preserve-->

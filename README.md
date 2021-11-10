@@ -1,3 +1,7 @@
+### MEB Group Meeting November 2021: Estimating Joint Survival and Marker Models with VAs
+[Code](/MEB-VAJointSurv/MEB-VAJointSurv.Rmd) and presentation at 
+[RPubs](https://rpubs.com/boennecd/MEB-VAJointSurv).
+
 ### KTH Group Meeting October 2021: Computational Concerns with Mixed Models
 [Code](/Comp-Mixed-Models/Comp-Mixed-Models.Rmd) and presentation at 
 [RPubs](https://rpubs.com/boennecd/Comp-Mixed-Models).
