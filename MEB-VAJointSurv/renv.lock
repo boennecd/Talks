@@ -95,8 +95,8 @@
       "RemoteRepo": "VAJointSurv",
       "RemoteUsername": "boennecd",
       "RemoteRef": "HEAD",
-      "RemoteSha": "d60679d1c6e6ffe41d6402b823930b7556a8ebf2",
-      "Hash": "7cd008defed0724f8785df3e56afab16"
+      "RemoteSha": "29b10be64c5a30bd112a0d071874ccdffb783558",
+      "Hash": "c7f9c67b8862e1734851360fa02601ee"
     },
     "askpass": {
       "Package": "askpass",
@@ -555,8 +555,8 @@
       "RemoteRepo": "psqn",
       "RemoteUsername": "boennecd",
       "RemoteRef": "HEAD",
-      "RemoteSha": "6e93b15b48bb7fd093096db9d1c150c47007c433",
-      "Hash": "85ddcc1d6730434b52d53da60ca8d14b"
+      "RemoteSha": "cfe01e40240b4eed5656119ed92ad605ddc48c3d",
+      "Hash": "eb38d542b1350a227e831ee0209c0d0e"
     },
     "quantreg": {
       "Package": "quantreg",
