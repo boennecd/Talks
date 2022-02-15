@@ -1,0 +1,13 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+sim-res/*
+!sim-res/simple-all
+sim-res/simple-all/*
+!sim-res/simple-all/*.placeholder
+!sim-res/sim-mult
+sim-res/sim-mult/*
+!sim-res/sim-mult/*.placeholder
+cache/*
+
