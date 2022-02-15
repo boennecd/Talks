@@ -521,7 +521,7 @@ document.getElementsByTagName('head')[0].appendChild(style);
 <h2>Research</h2>
 <p>Postdoc working for Keith Humphreys and Mark Clements from KI and Hedvig Kjellström from KTH.</p>
 <div class="fragment w-small">
-Work on applying Variational approximation in biostatistics.
+Work on applying variational approximations in biostatistics.
 <p class="smallish">
 Also done work with liability threshold models (the pedmod package) which may be of interest in the department.
 </p>
@@ -557,9 +557,9 @@ People with a worse health status may tend to have worse marker values <strong>a
 Leads to at least two time-to-event outcomes of interest.
 </p>
 </section>
-<section id="multilpe-markers" class="slide level2">
-<h2>Multilpe Markers</h2>
-<p>The population registers, laboratories and research questions seldomly leaves us with only one marker of interest.</p>
+<section id="multiple-markers" class="slide level2">
+<h2>Multiple Markers</h2>
+<p>The population registers and research questions seldomly leaves us with only one marker of interest.</p>
 </section>
 <section id="goal" class="slide level2">
 <h2>Goal</h2>
@@ -741,7 +741,7 @@ h_i(t\mid \vec U_i, \xi_i) &amp;= \exp\left(
 \end{align*}
 \]</span></p>
 <p class="fragment">
-Allows for non-proportional fixed and random effects.
+Allows for non-proportional effects.
 </p>
 </section>
 <section id="more-markers" class="slide level2">
@@ -910,7 +910,7 @@ as it is partially separable.
 <section id="the-psqn-package" class="slide level2">
 <h2>The psqn Package</h2>
 <div class="w-small">
-A BFGS approximation is made of the Hessian of each <span class="math inline">\(\tilde l_i\)</span>.
+A BFGS approximation is made of the Hessian of each lower bound term, <span class="math inline">\(\tilde l_i(\vec\zeta, \vec\theta_i)\)</span>.
 <p class="smallish">
 Can be combined to an approximation of the entire Hessian which is sparse.
 </p>
@@ -918,13 +918,13 @@ Can be combined to an approximation of the entire Hessian which is sparse.
 <div class="fragment w-small">
 The approximate Hessian is solved using conjugate gradient
 <p class="smallish">
-with a block diagonal preconditioner.
+with a block diagonal preconditioner in a Quasi-Newton algorithm.
 </p>
 </div>
 <div class="fragment w-small">
 The package is a header only C++ library.
 <p class="smallish">
-The method is embarrassingly parallel in all steps and this is exploited. The user just needs a thread-safe implementation of <span class="math inline">\(\tilde l_i\)</span> and its gradient.
+The method is embarrassingly parallel in all steps and this is exploited. The user just needs a thread-safe implementation of the lower bound terms and their gradients.
 </p>
 </div>
 <div class="fragment w-small">
@@ -1024,7 +1024,7 @@ Comparison with the Monte Carlo based joineRML package <span class="citation" da
 </p>
 </div>
 <p class="fragment">
-Simulation study to check the bias of the VA, the observed information matrix and the computation.
+Simulation study to check the bias of the VA and compare the observed information matrix and the computation time.
 </p>
 <p class="fragment">
 Simulation study with multivariate markers with both a terminal event and an informative observation process.
@@ -1099,7 +1099,7 @@ An average of 42.4% are censored.
 <th style="text-align: right;"><span class="math inline">\(\sigma^2_1\)</span></th>
 <th style="text-align: right;"><span class="math inline">\(\gamma_{11}\)</span></th>
 <th style="text-align: right;"><span class="math inline">\(\gamma_{12}\)</span></th>
-<th style="text-align: right;"><span class="math inline">\(\alpha_1\)</span></th>
+<th style="text-align: right;"><span class="math inline">\(\alpha_{11}\)</span></th>
 </tr>
 </thead>
 <tbody>
@@ -1304,9 +1304,6 @@ The observation times depend on random effects and an additional frailty.
 Thus, there were seven random effects per individual.
 </p>
 </div>
-<p class="fragment">
-35070 parameters in total.
-</p>
 </section>
 <section id="summary-statistics-1" class="slide level2">
 <h2>Summary Statistics</h2>
@@ -1316,6 +1313,9 @@ An average of 45.5% are censored.
 </p>
 <p class="fragment">
 1000 individuals per sample and 400 data sets.
+</p>
+<p class="fragment">
+35070 parameters in total.
 </p>
 </section>
 <section id="results-bias-coverage" class="slide level2">
@@ -1461,7 +1461,7 @@ At worst, we have to approximate many one dimensional integrals.
 </p>
 </div>
 <div class="fragment w-small">
-We already have an example of a mixed logistic regression with more than 20 times faster estimation times compared to the Laplace approximation in lme4
+We have an example of a mixed logistic regression with more than 20 times faster estimation times compared to the Laplace approximation in lme4
 <p class="smallish">
 with less bias and six dimensional random effects. The example is at <a href="https://github.com/boennecd/psqn-va-ex#6d-random-effects" class="uri">https://github.com/boennecd/psqn-va-ex#6d-random-effects</a>
 </p>
@@ -1472,7 +1472,7 @@ with less bias and six dimensional random effects. The example is at <a href="ht
 <div class="w-small">
 Other distributions also have reasonably easy expressions of the quantities in the lower bound.
 <p class="smallish">
-Extension will give tighter lower bounds but may take longer to evaluate or be harder to optimize. A reasonably tractable example is the skew normal distribution <span class="citation" data-cites="ormerod11">Ormerod (2011)</span>.
+A reasonably tractable example is the skew-normal distribution <span class="citation" data-cites="ormerod11">(Ormerod 2011)</span>. Extension will give tighter lower bounds but may take longer to evaluate or be harder to optimize.
 </p>
 </div>
 <p class="fragment">

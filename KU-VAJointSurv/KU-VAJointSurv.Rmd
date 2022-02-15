@@ -130,9 +130,9 @@ have more measurements.
 <p class = "fragment"> 
 Leads to at least two time-to-event outcomes of interest.</p>
 
-## Multilpe Markers
+## Multiple Markers
 
-The population registers, laboratories and research questions 
+The population registers and research questions 
 seldomly leaves us with only one marker of interest.
 
 ## Goal
@@ -480,7 +480,7 @@ h_i(t\mid \vec U_i, \xi_i) &= \exp\left(
 $$
 
 <p class = "fragment"> 
-Allows for non-proportional fixed and random effects.</p>
+Allows for non-proportional effects.</p>
 
 ## More Markers
 
@@ -660,15 +660,16 @@ as it is partially separable.
 
 ## The psqn Package
 <div class = "w-small">
-A BFGS approximation is made of the Hessian of each $\tilde l_i$. 
+A BFGS approximation is made of the Hessian of each lower bound term, 
+$\tilde l_i(\vec\zeta, \vec\theta_i)$. 
 <p class = "smallish"> 
 Can be combined to an approximation of the entire Hessian which is sparse.</p>
 </div>
 
 <div class = "fragment w-small"> 
-The approximate Hessian is solved using conjugate gradient 
+The approximate Hessian is solved using conjugate gradient
 <p class = "smallish">
-with a block diagonal preconditioner.</p>
+with a block diagonal preconditioner in a Quasi-Newton algorithm.</p>
 </div>
 
 <div class = "fragment w-small"> 
@@ -676,8 +677,8 @@ The package is a header only C++ library.
 <p class = "smallish">
 The method is embarrassingly parallel
 in all steps and this is exploited.
-The user just needs a thread-safe implementation of $\tilde l_i$ and its 
-gradient.</p></div>
+The user just needs a thread-safe implementation of the 
+lower bound terms and their gradients.</p></div>
 
 <div class = "fragment w-small">
 Applicable to many VAs for clustered data.
@@ -782,8 +783,8 @@ quadrature based JM package [@Rizopoulos10].
 </div>
 
 <p class = "fragment">
-Simulation study to check the bias of the VA, the observed information matrix 
-and the computation.</p>
+Simulation study to check the bias of the VA and compare 
+the observed information matrix and the computation time.</p>
 
 <p class = "fragment">
 Simulation study with multivariate markers with both a terminal event and 
@@ -1335,7 +1336,7 @@ comp <- rbind(c(truth, NA_real_), bias_est, SE)
 colnames(comp) <- c(
   "$\\beta_{11}$", "$\\beta_{12}$", "$\\sigma^2_1$", "$\\gamma_{11}$",
   "$\\gamma_{12}$",
-  "$\\alpha_1$", "$\\lVert\\widehat{\\mat\\Psi} - \\mat\\Psi\\rVert$")
+  "$\\alpha_{11}$", "$\\lVert\\widehat{\\mat\\Psi} - \\mat\\Psi\\rVert$")
 
 # add the computation time
 cmp_time <- sapply(simples_sim_res,
@@ -1852,9 +1853,6 @@ frailty.
 <p class = "smallish">
 Thus, there were seven random effects per individual.</p></div>
 
-<p class = "fragment">
-`r n_params_total` parameters in total.</p>
-
 ## Summary Statistics
 
 ```{r second_sum_stats, cache = 1}
@@ -1875,7 +1873,10 @@ individual (SD `r round(n_obs_marker["sd"], 2)`).
 An average of `r round((1- frac_surv_obs) * 100, 1)`% are censored.</p>
 
 <p class = "fragment"> 
-`r n_obs` individuals per sample and `r length(seeds_400)` data sets.</p> 
+`r n_obs` individuals per sample and `r length(seeds_400)` data sets.</p>
+
+<p class = "fragment">
+`r n_params_total` parameters in total.</p>
 
 ## Results: Bias & Coverage
 
@@ -2123,9 +2124,10 @@ https://github.com/boennecd/psqn-va-ex#6d-random-effects
 Other distributions also have reasonably easy expressions of the quantities
 in the lower bound.
 <p class = "smallish">
+A reasonably tractable example is 
+the skew-normal distribution [@ormerod11].
 Extension will give tighter lower bounds but may take longer to 
-evaluate or be harder to optimize. A reasonably tractable example is 
-the skew normal distribution @ormerod11.</p>
+evaluate or be harder to optimize.</p>
 </div>
 
 <p class = "fragment">
