@@ -527,12 +527,12 @@ Also done work with liability threshold models (the pedmod package) which may be
 </p>
 </div>
 <p class="fragment">
-Present work which I and Birzhan Akynkozhayev, a new Ph.d. student of Mark Clements, are working on.
+Present work which I and Birzhan Akynkozhayev, a new PhD student of Mark Clements, are working on.
 </p>
 </section>
 <section id="example" class="slide level2">
 <h2>Example</h2>
-<p>How is higher than normal breast density and other variables related to breast cancer?</p>
+<p>Quantify association between breast cancer and breast density and other variables.</p>
 <div class="fragment">
 <p>Is the risk related to</p>
 <ul>
@@ -559,7 +559,7 @@ Leads to at least two time-to-event outcomes of interest.
 </section>
 <section id="multiple-markers" class="slide level2">
 <h2>Multiple Markers</h2>
-<p>The population registers and research questions seldomly leaves us with only one marker of interest.</p>
+<p>The population registers and research questions seldom leaves us with only one marker of interest.</p>
 </section>
 <section id="goal" class="slide level2">
 <h2>Goal</h2>
@@ -578,6 +578,9 @@ Supports delayed entry.
 Is scalable and fast.
 </li>
 </ol>
+<p class="fragment">
+We are not aware of any software that that satisfy all four.
+</p>
 
 </section>
 <!-- need extra end tag before next section -->
@@ -946,6 +949,15 @@ Allows us to iterate very quickly with different models.
 We use a multivariate normal distribution.
 <p class="smallish">
 All are tractable; Only have to do 1D quadrature for the approximate expected cumulative hazard. Very fast with Gauss–Legendre quadrature.
+</p>
+</div>
+</section>
+<section id="motivating-the-variational-distribution" class="slide level2">
+<h2>Motivating the Variational Distribution</h2>
+<div class="w-small">
+The conditional density of the random effects is multivariate normal distributed without the survival outcomes.
+<p class="smallish">
+The conditional distribution may be well approximated by a normal distribution.
 </p>
 </div>
 </section>
@@ -1433,6 +1445,13 @@ Showed that they can yield fast estimates of joint survival and marker models.
 </p>
 <p class="fragment">
 Simulation studies suggest that the bias is low if present at all.
+</p>
+</section>
+<section id="applications" class="slide level2">
+<h2>Applications</h2>
+<p>Breast cancer and markers including breast density.</p>
+<p class="fragment">
+TODO: something on chronic kidney disease.
 </p>
 </section>
 <section id="delayed-entry" class="slide level2">

@@ -545,6 +545,13 @@
       "Repository": "CRAN",
       "Hash": "41287f1ac7d28a92f0a286ed507928d3"
     },
+    "markdown": {
+      "Package": "markdown",
+      "Version": "1.1",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "61e4a10781dd00d7d81dd06ca9b94e95"
+    },
     "matrixStats": {
       "Package": "matrixStats",
       "Version": "0.61.0",
@@ -565,6 +572,13 @@
       "Source": "Repository",
       "Repository": "CRAN",
       "Hash": "be3c61ffbb1e3d3b3df214d192ac5444"
+    },
+    "mime": {
+      "Package": "mime",
+      "Version": "0.12",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "18e9c28c1d3ca1560ce30658b22ce104"
     },
     "minqa": {
       "Package": "minqa",
@@ -767,6 +781,13 @@
       "Repository": "CRAN",
       "Hash": "bb5996d0bd962d214a11140d77589917"
     },
+    "revealjs": {
+      "Package": "revealjs",
+      "Version": "0.9",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Hash": "08e30caa337e6d335d83df1a05d5b9f3"
+    },
     "rlang": {
       "Package": "rlang",
       "Version": "0.4.12",
@@ -790,10 +811,10 @@
     },
     "rpart": {
       "Package": "rpart",
-      "Version": "4.1-15",
+      "Version": "4.1.16",
       "Source": "Repository",
       "Repository": "CRAN",
-      "Hash": "9787c1fcb680e655d062e7611cadf78e"
+      "Hash": "ea3ca1d9473daabb3cd0f1b4f974c1ed"
     },
     "rprojroot": {
       "Package": "rprojroot",

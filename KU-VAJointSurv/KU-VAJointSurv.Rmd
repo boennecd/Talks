@@ -96,14 +96,13 @@ be of interest in the department.</p>
 </div>
 
 <p class = "fragment">
-Present work which I and Birzhan Akynkozhayev, a new Ph.d. student of Mark 
+Present work which I and Birzhan Akynkozhayev, a new PhD student of Mark 
 Clements, are working on.
 </p>
 
 ## Example
-
-How is higher than normal breast density and other variables related 
-to breast cancer? 
+Quantify association between breast cancer and breast density and other 
+variables.
 
 <div class = "fragment">
 Is the risk related to
@@ -133,7 +132,7 @@ Leads to at least two time-to-event outcomes of interest.</p>
 ## Multiple Markers
 
 The population registers and research questions 
-seldomly leaves us with only one marker of interest.
+seldom leaves us with only one marker of interest.
 
 ## Goal
 
@@ -147,6 +146,9 @@ Have a method and implementation that
  <li class = "fragment">Is scalable and fast.</li>
  
 </ol>
+
+<p class = "fragment">
+We are not aware of any software that that satisfy all four.</p>
  
 <!--html_preserve-->
 </section>
@@ -365,7 +367,7 @@ A higher level at any given point may lead to higher/lower risk.</p>
 
 </section>
 <section class="center-horiz" data-transition="fade-in fade-out">
-<h2>Relation to Markers: Derivative</h2>
+<h2>Relation to Markers: Slope</h2>
 
 ```{r der_haz_relation, fig.height=knitr::opts_chunk$get("fig.height") * .67}
 pop_mean <- g_func(xs) %*% fixef_vary_marker
@@ -394,7 +396,7 @@ invisible(mapply(plot_slope, do_grad_points, grad_points_y, g1, col = "gray40"))
 invisible(mapply(plot_slope, do_grad_points, grad_points_y, g2, col = "black"))
 
 plot(xs, rng_part, type = "l", bty = "l", ylim = range(0, rng_part), 
-     xlab = "Time", ylab = "Derivative of deviation")
+     xlab = "Time", ylab = "Slope deviation")
 grid()
 ```
 
@@ -530,7 +532,7 @@ $$\vec\mu_i(s_{ij}, \vec U_i) = X_i(s_{ij})\vec\beta + M_i(s_{ij})\vec U_i.$$
 
 ## More Survival Types
 
-We may have $H$ different survival types rather than one 
+We may have $E$ different survival types rather than one 
 
 $$
 \begin{align*}
@@ -539,7 +541,7 @@ h_{i1}(t\mid \vec U_i, \vec\xi_i) &= \exp\left(
   \vec\alpha_1^\top M_i(t)\vec U_i + \xi_{i1}
   \right) \\
 \vdots &\hphantom{=}\vdots \\
-h_{iH}(t\mid \vec U_i,\vec \xi_i) &= \exp\left(  
+h_{iE}(t\mid \vec U_i,\vec \xi_i) &= \exp\left(  
   \vec z_{iE}(t)^\top\vec\gamma_E + 
   \vec\alpha_E^\top M_i(t)\vec U_i + \xi_{iE}
   \right) \\
@@ -673,7 +675,7 @@ with a block diagonal preconditioner in a Quasi-Newton algorithm.</p>
 </div>
 
 <div class = "fragment w-small"> 
-The package is a header only C++ library.
+The package is a C++ library (with an R interface).
 <p class = "smallish">
 The method is embarrassingly parallel
 in all steps and this is exploited.
@@ -700,6 +702,14 @@ We use a multivariate normal distribution.
 All are tractable; Only have to do 1D quadrature for the approximate 
 expected cumulative hazard. Very fast with Gauss–Legendre quadrature.</p>
 </div>
+
+## Motivating the Variational Distribution
+<div class = "w-small">
+The conditional density of the random effects is multivariate normal 
+distributed without the survival outcomes.
+<p class = "smallish">
+The conditional distribution may be well approximated by a normal 
+distribution.</p></div>
 
 ## The Observed Information Matrix
 
@@ -1848,7 +1858,7 @@ The correlation of intercept part of the two random splines was set to
 `r cor_inter`.</p>
 
 <div class = "fragment w-small">
-The observation times depend on random effects and an additional 
+The observation times depend on the random effects and an additional 
 frailty.
 <p class = "smallish">
 Thus, there were seven random effects per individual.</p></div>
@@ -2084,6 +2094,13 @@ models.</p>
 <p class = "fragment">
 Simulation studies suggest that the bias is low if present at all.</p>
 
+## Applications
+
+Breast cancer and markers including breast density. 
+
+<p class = "fragment"> 
+TODO: something on chronic kidney disease.</p>
+
 ## Delayed Entry 
 
 Delayed entry yields another integral that needs to be approximated. 
@@ -2125,7 +2142,7 @@ Other distributions also have reasonably easy expressions of the quantities
 in the lower bound.
 <p class = "smallish">
 A reasonably tractable example is 
-the skew-normal distribution [@ormerod11].
+the multivariate skew-normal distribution [@ormerod11].
 Extension will give tighter lower bounds but may take longer to 
 evaluate or be harder to optimize.</p>
 </div>
