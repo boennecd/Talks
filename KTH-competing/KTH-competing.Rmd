@@ -201,6 +201,24 @@ F_{jk}(t) =
   \underbrace{P(\epsilon_j^* = k)}_{\text{risk}}.
 $$
 
+## Model (Cont.)
+
+Issue 
+$$\lim_{t\rightarrow \infty} F_{jk}(t) = P(\epsilon_j^* = k).$$
+
+Pick a $\tau$ and use
+
+$$
+F_{jk}(t) = P(T_j^*\leq t \mid T_j^*\leq \tau, \epsilon_j^* = k)
+  P(T_j^* \leq \tau, \epsilon_j^* = k).
+$$
+
+<div class = "fragment">
+Thus, 
+$$F_{jk}(\tau) = P(T_j^* \leq \tau, \epsilon_j^* = k).$$
+
+</div>
+
 </section>
 <section class="center-horiz">
 <h2>Model (Cont.)</h2>
@@ -237,30 +255,13 @@ local({
     grid()
     
     abline(h = max(vals), lty = 2)
-    text(1.75, max(vals) + .06, labels = bquote(P(epsilon[j]^"*" == .(i))))
+    text(1.5, max(vals) + .06, 
+         labels = bquote(P(T[j]^"*" <= tau, epsilon[j]^"*" == .(i))))
     
     axis(1, c(0, 2), labels = c(0, expression(tau)))
   }
 })
 ```
-
-## Model (Cont.)
-
-Issue 
-$$\lim_{t\rightarrow \infty} F_{jk}(t) = P(\epsilon_j^* = k).$$
-
-Pick a $\tau$ and use
-
-$$
-F_{jk}(t) = P(T_j^*\leq t \mid T_j^*\leq \tau, \epsilon_j^* = k)
-  P(T_j^* \leq \tau, \epsilon_j^* = k).
-$$
-
-<div class = "fragment">
-Thus, 
-$$F_{jk}(\tau) = P(T_j^* \leq \tau, \epsilon_j^* = k).$$
-
-</div>
 
 ## Model: Risk
 
