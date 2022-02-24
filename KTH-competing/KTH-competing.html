@@ -607,7 +607,7 @@ The probability is the same or larger if we wait longer.
 <div class="fragment">
 <p><span class="math display">\[
 F_j(t) = P(T_j^*\leq t) = \sum_{k = 1}^KF_{jk}(t).
-\]</span> We usually assume <span class="math inline">\(\lim_{t \rightarrow\infty} F_j(t) = 1\)</span>. Moreover, for interesting examples, <span class="math inline">\(F_{jk}(t) &lt; F_j(t) = 1\)</span>.</p>
+\]</span> We usually assume <span class="math inline">\(\lim_{t \rightarrow\infty} F_j(t) = 1\)</span>. Moreover, for interesting examples, <span class="math inline">\(\lim_{t\rightarrow\infty}F_{jk}(t) &lt; \lim_{t\rightarrow\infty} F_j(t) = 1\)</span>.</p>
 </div>
 </section>
 <section id="cumulative-incidence-properties-1" class="slide level2">
@@ -763,7 +763,7 @@ F_{ijk}(t \mid\vec u_i) &amp;= \Phi(a_k(t) - \vec x_{ij}^\top\vec\gamma_k)\pi_{k
 </p>
 </section>
 <section id="random-effect-for-the-trajectory" class="slide level2">
-<h2>Random effect for the Trajectory</h2>
+<h2>Random Effect for the Trajectory</h2>
 <p>Let <span class="math inline">\(\vec \eta_i\sim N^{(K)}(\vec 0, \mat\Sigma_{22})\)</span> be an unobserved random effect which affects the trajectory part.</p>
 <div class="fragment">
 <p><span class="math display">\[

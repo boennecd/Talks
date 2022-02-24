@@ -178,7 +178,8 @@ $$
 F_j(t) = P(T_j^*\leq t) = \sum_{k = 1}^KF_{jk}(t).
 $$
 We usually assume $\lim_{t \rightarrow\infty} F_j(t) = 1$. 
-Moreover, for interesting examples, $F_{jk}(t) < F_j(t) = 1$.
+Moreover, for interesting examples, 
+$\lim_{t\rightarrow\infty}F_{jk}(t) < \lim_{t\rightarrow\infty} F_j(t) = 1$.
 </div>
 
 ## Cumulative Incidence Properties
@@ -393,7 +394,7 @@ $$
 $u_{ik}$ makes cause $k$ more likely all else being equal. 
 </p>
 
-## Random effect for the Trajectory
+## Random Effect for the Trajectory
 
 Let $\vec \eta_i\sim N^{(K)}(\vec 0, \mat\Sigma_{22})$ be an unobserved random 
 effect which affects the trajectory part.
