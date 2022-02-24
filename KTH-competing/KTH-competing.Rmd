@@ -163,7 +163,6 @@ $$
 ## Cumulative Incidence Properties
 
 To recall 
-
 $$
 F_{jk}(t) = P(T_j^*\leq t, \epsilon_j^* = k).
 $$
@@ -185,13 +184,11 @@ Moreover, for interesting examples, $F_{jk}(t) < F_j(t) = 1$.
 ## Cumulative Incidence Properties
 
 To recall 
-
 $$
 F_{jk}(t) = P(T_j^*\leq t, \epsilon_j^* = k).
 $$
 
 So 
-
 $$\lim_{t\rightarrow \infty} F_{jk}(t) = P(\epsilon_j^* = k).$$
 
 ## Model 
@@ -204,14 +201,52 @@ F_{jk}(t) =
   \underbrace{P(\epsilon_j^* = k)}_{\text{risk}}.
 $$
 
-## Model (Cont.)
+</section>
+<section class="center-horiz">
+<h2>Model (Cont.)</h2>
 
-TODO: plot
+```{r illustration, fig.height = knitr::opts_chunk$get("fig.width") * 2 / 5}
+# assign model parameters
+n_causes <- 2L
+delta <- 2
+
+# set the betas
+coef_risk <- c(.67, 1, .1, -.4, .25, .3) |> 
+  matrix(ncol = n_causes)
+
+# set the gammas
+coef_traject <- c(-.8, -.45, .8, .4, -1.2, .15, .25, -.2) |> 
+  matrix(ncol = n_causes)
+
+# plot the conditional cumulative incidences when random effects and covariates
+# are all zero
+local({
+  probs <- exp(coef_risk[1, ]) / (1 + sum(exp(coef_risk[1, ])))
+  par(mar = c(4, 5, 1, 1), mfcol = c(1, 2), cex = .8, mgp = c(2, 1, 0))
+  xs <- seq(0, 2, length.out = 1000)
+  
+  for(i in 1:2){
+    vals <- sapply(xs, \(x) probs[i] * pnorm(
+      -coef_traject[1, i] * atanh((x - delta / 2) / (delta / 2)) - 
+        coef_traject[2, i]))
+    plot(
+      xs, vals, xlim = c(1e-8, delta), ylim = c(0, 1), bty = "l",  
+      xlab = "Time", type = "l",
+      ylab = bquote(F[paste("j", .(i))](t) == P(T[j]^"*" <= t, epsilon[j]^"*" == .(i))),
+      yaxs = "i", xaxs = "i", xaxt='n')
+    grid()
+    
+    abline(h = max(vals), lty = 2)
+    text(1.75, max(vals) + .06, labels = bquote(P(epsilon[j]^"*" == .(i))))
+    
+    axis(1, c(0, 2), labels = c(0, expression(tau)))
+  }
+})
+```
 
 ## Model (Cont.)
 
 Issue 
-
 $$\lim_{t\rightarrow \infty} F_{jk}(t) = P(\epsilon_j^* = k).$$
 
 Pick a $\tau$ and use
@@ -413,7 +448,11 @@ Cover the conditional likelihood.
 Cover the pairwise composite likelihood.</p>
 
 ## Conditional Likelihood
-Let $T_{ij}$ be the observed (last follow up or event time $T_{ij}^*$).
+<div class = "w-small">
+Let $T_{ij}$ be the observed time.
+<p class = "smallish">
+Last follow up or event time $T_{ij}^*$, whichever comes first.
+</p></div>
 
 <p class = "fragment"> 
 Let $\epsilon_{ij} = 1_{\{T_i = T_{ij}^*\}}\epsilon_{ij}^* \in\{0,\dots,K\}$  be the observed cause indicator. 
@@ -504,7 +543,7 @@ $$
   E\left(l_{ij_1}(\vec U_i,\vec\eta_i)l_{ij_2}(\vec U_i,\vec\eta_i)\right).
 $$
 <p class = "smallish">
-See @Varin11 for an overview on composite likelihood.</p></div>
+See @Varin11 for an overview of composite likelihood.</p></div>
 
 <div class = "fragment w-small">
 Now $\bigO{m_i^2b^{2K}K^3}$! 
@@ -515,6 +554,13 @@ Each term is though easier to compute.</p>
 <p class = "fragment">
 But for the particular model, we can compute it in 
 $\bigO{m_i^2b^KK^4}$ [@Cederkvist19].</p>
+
+## Implementation 
+Made a new and faster implementation in the mmcif package. 
+
+<p class = "fragment">
+The composite likelihood term is a bit tedious to implement with 
+$3^2 - 2 = 7$ types of composite likelihood terms.</p>
 
 <!--html_preserve-->
 </section>

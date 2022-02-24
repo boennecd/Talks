@@ -1,6 +1,12 @@
+<!---
 ### KU Seminar 2022: Joint Models with Multiple Markers and Multiple Time-to-event Outcomes Using Variational Approximations
 [Code](/MEB-VAJointSurv/KU-VAJointSurv.Rmd) and presentation at 
 [RPubs](https://rpubs.com/boennecd/KU-VAJointSurv).
+-->
+
+### KTH Group Meeting February 2022: Mixed Competing Risk Models
+[Code](/KTH-competing/KTH-competing.Rmd) and presentation at 
+[RPubs](https://rpubs.com/boennecd/KTH-competing).
 
 ### MEB Group Meeting November 2021: Estimating Joint Survival and Marker Models with VAs
 [Code](/MEB-VAJointSurv/MEB-VAJointSurv.Rmd) and presentation at 

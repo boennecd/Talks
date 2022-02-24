@@ -10,4 +10,5 @@ sim-res/simple-all/*
 sim-res/sim-mult/*
 !sim-res/sim-mult/*.placeholder
 cache/*
+rsconnect/*
 
