@@ -1,0 +1,547 @@
+---
+title: "Mixed Competing Risk Models"
+bibliography: ref.bib
+biblio-style: apa
+output: 
+  revealjs::revealjs_presentation:
+    css: styles.css
+    theme: black
+    center: false
+    transition: slide
+    highlight: monochrome
+    self_contained: true
+    reveal_options:
+      slideNumber: true
+    includes:
+      in_header: header.html
+      after_body: doc_suffix.html
+---
+
+## dummy slide
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.height = 5, cache.path = "cache/", 
+                      message = FALSE, error = FALSE, warning = FALSE)
+.par_use <- list(cex = 1.33, cex.lab = 1.2)
+options(digits = 3, knitr.kable.NA = '')
+```
+
+<!--html_preserve-->
+<script>
+(function() {
+  document.getElementById("dummy-slide").remove(); 
+  
+  var front_div = document.getElementsByTagName("section")[0];
+  front_div.classList.add("front");
+  front_div.classList.add("center");
+  
+  // conference/where this is at
+  var where_at = document.createElement("p");
+  var where_at_text = document.createElement("i");
+  var node = document.createTextNode("KTH group Meeting 2022");
+  where_at_text.appendChild(node);
+  where_at.appendChild(where_at_text);
+  where_at.style.margin = "0.1em";
+  where_at.style.fontSize = "75%";
+  front_div.appendChild(where_at);
+  
+  // add author 
+  var credit_div = document.createElement('div');
+  credit_div.innerHTML += "<div class='w-small'><p>Benjamin Christoffersen</p><p class='smallish'>KI, Department of Medical Epidemiology and Biostatistics, <a href='mailto:benjamin.christoffersen@ki.se'>benjamin.christoffersen@ki.se</a></p><p class='smallish'>KTH, Division of Robotics, Perception and Learning, <a href='mailto:benchr@kth.se'>benchr@kth.se</a></p></div>";
+  credit_div.classList.add("authors");
+  front_div.appendChild(credit_div);
+})();
+</script>
+<!--end dummy slide-->
+
+</section>
+
+<section>
+<section class="large-first center slide level2">
+<h1>Introduction</h1>
+<!--/html_preserve-->
+
+<div style="display: none;">
+$$
+\renewcommand\vec{\boldsymbol}
+\def\bigO#1{\mathcal{O}(#1)}
+\def\Cond#1#2{\left(#1\,\middle|\, #2\right)}
+\def\mat#1{\boldsymbol{#1}}
+\def\der{{\mathop{}\!\mathrm{d}}}
+\def\argmax{\text{arg}\,\text{max}}
+\def\Prob{\text{P}}
+\def\Expec{\text{E}}
+\def\logit{\text{logit}}
+\def\diag{\text{diag}}
+$$
+</div>
+
+## Survival Analysis
+<div class = "w-small"> 
+Many examples are not binary but has a time aspect to them. 
+<p class = "smallish">
+Buying a given product, terminating a subscription, or getting a new job.</p>
+</div>
+
+<div class = "w-small fragment">
+Interested in the distribution of the time till an event
+<p class = "smallish"> 
+and therefore also for models for the probability of an event occurring over 
+some interval given that it is has not occurred yet.</p>
+</div>
+
+<p class = "fragment"> 
+Example: first diagnosis of cancer.</p>
+
+<div class = "fragment w-small"> 
+Have to account for missing event times due to censoring.
+<p class = "smallish">
+Incomplete follow-up. E.g. end of follow-up or death.</p></div>
+
+## Competing Risk
+<div class = "w-small">
+May have competing risk. 
+<p class = "smallish">
+First diagnosed with breast cancer, colon cancer, kidney cancer, etc.</p>
+</div>
+
+<p class = "fragment w-small"> 
+Still have to account for missing event times due to censoring.
+</p>
+
+## Mixed Competing Risk
+
+Do related individuals tend to have the same type of cancer?
+
+<p class = "fragment"> 
+Do related individuals tend to have early or later onset of a given type of 
+cancer given that they get it?</p>
+
+<p class = "fragment"> 
+Do related individuals who tend to have the same type of cancer and 
+also tend to have earlier or later onset?
+</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Competing Risk</h1>
+<!--/html_preserve-->
+
+## Comments
+<div class = "w-small">
+We focus on a particular type of competing risk models. 
+<p class = "smallish">
+Others exist and some more common models exist!</p></div>
+
+## Cumulative Incidence
+<div class = "w-small">
+There are $K$ competing risks. Let $\epsilon_j^*\in\{1,\dots,K\}$ be the 
+cause indicator. 
+<p class = "smallish"> 
+$j = 1,\dots,m$ observations.
+</div>
+
+<p class = "fragment">
+Let $T_j^*$ be the event time of cause $\epsilon_j^*$.</p>
+
+<div class = "fragment">
+We are interested in the cumulative incidence function 
+
+$$
+F_{jk}(t) = P(T_j^*\leq t, \epsilon_j^* = k).
+$$
+
+</div>
+
+## Cumulative Incidence Properties
+
+To recall 
+
+$$
+F_{jk}(t) = P(T_j^*\leq t, \epsilon_j^* = k).
+$$
+
+<div class = "fragment w-small">
+$F_{jk}(t)$ must be monotonic.
+<p class = "smallish"> 
+The probability is the same or larger if we wait longer.</p>
+</div>
+
+<div class = "fragment">
+$$
+F_j(t) = P(T_j^*\leq t) = \sum_{k = 1}^KF_{jk}(t).
+$$
+We usually assume $\lim_{t \rightarrow\infty} F_j(t) = 1$. 
+Moreover, for interesting examples, $F_{jk}(t) < F_j(t) = 1$.
+</div>
+
+## Cumulative Incidence Properties
+
+To recall 
+
+$$
+F_{jk}(t) = P(T_j^*\leq t, \epsilon_j^* = k).
+$$
+
+So 
+
+$$\lim_{t\rightarrow \infty} F_{jk}(t) = P(\epsilon_j^* = k).$$
+
+## Model 
+
+Decompose $F_{jk}(t)$ into 
+
+$$
+F_{jk}(t) = 
+  \underbrace{P(T_j^*\leq t \mid \epsilon_j^* = k)}_{\text{trajectory}}
+  \underbrace{P(\epsilon_j^* = k)}_{\text{risk}}.
+$$
+
+## Model (Cont.)
+
+TODO: plot
+
+## Model (Cont.)
+
+Issue 
+
+$$\lim_{t\rightarrow \infty} F_{jk}(t) = P(\epsilon_j^* = k).$$
+
+Pick a $\tau$ and use
+
+$$
+F_{jk}(t) = P(T_j^*\leq t \mid T_j^*\leq \tau, \epsilon_j^* = k)
+  P(T_j^* \leq \tau, \epsilon_j^* = k).
+$$
+
+<div class = "fragment">
+Thus, 
+$$F_{jk}(\tau) = P(T_j^* \leq \tau, \epsilon_j^* = k).$$
+
+</div>
+
+## Model: Risk
+
+Have covariates $\vec x_j$ which the cumulative incidence function may 
+depend on. 
+
+<div class = "fragment">
+Set
+$$
+P(T_j^* \leq \tau, \epsilon_j^* = k) = \pi_{k}(\vec x_j) =  
+  \frac{\exp(\vec x_j^\top\vec\beta_k)}
+       {1 + \sum_{l=1}^K\exp(\vec x_j^\top\vec\beta_l)}.
+$$
+
+</div>
+
+<p class = "fragment"> 
+Can use other multinomial models.</p>
+
+## Model: Trajectory
+
+$$
+\begin{align*}
+P(T_j^*\leq 0 \mid T_j^*\leq \tau, \epsilon_j^* = k) = 0 \\
+P(T_j^*\leq \tau \mid T_j^*\leq \tau, \epsilon_j^* = k) = 1
+\end{align*}
+$$
+
+<div class = "fragment">
+Take a cumulative distribution function $G$ with support on $\mathbb R$ 
+and use
+
+$$
+P(T_j^*\leq t \mid T_j^*\leq \tau, \epsilon_j^* = k) = 
+  G(a_k(t) - \vec x_j^\top\vec\gamma_k)
+$$
+
+<div class = "w-small">
+for some $a_k:\,(0,\tau)\rightarrow\mathbb R$
+<p class = "smallish"> 
+which is monotonic and increasing. Can be estimated with a constrained 
+spline.</div></p>
+</div>
+
+## Model: Combined
+<div class = "w-small">
+Set $G$ to be the normal distribution cumulative density function $\Phi$.
+<p class = "smallish"> 
+Gives some computational advantages later.</p></div>
+
+<div class = "fragment">
+The model is
+$$
+\begin{align*}
+F_{jk}(t) &= \underbrace{P(T_j^*\leq t \mid \epsilon_j^* = k)}_{\text{trajectory}}
+  \underbrace{P(\epsilon_j^* = k)}_{\text{risk}} \\
+&= \Phi(a_k(t) - \vec x_j^\top\vec\gamma_k)\pi_{k}(\vec x_j)\\
+\pi_{k}(\vec x_j) &=  
+  \frac{\exp(\vec x_j^\top\vec\beta_k)}
+       {1 + \sum_{l=1}^K\exp(\vec x_j^\top\vec\beta_l)}.
+\end{align*}
+$$
+</div>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Mixed Competing Risk</h1>
+<!--/html_preserve-->
+
+## Introduction
+
+Families may tend to have jointly higher or lower risk for some cause. 
+
+<p class = "fragment"> 
+Families may tend to have early or later onset given that they get a cause.</p>
+
+<p class = "fragment"> 
+Families in which they tend to get a certain cause may also tend to 
+get the cause earlier or later.</p>
+
+## Notation 
+
+<div class = "w-small">
+We have $n$ cluster.
+<p class = "smallish">
+Think families.</p></div>
+
+<p class = "fragment">
+Each have $j = 1,\dots,m_i$ observations.</p> 
+
+<div class = "fragment">
+The cumulative incidence functions becomes
+
+$$
+\begin{align*}
+F_{ijk}(t) &= \Phi(a_k(t) - \vec x_{ij}^\top\vec\gamma_k)\pi_{k}(\vec x_{ij})\\
+\pi_{k}(\vec x_{ij}) &=  
+  \frac{\exp(\vec x_{ij}^\top\vec\beta_k)}
+       {1 + \sum_{l=1}^K\exp(\vec x_{ij}^\top\vec\beta_l)}.
+\end{align*}
+$$
+
+</div>
+
+## Random Effect for the Risk
+
+Let $\vec U_i\sim N^{(K)}(\vec 0, \mat\Sigma_{11})$ be unobserved random 
+effects which affects the risk part. 
+
+<div class = "fragment">
+$$
+\begin{align*}
+F_{ijk}(t \mid\vec u_i) &= \Phi(a_k(t) - \vec x_{ij}^\top\vec\gamma_k)\pi_{k}(\vec x_{ij}, \vec u_i)\\
+\pi_{k}(\vec x_{ij}, \vec u_i) &=  
+  \frac{\exp(\vec x_{ij}^\top\vec\beta_k + u_{ik})}
+       {1 + \sum_{l=1}^K\exp(\vec x_{ij}^\top\vec\beta_l + u_{il})}.
+\end{align*}
+$$
+</div>
+
+<p class = "fragment">
+$u_{ik}$ makes cause $k$ more likely all else being equal. 
+</p>
+
+## Random effect for the Trajectory
+
+Let $\vec \eta_i\sim N^{(K)}(\vec 0, \mat\Sigma_{22})$ be an unobserved random 
+effect which affects the trajectory part.
+
+<div class = "fragment">
+$$
+\begin{align*}
+F_{ijk}(t \mid\vec u_i,\vec\eta_i) &= \Phi(a_k(t) - \vec x_{ij}^\top\vec\gamma_k -\eta_{ik})\pi_{k}(\vec x_{ij}, \vec u_i)\\
+\pi_{k}(\vec x_{ij}, \vec u_i) &=  
+  \frac{\exp(\vec x_{ij}^\top\vec\beta_k + u_{ik})}
+       {1 + \sum_{l=1}^K\exp(\vec x_{ij}^\top\vec\beta_l + u_{il})}.
+\end{align*}
+$$
+</div>
+
+<p class = "fragment">
+A higher $\eta_{ik}$ makes it more likely that cause $k$ happens later 
+given that it happens.</p>
+
+
+## Dependence Between Random Effects
+
+Let 
+$$
+\begin{pmatrix} \vec U_i \\ \vec\eta_i \end{pmatrix} \sim 
+  N^{(2K)}\left(\vec 0, 
+  \begin{pmatrix}
+    \mat\Sigma_{11} & \mat\Sigma_{12} \\
+    \mat\Sigma_{21} & \mat\Sigma_{22}
+  \end{pmatrix}\right)
+$$
+
+<p class = "fragment"> 
+$\text{Cov}(\eta_{ik},u_{ik}) < 0$ implies that a higher risk within a family of 
+cause $k$ is associated with higher likelihood of an early onset.
+</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Implementation</h1>
+<!--/html_preserve-->
+
+## Overview
+Cover the conditional likelihood.
+
+<p class = "fragment"> 
+Cover the pairwise composite likelihood.</p>
+
+## Conditional Likelihood
+Let $T_{ij}$ be the observed (last follow up or event time $T_{ij}^*$).
+
+<p class = "fragment"> 
+Let $\epsilon_{ij} = 1_{\{T_i = T_{ij}^*\}}\epsilon_{ij}^* \in\{0,\dots,K\}$  be the observed cause indicator. 
+</p>
+
+## Conditional Likelihood: Observed
+The density if we observe one of the causes is
+
+<div class = "w-small">
+$$
+\begin{align*}
+f_{ijk}(t \mid\vec u_i,\vec\eta_i) &= 
+  \frac\partial{\partial t}F_{ijk}(t \mid\vec u_i, \vec\eta_i) \\
+  &= a_k'(t)\phi(a_k(t) - \vec x_{ij}^\top\vec\gamma_k -\eta_{ik})
+     \pi_{k}(\vec x_{ij}, \vec u_i)
+\end{align*}
+$$
+
+<p class = "smallish">
+$\phi$ is the normal density.</p></div>
+
+<div class = "fragment">
+In the observed case, $\epsilon_{ij} > 0$, the likelihood factor is 
+
+$$l_{ij}(\vec u_i,\vec\eta_i) = f_{ijk}(t_{ij} \mid\vec u_i,\vec\eta_i).$$
+
+Easy to compute!</div>
+
+## Conditional Likelihood: Censored
+
+In the censored case, $\epsilon_{ij} = 0$, with $t_{ij} < \tau$ 
+the likelihood factor is 
+
+$$
+l_{ij}(\vec u_i,\vec\eta_i) = 
+  1 - \sum_{k = 1}^KP(T_{ij}^* \leq t_{ij}, \epsilon_j^* = k \mid 
+                              \vec u_i,\vec\eta_i)
+$$
+
+At least $\bigO{K}$.
+
+## Conditional Likelihood: Censored
+
+In the censored case, $\epsilon_{ij} = 0$, with $t_{ij} = \tau$ 
+the likelihood factor is 
+
+$$
+\begin{align*}
+l_{ij}(\vec u_i,\vec\eta_i)  &= 
+  1 - \sum_{k = 1}^KP(T_{ij}^* \leq \tau, \epsilon_j^* = k \mid 
+                              \vec u_i,\vec\eta_i) \\
+&= \frac 1
+       {1 + \sum_{l=1}^K\exp(\vec x_{ij}^\top\vec\beta_l + u_{il})}
+\end{align*}
+$$
+
+<div class = "w-small">
+Easy to compute!
+<p class = "smallish">
+Is not emphasized and perhaps not used by @Cederkvist19.</p></div>
+
+## Marignal Likelihood
+
+Combined we get $\prod_{j = 1}^{m_i} l_{ij}(\vec u_i,\vec\eta_i)$.
+
+<div class = "fragment">
+But we need the marginal likelihood
+
+$$
+E\left(\prod_{j = 1}^{m_i} l_{ij}(\vec U_i,\vec\eta_i)\right).
+$$
+</div>
+
+<div class = "fragment">
+Requires $2K$ dimensional integration. Using quadrature with $b$ nodes 
+gives an implementation which behaves like 
+$\bigO{m_ib^{2K}K^3}$
+<p class = "smallish">
+for the $K$s we consider.</p></div>
+
+## Pairwise Composite Likelihood
+
+We can work with the miss specified likelihood
+
+<div class = "w-small">
+$$
+\prod_{j_1 = 1}^{m_i - 1}\prod_{j_2 = j_1 + 1}^{m_i}
+  E\left(l_{ij_1}(\vec U_i,\vec\eta_i)l_{ij_2}(\vec U_i,\vec\eta_i)\right).
+$$
+<p class = "smallish">
+See @Varin11 for an overview on composite likelihood.</p></div>
+
+<div class = "fragment w-small">
+Now $\bigO{m_i^2b^{2K}K^3}$! 
+<p class = "smallish">
+Each term is though easier to compute.</p>
+</div>
+
+<p class = "fragment">
+But for the particular model, we can compute it in 
+$\bigO{m_i^2b^KK^4}$ [@Cederkvist19].</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="center final">
+<h1>Thank You!</h1>
+
+<div class="w-small">
+<p class="smallish">The presentation is at  
+<a href="https://rpubs.com/boennecd/KTH-competing">rpubs.com/boennecd/KTH-competing</a>.</p>
+<p class="smallish">The markdown is at  
+<a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
+<p class="smallish">The implementation is at 
+<a href="https://github.com/boennecd/mmcif">github.com/boennecd/mmcif</a>.</p>
+<p class="smallish">References are on the next slide.</p>
+</div>
+
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+<section>
+<h1>References</h1>
+
+<!--/html_preserve-->
