@@ -579,7 +579,7 @@ Is scalable and fast.
 </li>
 </ol>
 <p class="fragment">
-We are not aware of any software that that satisfy all four.
+We are not aware of any software that that satisfy all four criteria.
 </p>
 
 </section>
@@ -856,7 +856,7 @@ The concatenated vector of observed marker values, observations times, observed 
 <p>Given a distribution with density <span class="math inline">\(q^{(i)}_{\vec\theta}\)</span> for <span class="math inline">\(\vec\theta\in \Theta_i\)</span>, the variational approximation we use is the lower bound</p>
 <p><span class="math display">\[
 l_i(\vec\zeta) \geq \int q^{(i)}_{\vec\theta}(\vec o)
-    \log \left(\frac{p_i(\vec y_i, \vec o)}
+    \log \left(\frac{p_{i,\vec\zeta}(\vec y_i, \vec o)}
     {q^{(i)}_{\vec\theta}(\vec o)}\right) d \vec o 
   = \tilde l_i(\vec\zeta, \vec\theta)
 \]</span></p>
@@ -868,25 +868,25 @@ Typically, much faster to evaluate.
 <h2>Variational Approximations (Cont.)</h2>
 <p><span class="math display">\[
 \begin{align*}
-l_i(\vec\zeta) &amp;= \log p_i(\vec y_i) 
+l_i(\vec\zeta) &amp;= \log p_{i,\vec\zeta}(\vec y_i) 
   = \int q^{(i)}_{\vec\theta}(\vec o)
-    \log \left(\frac{p_i(\vec y_i, \vec o)\big/ q^{(i)}_{\vec\theta}(\vec o)}
-    {p_i(\vec o\mid\vec y_i)\big/ q^{(i)}_{\vec\theta}(\vec o)}\right) d \vec o\\
+    \log \left(\frac{p_{i,\vec\zeta}(\vec y_i, \vec o)\big/ q^{(i)}_{\vec\theta}(\vec o)}
+    {p_{i,\vec\zeta}(\vec o\mid\vec y_i)\big/ q^{(i)}_{\vec\theta}(\vec o)}\right) d \vec o\\
   &amp;= \int q^{(i)}_{\vec\theta}(\vec o)
     \Bigg(
-      \log \left(\frac{p_i(\vec y_i, \vec o)}
+      \log \left(\frac{p_{i,\vec\zeta}(\vec y_i, \vec o)}
       {q^{(i)}_{\vec\theta}(\vec o)}\right) +
       \underbrace{\log \left(\frac{q^{(i)}_{\vec\theta}(\vec o)}
-      {p_i(\vec o\mid\vec y_i)}\right)}_{\text{KL divergence}}
+      {p_{i,\vec\zeta}(\vec o\mid\vec y_i)}\right)}_{\text{KL divergence}}
     \Bigg)d \vec o \\
   &amp;\geq \int q^{(i)}_{\vec\theta}(\vec o)
-    \log \left(\frac{p_i(\vec y_i, \vec o)}
+    \log \left(\frac{p_{i,\vec\zeta}(\vec y_i, \vec o)}
     {q^{(i)}_{\vec\theta}(\vec o)}\right) d \vec o 
   = \tilde l_i(\vec\zeta, \vec\theta)
 \end{align*}
 \]</span></p>
 <p class="fragment">
-Equality if <span class="math inline">\(p_i(\vec o\mid\vec y_i) = q^{(i)}_{\vec\theta}(\vec o)\)</span>.
+Equality if <span class="math inline">\(p_{i,\vec\zeta}(\vec o\mid\vec y_i) = q^{(i)}_{\vec\theta}(\vec o)\)</span>.
 </p>
 </section>
 <section id="approximate-maximum-likelihood" class="slide level2">
@@ -900,7 +900,7 @@ Equality if <span class="math inline">\(p_i(\vec o\mid\vec y_i) = q^{(i)}_{\vec\
 <div class="fragment w-small">
 The latter problem has many parameters but the problem is partially separable.
 <p class="smallish">
-35070 in one simulation study later.
+35070 parameters in one simulation study later.
 </p>
 </div>
 <div class="fragment w-small">
@@ -913,7 +913,7 @@ as it is partially separable.
 <section id="the-psqn-package" class="slide level2">
 <h2>The psqn Package</h2>
 <div class="w-small">
-A BFGS approximation is made of the Hessian of each lower bound term, <span class="math inline">\(\tilde l_i(\vec\zeta, \vec\theta_i)\)</span>.
+A BFGS approximation is made of the Hessian of each lower bound terms, <span class="math inline">\(\tilde l_i(\vec\zeta, \vec\theta_i)\)</span>.
 <p class="smallish">
 Can be combined to an approximation of the entire Hessian which is sparse.
 </p>
@@ -986,11 +986,14 @@ Can also construct “profile lower bound” curves.
 <h2>Marginal Measures</h2>
 <p>Given <span class="math inline">\(\hat{\vec\zeta}\)</span> and <span class="math inline">\(\hat{\vec\theta}_i(\hat{\vec\zeta})\)</span> and some function <span class="math inline">\(v(\vec o;\hat{\vec\zeta})\)</span>, the right hand-side</p>
 <p><span class="math display">\[
-\int v(\vec o;\hat{\vec\zeta})p_i(\vec o\mid\vec y_i)d\vec o \approx
+\int v(\vec o;\hat{\vec\zeta})p_{i,\hat{\vec\zeta}}(\vec o\mid\vec y_i)d\vec o \approx
   \int v(\vec o;\hat{\vec\zeta})
   q^{(i)}_{\hat{\vec\theta}_i(\hat{\vec\zeta})}(\vec o) d\vec o  
 \]</span></p>
 <p>is almost always much easier to compute.</p>
+<p class="fragment">
+<span class="math inline">\(q^{(i)}_{\hat{\vec\theta}_i(\hat{\vec\zeta})}(\vec o) \approx p_{i,\hat{\vec\zeta}}(\vec o\mid\vec y_i)\)</span> if the lower bound is tight.
+</p>
 <p class="fragment">
 Key for the use of VAs in a Bayesian framework.
 </p>
@@ -1036,7 +1039,7 @@ Comparison with the Monte Carlo based joineRML package <span class="citation" da
 </p>
 </div>
 <p class="fragment">
-Simulation study to check the bias of the VA and compare the observed information matrix and the computation time.
+Simulation study to check the bias of the VA and to compare the observed information matrix and the computation time.
 </p>
 <p class="fragment">
 Simulation study with multivariate markers with both a terminal event and an informative observation process.
@@ -1153,17 +1156,17 @@ An average of 42.4% are censored.
 <td style="text-align: right;">-0.00209</td>
 <td style="text-align: right;">-0.01190</td>
 <td style="text-align: right;">0.00633</td>
-<td style="text-align: right;">0.00227</td>
+<td style="text-align: right;">0.00228</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"></td>
 <td style="text-align: left;">JM 7</td>
-<td style="text-align: right;">0.00433</td>
+<td style="text-align: right;">0.00432</td>
 <td style="text-align: right;">-0.00427</td>
 <td style="text-align: right;">-0.00044</td>
 <td style="text-align: right;">-0.01013</td>
 <td style="text-align: right;">0.00641</td>
-<td style="text-align: right;">-0.00572</td>
+<td style="text-align: right;">-0.00571</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">SE</td>
@@ -1198,7 +1201,7 @@ An average of 42.4% are censored.
 <tr class="odd">
 <td style="text-align: left;"></td>
 <td style="text-align: left;">JM 7</td>
-<td style="text-align: right;">0.00838</td>
+<td style="text-align: right;">0.00839</td>
 <td style="text-align: right;">0.00607</td>
 <td style="text-align: right;">0.00105</td>
 <td style="text-align: right;">0.01198</td>
@@ -1210,7 +1213,7 @@ An average of 42.4% are censored.
 <div class="w-small">
 Take away: No evidence of bias with any of the methods.
 <p class="smallish">
-SE are standard errors of the bias estimates. GVA is our method. JM 4 and 7 are the JM package with four and seven quadrature nodes.
+SE are standard errors of the bias estimates. GVA is the results from our method. JM 4 and 7 are the results form the JM package with four and seven quadrature nodes.
 </p>
 </div>
 </section>
@@ -1230,25 +1233,25 @@ SE are standard errors of the bias estimates. GVA is our method. JM 4 and 7 are 
 <td style="text-align: left;">Average</td>
 <td style="text-align: left;">GVA</td>
 <td style="text-align: right;">2.16449</td>
-<td style="text-align: right;">2.024</td>
+<td style="text-align: right;">2.023</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"></td>
 <td style="text-align: left;">joineRML</td>
 <td style="text-align: right;">2.19245</td>
-<td style="text-align: right;">711.444</td>
+<td style="text-align: right;">710.805</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"></td>
 <td style="text-align: left;">JM 4</td>
 <td style="text-align: right;">2.18569</td>
-<td style="text-align: right;">42.559</td>
+<td style="text-align: right;">42.506</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"></td>
 <td style="text-align: left;">JM 7</td>
-<td style="text-align: right;">2.17048</td>
-<td style="text-align: right;">222.555</td>
+<td style="text-align: right;">2.17071</td>
+<td style="text-align: right;">222.471</td>
 </tr>
 </tbody>
 </table>
@@ -1275,13 +1278,13 @@ The computation time is in seconds. Four threads were used with our method but a
 <td style="text-align: left;">Average</td>
 <td style="text-align: left;">GVA</td>
 <td style="text-align: right;">-3070.070</td>
-<td style="text-align: right;">0.014256</td>
+<td style="text-align: right;">0.014252</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;"></td>
 <td style="text-align: left;">JM 4</td>
 <td style="text-align: right;">-3070.312</td>
-<td style="text-align: right;">0.122843</td>
+<td style="text-align: right;">0.122842</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;"></td>
@@ -1313,7 +1316,7 @@ The correlation of intercept part of the two random splines was set to 0.5.
 <div class="fragment w-small">
 The observation times depend on the random effects and an additional frailty.
 <p class="smallish">
-Thus, there were seven random effects per individual.
+Thus, seven random effects per individual.
 </p>
 </div>
 </section>
@@ -1324,7 +1327,7 @@ Thus, there were seven random effects per individual.
 An average of 45.5% are censored.
 </p>
 <p class="fragment">
-1000 individuals per sample and 400 data sets.
+1000 individuals per sample and 1000 data sets.
 </p>
 <p class="fragment">
 35070 parameters in total.
@@ -1354,42 +1357,42 @@ An average of 45.5% are censored.
 </tr>
 <tr class="even">
 <td style="text-align: left;">Bias</td>
-<td style="text-align: right;">-0.0001</td>
+<td style="text-align: right;">-0.0003</td>
+<td style="text-align: right;">0.0006</td>
 <td style="text-align: right;">0.0010</td>
-<td style="text-align: right;">0.0013</td>
-<td style="text-align: right;">0.0007</td>
-<td style="text-align: right;">-0.0120</td>
+<td style="text-align: right;">0.0001</td>
+<td style="text-align: right;">-0.0126</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">SE</td>
-<td style="text-align: right;">0.0020</td>
-<td style="text-align: right;">0.0019</td>
-<td style="text-align: right;">0.0008</td>
-<td style="text-align: right;">0.0007</td>
-<td style="text-align: right;">0.0014</td>
+<td style="text-align: right;">0.0012</td>
+<td style="text-align: right;">0.0012</td>
+<td style="text-align: right;">0.0005</td>
+<td style="text-align: right;">0.0005</td>
+<td style="text-align: right;">0.0009</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">RMSE</td>
-<td style="text-align: right;">0.0397</td>
-<td style="text-align: right;">0.0383</td>
-<td style="text-align: right;">0.0166</td>
-<td style="text-align: right;">0.0150</td>
-<td style="text-align: right;">0.0312</td>
+<td style="text-align: right;">0.0385</td>
+<td style="text-align: right;">0.0375</td>
+<td style="text-align: right;">0.0162</td>
+<td style="text-align: right;">0.0156</td>
+<td style="text-align: right;">0.0315</td>
 </tr>
 <tr class="odd">
 <td style="text-align: left;">Coverage</td>
-<td style="text-align: right;">0.9300</td>
-<td style="text-align: right;">0.9600</td>
-<td style="text-align: right;">0.9275</td>
-<td style="text-align: right;">0.9625</td>
-<td style="text-align: right;">0.9200</td>
+<td style="text-align: right;">0.9400</td>
+<td style="text-align: right;">0.9550</td>
+<td style="text-align: right;">0.9410</td>
+<td style="text-align: right;">0.9590</td>
+<td style="text-align: right;">0.9170</td>
 </tr>
 </tbody>
 </table>
 <div class="w-small">
 Take away: No evidence of bias expect for the scale parameter of the log normal frailty.
 <p class="smallish">
-The table shows bias estimates, standard errors of the bias estimates, root mean square errors and coverage of Wald type confidence intervals. The association parameters are very similarly defined so the coverage is not worrying.
+The table shows bias estimates, standard errors of the bias estimates, root mean square errors and coverage of Wald type confidence intervals.
 </p>
 </div>
 </section>
@@ -1407,14 +1410,14 @@ The table shows bias estimates, standard errors of the bias estimates, root mean
 <tbody>
 <tr class="odd">
 <td style="text-align: left;">Average</td>
-<td style="text-align: right;">3.008</td>
-<td style="text-align: right;">89.61</td>
-<td style="text-align: right;">0.9275</td>
+<td style="text-align: right;">3.024</td>
+<td style="text-align: right;">90.42</td>
+<td style="text-align: right;">0.9390</td>
 </tr>
 <tr class="even">
 <td style="text-align: left;">SE</td>
-<td style="text-align: right;">0.031</td>
-<td style="text-align: right;">0.48</td>
+<td style="text-align: right;">0.020</td>
+<td style="text-align: right;">0.34</td>
 <td style="text-align: right;"></td>
 </tr>
 </tbody>
@@ -1422,7 +1425,7 @@ The table shows bias estimates, standard errors of the bias estimates, root mean
 <div class="w-small">
 Take away: Computation time is very feasible.
 <p class="smallish">
-The computation time includes an average of 33.8 seconds spent to compute the observed information matrix. This can be reduced. The coverage column shows the coverage of a profile likelihood based confidence interval for <span class="math inline">\(\alpha_{11}\)</span>. The average computation time for the confidence interval was 151.1 seconds.
+The computation time includes an average of 33.9 seconds spent to compute the observed information matrix. This can be reduced. The coverage column shows the coverage of a profile likelihood based confidence interval for <span class="math inline">\(\alpha_{11}\)</span>. The average computation time for the confidence interval was 151 seconds.
 </p>
 </div>
 
@@ -1451,7 +1454,7 @@ Simulation studies suggest that the bias is low if present at all.
 <h2>Applications</h2>
 <p>Breast cancer and markers including breast density.</p>
 <p class="fragment">
-TODO: something on chronic kidney disease.
+Modelling longitudinal markers of kidney function for diabetes patients.
 </p>
 </section>
 <section id="delayed-entry" class="slide level2">
@@ -1466,7 +1469,7 @@ Yields a maximin problem rather than a pure maximization problem.
 <div class="fragment w-small">
 For now, the additional terms are approximated with adaptive Gaussian-Hermite quadrature.
 <p class="smallish">
-The additional terms are easier to approximate. For instance, we do not need to marginalize out the random effects in the recurrent events.
+The additional terms are easier to approximate. For instance, we do not need to marginalize out the random effects for the recurrent events.
 </p>
 </div>
 </section>
