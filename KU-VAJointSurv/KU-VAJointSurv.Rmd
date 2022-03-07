@@ -1045,7 +1045,7 @@ An average of `r round((1- frac_surv_obs) * 100, 1)`% are censored.</p>
 
 ```{r run_uni_sim, results='asis'}
 # run the simulation study
-simples_sim_res <- lapply(head(seeds, 55), \(s){
+simples_sim_res <- lapply(seeds, \(s){
   f_name <- file.path("sim-res", "simple-all", paste0("sim-", s, "-%s.RDS"))
   get_file_name <- \(x) sprintf(f_name, x)
   res_files <- sapply(c("VA-15", "VA-32", "joineRML", "JM-4", "JM-7"),
