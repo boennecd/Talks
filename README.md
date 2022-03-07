@@ -1,5 +1,5 @@
 ### KU Seminar 2022: Joint Models with Multiple Markers and Multiple Time-to-event Outcomes Using Variational Approximations
-[Code](/MEB-VAJointSurv/KU-VAJointSurv.Rmd) and presentation at 
+[Code](/KU-VAJointSurv/KU-VAJointSurv.Rmd) and presentation at 
 [RPubs](https://rpubs.com/boennecd/KU-VAJointSurv).
 
 ### KTH Group Meeting February 2022: Mixed Competing Risk Models
