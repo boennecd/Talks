@@ -1,3 +1,7 @@
+### KU 2022: Genetic and Environmental Effects Estimation Using the pedmod Package
+[Code](/KU-pedmod/KU-pedmod.Rmd) and presentation at 
+[RPubs](https://rpubs.com/boennecd/KU-pedmod).
+
 ### KU Seminar 2022: Joint Models with Multiple Markers and Multiple Time-to-event Outcomes Using Variational Approximations
 [Code](/KU-VAJointSurv/KU-VAJointSurv.Rmd) and presentation at 
 [RPubs](https://rpubs.com/boennecd/KU-VAJointSurv).
