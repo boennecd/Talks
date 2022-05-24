@@ -1,0 +1,1365 @@
+---
+title: "Genetic and Environmental Effects"
+bibliography: ref.bib
+biblio-style: apa
+output: 
+  revealjs::revealjs_presentation:
+    css: styles.css
+    theme: black
+    center: false
+    transition: slide
+    highlight: monochrome
+    self_contained: true
+    reveal_options:
+      slideNumber: true
+    includes:
+      in_header: header.html
+      after_body: doc_suffix.html
+---
+
+## dummy slide
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.height = 5, cache.path = "cache/")
+.par_use <- list(cex = 1.33, cex.lab = 1.2)
+options(digits = 3, 
+        knitr.kable.NA = '')
+source(file.path("R", "pedigree-util.R"))
+```
+
+<!--html_preserve-->
+<script>
+(function() {
+  document.getElementById("dummy-slide").remove(); 
+  
+  var front_div = document.getElementsByTagName("section")[0];
+  front_div.classList.add("front");
+  front_div.classList.add("center");
+  
+  // add second header
+  var second_head = document.createElement("p");
+  var node = document.createTextNode("Estimation Using the pedmod Package");
+  second_head.appendChild(node);
+  second_head.style.margin = "0";
+  front_div.appendChild(second_head);
+  
+  // conference/where this is at
+  var where_at = document.createElement("p");
+  var where_at_text = document.createElement("i");
+  var node = document.createTextNode("University of Copenhagen, Section of Biostatistics 2022");
+  where_at_text.appendChild(node);
+  where_at.appendChild(where_at_text);
+  where_at.style.margin = "0.1em";
+  where_at.style.fontSize = "75%";
+  front_div.appendChild(where_at);
+  
+  // add author 
+  var credit_div = document.createElement('div');
+  credit_div.innerHTML += "<div class='w-small'><p>Benjamin Christoffersen</p><p class='smallish'>KI, Department of Medical Epidemiology and Biostatistics, <a href='mailto:benjamin.christoffersen@ki.se'>benjamin.christoffersen@ki.se</a></p><p class='smallish'>KTH, Division of Robotics, Perception and Learning</p></div>";
+  credit_div.classList.add("authors");
+  front_div.appendChild(credit_div);
+})();
+</script>
+<!--end dummy slide-->
+
+</section>
+
+<section>
+<section class="large-first center slide level2">
+<h1>Motivation</h1>
+
+<!--/html_preserve-->
+
+<div style="display: none;">
+$$
+\renewcommand\vec{\boldsymbol}
+\def\bigO#1{\mathcal{O}(#1)}
+\def\Cond#1#2{\left(#1\,\middle|\, #2\right)}
+\def\mat#1{\boldsymbol{#1}}
+\def\der{{\mathop{}\!\mathrm{d}}}
+\def\argmax{\text{arg}\,\text{max}}
+\def\Prob{\text{P}}
+\def\Expec{\text{E}}
+\def\logit{\text{logit}}
+\def\diag{\text{diag}}
+$$
+</div>
+
+## Overview
+Mention previous work and the type of data. 
+
+<p class = "fragment">
+Introduce the models.</p>
+
+<p class = "fragment">
+Highlight limitations of previous estimation methods.</p>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Example</h2>
+<!--/html_preserve-->
+
+```{r setup_fam, echo = FALSE}
+library(kinship2, quietly = TRUE)
+fam <- data.frame(id = 1:10, sex = rep(1:2, 5L),
+                  father = c(NA, NA, 1L, NA, 1L, NA, 3L, 3L, 5L, 5L), 
+                  mother = c(NA, NA, 2L, NA, 2L, NA, 4L, 4L, 6L, 6L))
+
+ex_dat <- with(
+  fam, pedigree(id = id, dadid = father, momid = mother, sex = sex))
+plot(ex_dat)
+```
+
+<div class = "w-small">
+Suppose that the above is family $i$ for which we 
+observe $Y_{i1},\dots Y_{i10} \in \{0, 1\}$.
+<p class = "smallish">
+Circles are females and squares are males.</p>
+</div>
+
+## OCD Study
+Genes are known to have an impact on the risk of
+obsessive-compulsive disorder (OCD).
+
+<p class = "fragment">
+Genetic and environmental influences on a maternal phenotype can affect the
+phenotype of the child, in turn.</p>
+
+<div class = "fragment w-small">
+@Mahjani20 look at direct genetic effects and maternal effects on OCD 
+<p class = "smallish">
+controlling for sex and age of the mother.</p>
+</div>
+
+## Research Questions
+Want to estimate unobserved genetic effects, environmental effects, 
+paternal effects, etc. for binary outcomes.
+
+<div class ="fragment w-small">
+Many examples.
+<p class = "smallish">
+E.g. pre-eclamptic events, melanoma onset, schizophrenia and bipolar disorder, 
+and preterm birth
+[@Pawitan04; @Lindstroem06; @Svensson09; @Lichtenstein09; @yip2018; @Bai19].</p>
+</div>
+
+## Liability Threshold Model
+
+$$
+\begin{align*}
+Y_{ij} &= \begin{cases}
+  1 & \vec x_{ij}^\top\vec\beta + \epsilon_{ij} > 0 \\
+  0 & \text{otherwise}
+\end{cases} \\
+(\epsilon_{i1}, \dots, \epsilon_{in_i})^\top & 
+  \sim N^{(n_i)}\left(\vec 0; \mat I_{n_i} + \mat\Sigma_i(\vec\sigma)
+  \right) \\
+\mat\Sigma_i(\vec\sigma) &= \sum_{k = 1}^K\sigma_k^2 \mat C_{ik}
+\end{align*}
+$$
+
+<div class = "w-small">
+given correlation matrices $\mat C_{ik}$ and fixed effects covariates 
+$\vec x_{ij}$s.
+<p class = "smallish">
+A GLMM for binary outcomes with the probit link function.
+The probit link gives a computationally attractive model!</p></div>
+
+## ACE Model 
+Decompose variation into:
+
+ - Additive genetic effect (A),
+ - Shared environmental factors (C), and 
+ - Individual specific effects and measurement errors (E).
+
+<p class = "fragment">
+The environmental effects are often based on strong assumptions.</p>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Example</h2>
+<!--/html_preserve-->
+
+```{r show_ped, echo = FALSE}
+par(mar = c(1, 1, 1, 1), mfcol = c(1, 2))
+plot(ex_dat)
+image_plot <- function(K, ..., zlim = c(-.5, .5)){
+  col <- colorRampPalette(c("darkorange", "white", "black"))(21)
+  image(K[, NCOL(K):1], col = col,  xaxt = 'n', yaxt = 'n', bty = "n", ..., 
+        zlim = zlim)
+}
+library(kinship2, quietly = TRUE)
+image_plot(kinship(ex_dat))
+```
+
+<div class = "w-small">
+Left: the family. Right: the kinship matrix.
+<p class = "smallish">
+Darker colors are further from zero.</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Childhood Environment</h2>
+<!--/html_preserve-->
+
+```{r rep_show_ped, echo = FALSE}
+par(mar = c(1, 1, 1, 1), mfcol = c(1, 2))
+plot(ex_dat)
+E <- diag(10)
+E[c(3, 5), c(3, 5)] <- E[7:8, 7:8] <- E[9:10, 9:10] <- 1
+image_plot(E, zlim = c(-1, 1))
+```
+
+Left: the family. Right: the childhood environment scale matrix.
+
+## Inference
+<div class = "w-small">
+Interested in $h_g = \sigma_g^2/(1 + \sigma_g^2+ \sigma_e^2)$
+<p class = "smallish">
+the proportion of the variance explained by additive genetic effects,</p>
+</div>
+
+<div class = "fragment w-small">
+and $h_e = \sigma_e^2/(1 + \sigma_g^2+ \sigma_e^2)$
+<p class = "smallish">
+the proportion of the variance explained by environmental effects.</p>
+</div>
+
+## Arbitrary Number of Effects
+May want paternal effects or maternal effects. 
+
+<div class = "fragment w-small">
+May want other definitions of environments. 
+<p class = "smallish">
+E.g. shared adult environment.</p>
+</div>
+
+## Estimation 
+The likelihood has no closed-form expression
+
+<div class = "fragment w-small">
+... but can expressed as integrals that have been extensively studied.
+<p class = "smallish">
+Used by @Pawitan04, @Lindstroem06, @Svensson09, @Lichtenstein09, @yip2018, and 
+@Bai19. </p>
+</div>
+
+## Previous Work
+<div class = "w-small">
+Previous work only use a likelihood approximation without gradients.
+<p class = "smallish">
+Have to use derivative-free optimization. This is slow.</p>
+</div>
+
+<div class = "fragment w-small">
+To simplify the computation, they do not use all data by
+
+ - using discretized covariates,
+ - omitting observations and information from the pedigree, and
+ - using a composite likelihood like procedure
+ 
+<p class = "smallish">
+where individuals with cousin both on their mother and father side is 
+repeated twice.</p>
+</div>
+
+## Previous Work (continued)
+ 
+Goal: faster estimation method such that we can use all (or almost all) data.
+
+<p class = "fragment">
+The implementation is in the pedmod package.</p>
+
+
+## MCMC
+MCMC is another option.
+
+<div class = "w-small fragment">
+Seems popular with animal data.
+<p class = "smallish">
+See e.g. MCMCglmm [@Hadfield10] and BLUPF90 [@BLUPF90].</p> 
+</div>
+
+<div class = "fragment w-small">
+Does take all information into account but very slow!
+<p class = "smallish">
+Fitting a single model took weeks for @Mahjani20.</p>
+</div> 
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>The Likelihood</h1>
+<!--/html_preserve-->
+
+## Overview
+Show the likelihood. 
+
+<p class = "fragment">
+At a high level, mention what has been done before and how we extend it.</p>
+
+## Maximum Likelihood
+
+Find the MLE:
+
+$$
+\max_{\vec\beta,\vec\sigma} \sum_{i = 1}^m\log 
+  L_i(\vec\beta,\vec\sigma)
+$$
+
+
+where $L_i$ is the likelihood of family (cluster) $i$.
+
+## The Likelihood
+The likelihood of family $i$:
+
+<div class = "w-small">
+
+$$
+\begin{align*}
+L_i(\vec\beta,\vec\sigma) &= 
+  \Phi^{(n_i)}(\mat U_i\mat X_i\vec\beta;\vec 0, \mat I + 
+  \mat U_i\mat\Sigma_i(\vec\sigma) \mat U_i) \\
+u_{ij} &= 2y_{ij} - 1 \\
+\mat U_i &= \text{diag}(\vec u_i) \\
+\end{align*}
+$$
+
+<p class = "smallish">
+where $\Phi^{(K)}(\vec x; \vec\omega, \mat \Omega)$ is the $K$ dimensional 
+multivariate normal distribution's CDF 
+with mean $\vec\omega$ and covariance matrix 
+$\mat\Omega$ evaluated at $\vec x$.</p>
+</div>
+
+<p class = "fragment">
+Point: can use a CDF approximation.</p>
+
+## Importance Sampling
+<div class = "w-small">
+@Genz92 and @Genz02 develop an efficient importance sampling procedure
+to approximates the $\Phi^{(K)}$.
+<p class = "smallish">
+Available in Fortran and in R through the mvtnorm package [@Genz20].</p>
+</div>
+
+## New Code 
+Rewritten most of the code by @Genz02 in C++. 
+
+<div class = "fragment w-small">
+Added fast approximations of the standard normal distribution CDF and its 
+inverse.
+<p class = "smallish">
+The main bottleneck in the algorithm.</p>
+</div>
+
+<div class = "w-small fragment">
+Added support for computation in parallel. 
+<p class = "smallish">
+Seems compute-bound.</p>
+</div>
+
+## New Code (Continued)
+
+<div class = "w-small">
+Added gradient and Hessian approximations.
+<p class = "smallish">
+Like @Hajivassiliou96 for the gradient but with all additional extensions of 
+@Genz92 and @Genz02.</p>
+</div>
+
+<p class = "fragment">
+Implemented the minimax tilting method suggested by @Botev17 
+for the rare probability case.
+</p>
+
+<p class = "fragment">
+This and more is in the pedmod package.</p>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Simulation and Applied Examples</h1>
+<!--/html_preserve-->
+
+## Overview
+Show a simulation study looking at bias, coverage of Wald-based confidence 
+intervals and the computation time. 
+
+<p class = "fragment">
+Show a procedure to greatly simplify the computational problem while only 
+ignoring very little of the information.
+</p>
+
+## Simulation Study
+
+```{r set_n_fams, echo = FALSE, message=FALSE}
+n_fams <- 250L
+```
+
+`r n_fams` families, with `r NROW(fam)` members in each family, 
+and the same pedigree shown earlier.
+
+<p class = "fragment">
+Use an additive genetic and childhood environment effect.</p>
+
+<div class = "w-small fragment">
+Compare with MCMCglmm.
+<p class = "smallish">
+Caveat: we use four threads with our method.</p>
+</div>
+
+## The Model
+
+$$\begin{align*}
+Y_{ij} &= \begin{cases}
+  1 & \beta_0 + \beta_1x_{ij1} + \beta_2 x_{ij2} + \epsilon_{ij} > 0 \\
+  0 & \text{otherwise}
+\end{cases} \\
+(\epsilon_{i1}, \dots, \epsilon_{i10})^\top &\sim 
+  N^{(10)}(\vec 0, \mat I_{10} + \sigma_g^2\mat C_{ig}) \\
+(\beta_0, \beta_1, \beta_2,\sigma_g^2) &= (-3, 1, 2, 3).
+\end{align*}$$
+
+$x_{ij1}\sim N(0, 1)$, $x_{ij2}\sim \text{Bin}(0.5, 1)$ and 
+$\mat C_{ig}$ is for an additive genetic effect.
+
+## Simulation Study Results
+
+```{r load_libraries, echo = FALSE, message=FALSE}
+library(MCMCglmm, quietly = TRUE)
+library(kinship2, quietly = TRUE)
+library(igraph, quietly = TRUE)
+```
+
+```{r assign_sim_dat, echo = FALSE}
+ped <- with(fam, pedigree(id = id, dadid = father, momid = mother, sex = sex))
+
+# simulates a data set 
+# 
+# Args:
+#   n_fams: number of families.
+#   beta: the fixed effect coefficients.
+#   sig_sq: the scale parameter.
+sim_dat <- function(n_fams = 250L, beta = c(-3, 1, 2), sig_sq = 3){
+  # setup before the simulations
+  Cmat <- 2 * kinship(ped)
+  n_obs <- NROW(fam)
+  Sig <- diag(n_obs) + sig_sq * Cmat
+  Sig_chol <- chol(Sig)
+  
+  # simulate the data
+  out <- replicate(
+    n_fams, {
+      # simulate covariates
+      X <- cbind(`(Intercept)` = 1, Continuous = rnorm(n_obs), 
+                 Binary = runif(n_obs) > .5)
+      
+      # assign the linear predictor + noise
+      eta <- drop(X %*% beta) + drop(rnorm(n_obs) %*% Sig_chol)
+      
+      # return the list in the format needed for the package
+      list(y = as.numeric(eta > 0), X = X, scale_mats = list(Cmat))
+    }, simplify = FALSE)
+  
+  # add attributes with the true values and return 
+  attributes(out) <- list(beta = beta, sig_sq = sig_sq)
+  out
+}
+
+# concatenates a data set from the sim_dat function
+concatenate_data <- function(x){
+  # create the concatenated data frame
+  X_all <- do.call(rbind, lapply(x, `[[`, "X"))
+  y_all <- do.call(c    , lapply(x, `[[`, "y"))
+  y_all <- as.numeric(y_all)
+  
+  n_families <- length(x)
+  n_members <- NROW(fam)
+  inc <- rep(1:n_families - 1L, each = n_members)
+  inc <- inc * n_members
+  
+  id <- seq_len(n_members) + inc
+  father_id <- fam$father + inc
+  mom_id <- fam$mother + inc
+  sex <- rep(fam$sex, n_families)
+  
+  dat_all <- data.frame(ID = id, Father_ID = father_id, Mother_ID = mom_id,
+                        Outcome = y_all, family_id = as.integer(factor(inc)), 
+                        sex = sex)
+  dat_all <- cbind(dat_all, X_all)  
+}
+```
+
+```{r do_sims, echo = FALSE, message=FALSE}
+# the seeds we will use
+seeds <- c(60941821L, 30845227L, 17633234L, 79310131L, 85229418L, 21612295L, 73949913L, 57500133L, 57252222L, 63875873L, 55778211L, 21326154L, 36283814L, 7245204L, 58241367L, 38132857L, 2571948L, 35133815L, 16221382L, 24733735L, 28461866L, 92624152L, 42058797L, 93446166L, 12604787L, 32695400L, 88433623L, 30421988L, 89657111L, 74309716L, 76310780L, 87031329L, 36451989L, 18774630L, 76585289L, 31898455L, 55733878L, 99681114L, 37725150L, 99188448L, 66989159L, 20673587L, 47985954L, 42571905L, 53089211L, 18457743L, 96049437L, 70222325L, 86393368L, 45380572L, 81116968L, 48291155L, 89755299L, 69891073L, 1846862L, 15263013L, 37537710L, 24144323L, 5592547L, 21386862L, 23254835L, 53175345L, 23651644L, 82951608L, 49669937L, 53555447L, 49184987L, 8794223L, 34847097L, 26709043L, 30600548L, 8492848L, 71358252L, 23513193L, 75184122L, 72107226L, 1188113L, 27375563L, 56816302L, 26365677L, 69687049L, 53553756L, 41517720L, 76120783L, 32705509L, 49863328L, 14950823L, 64794764L, 8228366L, 17704066L, 37762560L, 96608760L, 97055078L, 51441364L, 8297093L, 69737435L, 64236096L, 8438069L, 28846936L, 74723637L, 
+           53461564L, 62840811L, 66762277L, 25439688L, 11420296L, 15096224L, 36380122L, 63573034L, 16484132L, 94611518L, 35294078L, 11304210L, 64353731L, 60866713L, 69891471L, 31947135L, 87648144L, 21308840L, 84571901L, 74232311L, 70379425L, 63911370L, 93902536L, 13854414L, 16204584L, 34460846L, 38916142L, 83211031L, 28596483L, 22402303L, 44720932L, 38972870L, 10715666L, 29390944L, 94533955L, 56264655L, 7050606L, 22069777L, 32602L, 26726626L, 19580931L, 28916890L, 48119451L, 68032153L, 21544056L, 24789459L, 96973573L, 42628398L, 99058839L, 82836931L, 52971767L, 40814317L, 2379337L, 75891200L, 59670037L, 10701301L, 8687038L, 79826349L, 97955726L, 52154582L, 70164408L, 27948384L, 32405070L, 64248589L, 68451357L, 34780068L, 14763889L, 57999314L, 51465076L, 96147695L, 35557484L, 78025885L, 98192015L, 49901214L, 66192591L, 7825631L, 74786245L, 147339L, 5431997L, 8909480L, 80024206L, 75048670L, 87949175L, 45393957L, 51451612L, 7022435L, 24716429L, 24581593L, 18945204L, 41273702L, 60130284L, 58248372L, 92236372L, 94264902L, 43124614L, 66124609L, 87219635L, 49542913L, 84832299L, 17648701L,
+           50566336L, 23586489L, 6790119L, 54694839L, 75048553L, 73846322L, 51673572L, 25407443L, 43497099L, 72328591L, 86082128L, 54839703L, 12327856L, 58851813L, 9090467L, 21792160L, 57555975L, 64095790L, 71773006L, 90692536L, 96259567L, 17853110L, 35208059L, 99146781L, 85604249L, 60868458L, 85417898L, 20683620L, 74578573L, 29502621L, 78416974L, 26030146L, 21599237L, 95959658L, 21449284L, 71626847L, 89982011L, 72543101L, 22162558L, 59913618L, 70968299L, 74314514L, 67899499L, 85350164L, 53853990L, 73722025L, 67311302L, 52703274L, 48173546L, 55607628L, 53516597L, 26055280L, 81268135L, 85713569L, 33603366L, 45323278L, 36060641L, 12305635L, 1317348L, 15225989L, 43295233L, 77382344L, 69303178L, 38227865L, 11241295L, 19987773L, 36450053L, 52422084L, 89466765L, 61279465L, 38999812L, 7861224L, 56071713L, 48190731L, 12812337L, 27603932L, 59309305L, 2536742L, 72695526L, 69606162L, 6070812L, 18303073L, 17659730L, 1570245L, 67104510L, 36893725L, 71625352L, 28216047L, 23128075L, 6625673L, 94317909L, 63992723L, 54730956L, 44181805L, 78901165L, 72785117L, 14708091L, 87939044L, 76320770L, 95514409L, 
+           53166486L, 35516018L, 59042012L, 28967874L, 29851921L, 2341989L, 41650527L, 41358891L, 99060105L, 82025138L, 21905683L, 29236445L, 88754329L, 93629137L, 45742441L, 24845343L, 42785483L, 64472365L, 11948199L, 98226678L, 46508431L, 27892414L, 54277997L, 96322281L, 5047089L, 16180991L, 5335581L, 35549810L, 83431877L, 15080466L, 47329123L, 98317168L, 12506520L, 86051582L, 58425302L, 84413706L, 69585961L, 18447697L, 93056243L, 35944274L, 96705932L, 55537741L, 37038875L, 58961302L, 32600366L, 19351437L, 65559367L, 53828238L, 64553812L, 99909860L, 71687534L, 78891797L, 83319015L, 59832328L, 63998826L, 60921569L, 56395876L, 83192067L, 62456625L, 91992933L, 69651909L, 81231560L, 59241718L, 8822307L, 21311552L, 30802240L, 88760487L, 56002285L, 71465089L, 75810426L, 61131001L, 88468953L, 67971905L, 41458630L, 99542036L, 19453673L, 26582348L, 20018175L, 32867961L, 77397061L, 72599845L, 78016114L, 61269521L, 78494791L, 33201994L, 11917160L, 66974132L, 62419357L, 22009485L, 87010034L, 47848027L, 32381081L, 46927710L, 51377691L, 38621349L, 13795895L, 19718104L, 62438645L, 78791290L, 48882998L,
+           38540219L, 74823675L, 2349209L, 93413338L, 46762100L, 7953651L, 23378150L, 66978946L, 31360114L, 87853471L, 26024854L, 34446908L, 86831210L, 14784231L, 74664550L, 57354518L, 68419261L, 19471694L, 11543406L, 82650983L, 88712042L, 51439284L, 47389922L, 19274743L, 22922264L, 57232753L, 94356130L, 92449631L, 48460465L, 82176451L, 62921533L, 81056047L, 40759686L, 21044890L, 12179042L, 46835881L, 73111023L, 15156421L, 47378635L, 34947196L, 57354420L, 75359846L, 45428974L, 87985480L, 80705256L, 2796244L, 48989218L, 6546859L, 10213883L, 83447601L, 86250349L, 17187392L, 30932307L, 21383551L, 62221117L, 19263821L, 99750643L, 12254752L, 708898L, 24265221L, 75012061L, 87876533L, 13957974L, 25176237L, 6263346L, 79167737L, 58717284L, 36758521L, 87554984L, 61052447L, 63422999L, 95366853L, 95991106L, 62913637L, 39369779L, 53347918L, 21157939L, 83054248L, 12275992L, 6110680L, 9938724L, 15560776L, 66687668L, 18309133L, 7078237L, 81595340L, 21671437L, 91206096L, 17940208L, 85896813L, 37572680L, 6802909L, 47590494L, 9406234L, 45171098L, 10522840L, 82206534L, 84524402L, 25009481L, 88431628L,
+           90394488L, 35143936L, 10899732L, 18878450L, 94368337L, 17253824L, 80951317L, 62960635L, 8260960L, 97331651L, 64875570L, 89727976L, 89623878L, 34627683L, 19833490L, 18920267L, 96022513L, 59734856L, 18904880L, 50597233L, 79088308L, 64912260L, 75226682L, 75686368L, 90738499L, 43560705L, 68026823L, 29899012L, 24217051L, 71454844L, 3530954L, 62023924L, 43448024L, 75505028L, 14198540L, 48245045L, 96675293L, 85587636L, 49102820L, 69239534L, 22528806L, 15582907L, 26346588L, 26040253L, 72298282L, 69388665L, 91558231L, 27387017L, 98924482L, 80263853L, 88466018L, 88908337L, 52341394L, 12571651L, 50442608L, 81754819L, 46884349L, 50892743L, 88357183L, 59776281L, 52524424L, 10194727L, 44149451L, 35460118L, 90852266L, 44803718L, 86062418L, 72829946L, 55369761L, 83689517L, 58040068L, 45407721L, 4847506L, 2185375L, 30635399L, 78367303L, 4027605L, 1168633L, 16936360L, 60992147L, 551598L, 97778942L, 92844876L, 61197208L, 95960633L, 76118599L, 68120436L, 77696048L, 7510957L, 77307306L, 50047999L, 37855280L, 34110699L, 29834975L, 48797431L, 23837835L, 60746740L, 19194135L, 39267935L, 70891777L,
+           28481702L, 36599698L, 39844890L, 19829970L, 48616905L, 8230431L, 66620113L, 55565374L, 77301929L, 55749845L, 35556515L, 77900614L, 48979115L, 66325177L, 32426494L, 55537053L, 7740832L, 44737925L, 69042848L, 39579854L, 16515551L, 82131815L, 87609022L, 12555289L, 21641710L, 86640992L, 39202585L, 99484307L, 93998413L, 24954339L, 95212792L, 47673886L, 1953297L, 28893777L, 32933460L, 55124702L, 41975972L, 48327525L, 8202908L, 46076810L, 30190633L, 77436967L, 90673302L, 78413731L, 41881220L, 63254736L, 92592440L, 53578855L, 95421980L, 25530741L, 22880828L, 70680330L, 11422106L, 45962147L, 90970346L, 27462195L, 66686233L, 25041068L, 52336764L, 92805554L, 23650048L, 56306552L, 12236723L, 35983658L, 53061019L, 81731716L, 16701093L, 62275834L, 48505804L, 73737415L, 86189445L, 18169707L, 11943294L, 51891853L, 17018350L, 81567696L, 52576712L, 7645696L, 35972721L, 78806348L, 91170798L, 3792237L, 7241169L, 55121740L, 78100771L, 58080345L, 94673461L, 611366L, 82735885L, 11522570L, 25741193L, 65857508L, 31756561L, 7705503L, 36400934L, 44242375L, 24336484L, 84850039L, 23629064L, 76369869L, 
+           24360736L, 48738859L, 17847804L, 64500053L, 1613633L, 58496937L, 47495726L, 41957562L, 53338691L, 59896076L, 41619333L, 25680184L, 62634656L, 71981855L, 62127422L, 39527395L, 3084916L, 10555498L, 83894869L, 75557747L, 75740734L, 26956806L, 42822387L, 94704612L, 46878987L, 69710764L, 93020865L, 56505785L, 28571932L, 46171379L, 50231685L, 13007048L, 8813971L, 99919785L, 12252325L, 47225557L, 80313435L, 47416845L, 91389965L, 56560023L, 43150031L, 40949661L, 97911394L, 62051327L, 72626379L, 53423385L, 66085577L, 35901814L, 72560336L, 80776235L, 73445124L, 21690700L, 36104615L, 42243189L, 3643600L, 6420332L, 69821187L, 23963977L, 61834936L, 34314429L, 25247503L, 62993385L, 24141505L, 47284361L, 66669176L, 87731885L, 7245730L, 85127105L, 4413645L, 81051347L, 97152042L, 38275421L, 70389553L, 61505084L, 33807850L, 87456883L, 99650639L, 61762286L, 77278178L, 8440553L, 84737040L, 28486447L, 61063100L, 49969937L, 41157707L, 62921137L, 54490755L, 27209060L, 70551058L, 18806265L, 31943380L, 45544616L, 39422844L, 72744473L, 46780082L, 86539959L, 30878670L, 37987377L, 90279233L, 79215620L, 
+           24774088L, 45194596L, 85771983L, 14517581L, 86581621L, 52751298L, 4197378L, 24106853L, 74016673L, 16205741L, 56162457L, 77948434L, 96649889L, 19528148L, 77563671L, 21192494L, 85531518L, 66153037L, 75035028L, 12060703L, 6435349L, 29147577L, 67626724L, 16239203L, 13687303L, 71786399L, 29929501L, 38250840L, 92629560L, 99020489L, 79837629L, 9974806L, 32678844L, 14740589L, 49643945L, 26335665L, 64717397L, 39387557L, 74464582L, 1730453L, 39282119L, 43906940L, 53933601L, 69474595L, 88429604L, 14315761L, 87770605L, 21388950L, 1347522L, 37227982L, 80370833L, 15401005L, 66634703L, 73294254L, 58509091L, 1072193L, 15380124L, 3455629L, 84141461L, 14071358L, 90870906L, 2903047L, 49438448L, 47474914L, 1614442L, 5264859L, 31193219L, 49144262L, 47711249L, 22387582L, 22288375L, 95004055L, 40330917L, 68727945L, 73383658L, 38797690L, 60206909L, 75827492L, 99535778L, 70167245L, 86979553L, 53557256L, 75743515L, 64006084L, 51362852L, 79905902L, 23053342L, 56206523L, 78317210L, 5350989L, 65043343L, 61410283L, 10443737L, 12465895L, 28303973L, 49513873L, 97460017L, 39479792L, 67581534L, 41111360L, 
+           75227722L, 30589718L, 7892643L, 97066318L, 18390900L, 33616190L, 53935269L, 32412768L, 28818597L, 15808780L, 6453773L, 68579785L, 6547288L, 83008682L, 75046250L, 29461967L, 25922325L, 78856996L, 39691909L, 25222921L, 87681487L, 59123898L, 89041987L, 83195591L, 51805140L, 4016274L, 80993637L, 22579710L, 56502206L, 8510487L, 58978838L, 23665300L, 33812699L, 68644786L, 39366128L, 58919713L, 90924835L, 94912347L, 34153940L, 88114480L, 92956772L, 6683060L, 79727214L, 82761799L, 71663853L, 46170789L, 76846166L, 34430029L, 76392685L, 38313310L, 69672083L, 22313319L, 68938134L, 77217683L, 7685109L, 26168250L, 98615760L, 80887961L, 51396180L, 51155776L, 59064711L, 79935305L, 84126105L, 57235834L, 21775903L, 44579989L, 13731283L, 22032736L, 9800974L, 67885107L, 32995776L, 29205819L, 31372601L, 82626445L, 37210689L, 7284570L, 92749408L, 87028742L, 66957152L, 39248986L, 2091139L, 24417259L, 1229872L, 27806109L, 55478171L, 37961215L, 87739551L, 38018488L, 52241040L, 69681064L, 23542524L, 41159821L, 81947626L, 6560593L, 76992145L, 20623447L, 16752935L, 48972938L, 64097737L, 98510636L)
+
+# perform the simulation study
+get_file_name <- function(s, prefix)
+  file.path("cache", "direct-genetic-study", paste0(prefix, "-", s, ".RDS"))
+
+res <- lapply(seeds, function(s){
+  set.seed(s)
+  f     <- get_file_name(s, "pedmod")
+  f_dat <- get_file_name(s, "data")
+  
+  # run the study if the file does not exists
+  if(!file.exists(f) || !file.exists(f_dat)){
+    # simulate the data set
+    dat <- sim_dat(n_fams = n_fams)  
+    saveRDS(list(dat, dat_all = concatenate_data(dat)), 
+            f_dat)
+    
+    # estimate the model
+    library(pedmod)
+    est_time <- system.time({
+      ll_terms <- pedigree_ll_terms(dat, max_threads = 4L, n_sequences = 2L)
+      
+      start <- pedmod_start(ll_terms, dat, maxvls = 1000L, n_threads = 4L, 
+                            minvls = 1000L)
+      opt_out <- pedmod_opt(
+        ptr = ll_terms, par = start$par, abs_eps = 0, use_aprx = TRUE, 
+        n_threads = 4L, 
+        maxvls = 25000L, rel_eps = 1e-4, minvls = 25000L)
+    })
+    
+    hess_time <- system.time(
+      hess <- eval_pedigree_hess(
+        ptr = ll_terms, par = opt_out$par, abs_eps = 0, use_aprx = TRUE, 
+        n_threads = 4L, maxvls = 25000L, rel_eps = 1e-4, minvls = 25000L))
+    
+    opt_out$time <- est_time + hess_time
+    opt_out$hess_time <- hess_time
+    opt_out$hess <- hess
+    saveRDS(opt_out, f)
+  }
+  
+  # load the results
+  out <- readRDS(f)
+  
+  # report and return
+  message(paste0(capture.output(out$par), collapse = "\n"))
+  message(sprintf("Time: %14.2f", out$time["elapsed"]))
+  
+  out
+})
+```
+
+```{r comp_bias, echo = FALSE}
+# compute the bias and average computation times along with standard errors
+est <- sapply(res, `[[`, "par")
+est[4, ] <- exp(est[4, ])
+rownames(est)[4] <- "Sigma"
+tis <- sapply(res, `[[`, "time")["elapsed", ]
+
+tmp <- sim_dat(1)
+truth <- c(attr(tmp, "beta"), attr(tmp, "sig_sq"))
+
+# re-scale the fixed effects and scale parameters
+# 
+# Args:
+#   x: estimated parameters. An p x n matrix should be used if there are n 
+#      different estimates.
+#   n_scales: number of scale parameters on the standard deviation scale.
+standardize_estimates <- function(x, n_scales){
+  if(is.matrix(x))
+    return(apply(x, 2L, standardize_estimates, n_scales = n_scales))
+  scales <- tail(x, n_scales)
+  c(head(x, -n_scales) / sqrt(1 + sum(scales)), scales / (1 + sum(scales)))
+}
+
+err <- standardize_estimates(est, 1L) - standardize_estimates(truth, 1L)
+
+# computes the Jacobian of standardize_estimates
+# 
+# Args:
+#   x: estimated parameters. An p x n matrix should be used if there are n 
+#      different estimates.
+#   n_scales: number of scale parameters on the standard deviation scale.
+standardize_estimates_jac <- function(x, n_scales){
+  if(is.matrix(x))
+    return(apply(x, 2L, standardize_estimates_jac, n_scales = n_scales, 
+                 simplify = FALSE))
+  
+  scales <- tail(x, n_scales)
+  total_var <- 1 + sum(scales)
+  denom <- sqrt(total_var)
+  d_denom <- -1/(2 * denom * total_var)
+  
+  prob_vars <- scales / total_var
+  
+  jac <- matrix(0, length(x), length(x))
+  n_fixed <- length(x) - n_scales  
+  idx_scaled <- seq_len(n_scales) + n_fixed
+  for(i in seq_len(n_fixed)){
+    jac[i, i] <- 1 / denom
+    jac[i, idx_scaled] <- x[i] * d_denom
+  }
+  
+  for(i in seq_len(n_scales)){
+    jac[idx_scaled[i], idx_scaled   ] <- -scales[i] / total_var^2
+    jac[idx_scaled[i], idx_scaled[i]] <- 
+      jac[idx_scaled[i], idx_scaled[i]] + 1 / total_var
+  }
+  
+  jac
+}
+
+# get the standard errors
+SEs <- mapply(function(jac, hess){
+  # apply the delta method and get the standard errors
+  vcov <- tcrossprod(jac %*% attr(hess, "vcov_org"), jac)
+  sqrt(diag(vcov))
+}, standardize_estimates_jac(est, 1L), lapply(res, `[[`, "hess"))
+
+# compute the mean and standard error
+comp_bias <- function(x, MARGIN = 1L)
+  list(bias = apply(x, MARGIN, mean), 
+       SE   = apply(x, MARGIN, sd) / sqrt(dim(x)[if(MARGIN == 1L) 2L else 1L]))
+
+# save it in one object
+add_genetic_res <- list(bias = comp_bias(rbind(err, Time = tis)), 
+                        scaled_err = err / SEs,
+                        data = list(data = est, time = tis))
+```
+
+```{r assign_fit_mcmc, echo = FALSE}
+# estimates the model with MCMCglmm
+# 
+# Args:
+#   s: the seed to use.
+fit_mcmc <- function(s, verbose = FALSE){
+  # load in the data from the data folder
+  set.seed(s)
+  f <- get_file_name(s, "MCMCglmm")
+  
+  if(!file.exists(f)){
+    library(MCMCglmm)
+
+    # we use family = "threshold" such that we get the standard 
+    # parameterisation. See 
+    #   https://stat.ethz.ch/pipermail/r-sig-mixed-models/2017q4/026115.html
+    #   https://stat.ethz.ch/pipermail/r-sig-mixed-models/2015q1/023176.html
+    prior <- list(R = list(V = 1, fix = 1), G = list(G1 = list(
+      # F-distribution with 1 and nu degrees of freedom
+      V = 1, nu = 10, alpha.mu = 0,  alpha.V = 1)), 
+      B = list(mu = rep(0, 3), V = diag(10^2, 3)))
+    
+    # prepare the data
+    dat <- readRDS(get_file_name(s, "data"))
+    dat_all <- dat$dat_all
+    mcmc_dat <- dat_all[, setdiff(colnames(dat_all), 
+                                  c("Father_ID", "Mother_ID", "family_id"))]
+    colnames(mcmc_dat)[colnames(mcmc_dat) == "ID"] <- "animal"
+    pedigree_data <- setNames(dat_all[, c("ID", "Father_ID", "Mother_ID")], 
+                              c("animal", "sire", "dam"))
+    
+    # run MCMC
+    set.seed(s)
+    mcmc_time <- system.time(
+      mcmc_fit <- MCMCglmm(
+        Outcome ~ Continuous + Binary, random = ~ animal, family = "threshold",
+        prior = prior, pedigree = pedigree_data, data = mcmc_dat, nitt = 1e6, 
+        burnin = 1e5, thin = 100, slice = TRUE, verbose = verbose))
+    
+    mcmc_fit$time <- mcmc_time
+    saveRDS(mcmc_fit, f)
+  }
+  
+  # load, report, and return 
+  out <- readRDS(f)
+  message(paste0(capture.output(summary(out)), collapse = "\n"))
+  out
+}
+```
+
+```{r get_mcmc_res, message=FALSE, echo = FALSE}
+# get the results
+n_comp <- 10L
+MCMCglmm_res <- lapply(head(seeds, n_comp), fit_mcmc)
+pedmod_res <- lapply(head(seeds, n_comp), function(s)
+  readRDS(get_file_name(s, "pedmod")))
+
+est_mcmc <- sapply(MCMCglmm_res, function(x){
+  beta <- x$Sol
+  scale <- x$VCV[, "animal"]
+  samps <- standardize_estimates(rbind(t(beta), scale), n_scales = 1L)
+  
+  mode <- c(posterior.mode(x$Sol), Scale = posterior.mode(x$VCV[, "animal"]))
+  
+  cbind(
+    mean = rowMeans(samps),
+    median = apply(samps, 1L, median), 
+    mode = standardize_estimates(mode, 1L))
+}, simplify = "array")
+est_pedmod <- sapply(pedmod_res, function(x)
+  c(x$par[1:3], Scale = exp(x$par[4])))
+
+# get the computation time
+tis_mcmc   <- sapply(MCMCglmm_res, `[[`, "time")["elapsed", ]
+tis_pedmod <- sapply(pedmod_res  , `[[`, "time")["elapsed", ]
+
+# compute the means and compare with pedmod
+tmp <- sim_dat(1)
+truth <- c(attr(tmp, "beta"), attr(tmp, "sig_sq"))
+truth <- standardize_estimates(truth, 1L)
+bias_MCMCglmm_mean <- comp_bias(
+  rbind(est_mcmc[, "mean", ] - truth, 
+        Time = tis_mcmc))
+bias_MCMCglmm_mode <- comp_bias(
+  rbind(est_mcmc[, "mode", ] - truth, 
+        Time = tis_mcmc))
+bias_pedmod        <- comp_bias(
+  rbind(standardize_estimates(est_pedmod, 1L) - truth, 
+        Time = tis_pedmod))
+
+# compute stats for effective sample sizes
+MCMCglmm_ess <- sapply(MCMCglmm_res, function(x)
+  c(effectiveSize(x$Sol), Var = unname(effectiveSize(x$VCV[, "animal"]))), 
+  simplify = "array")
+MCMCglmm_ess_mean <- apply(MCMCglmm_ess, 1L, mean)
+MCMCglmm_ess_sd <- apply(MCMCglmm_ess, 1L, sd)
+
+# create the list with the results to save
+mcmc_comp_res <- list(
+  bias = list(MCMCglmm_mean = bias_MCMCglmm_mean, 
+              bias_MCMCglmm_mode = bias_MCMCglmm_mode, 
+              pedmod = bias_pedmod), 
+  data = list(MCMCglmm_res = est_mcmc, 
+              pedmod_res = est_pedmod,
+              MCMCglmm_ess_mean = MCMCglmm_ess_mean, 
+              MCMCglmm_ess_sd = MCMCglmm_ess_sd))
+
+# show the table with many samples
+tab <- with(add_genetic_res$bias, rbind(
+  Bias = bias, SE = SE, 
+  Coverage = c(rowMeans(abs(add_genetic_res$scaled_err) < qnorm(.975)), NA)))
+colnames(tab)[colnames(tab) == "(Intercept)"] <- "Intercept"
+colnames(tab) <- sapply(colnames(tab), function(x)
+  switch (
+    x,
+    Intercept = "$\\bar{\\beta}_0$", 
+    Continuous = "$\\bar{\\beta}_1$", 
+    Binary = "$\\bar{\\beta}_2$", 
+    Sigma = "$h_g$", 
+    Time = "Time", 
+    stop()))
+
+knitr::kable(tab, digits = 5)
+```
+
+<p class = "smallish"> 
+Bias estimates of standardized fixed effect coefficients and the
+heritability along with standard errors from `r length(seeds)` data sets. 
+The former coefficients are standardized by 
+dividing by the square root of the total variance. Coverage estimates are for 
+95% Wald-based confidence intervals and the last column shows the average
+computation time in seconds.</p>
+
+## Comparison with MCMC
+
+```{r show_mcmc_res, echo = FALSE}
+tab <- lapply(mcmc_comp_res$bias, function(x) do.call(rbind, x))
+nams <- names(tab)
+nams <- sapply(nams, function(x) 
+  switch (x, 
+          MCMCglmm_mean = "MCMC (mean)", 
+          bias_MCMCglmm_mode = "MCMC (mode)", 
+          pedmod = "New method", 
+          stop()))
+tab <- do.call(rbind, tab)
+rownames(tab) <- unlist(lapply(nams, function(x) c(x, "SE")))
+colnames(tab)[colnames(tab) == "(Intercept)"] <- "Intercept"
+
+colnames(tab) <- sapply(colnames(tab), function(x)
+  switch (
+    x,
+    Intercept = "$\\bar{\\beta}_0$", 
+    Continuous = "$\\bar{\\beta}_1$", 
+    Binary = "$\\bar{\\beta}_2$", 
+    scale =,
+    Sigma = "$h_g$", 
+    Time = "Time", 
+    stop()))
+
+knitr::kable(tab, digits = 4)
+```
+
+<p class = "smallish">
+Similar table for the first `r n_comp` data sets. The average 
+effective sample size for $\sigma_g^2$ was `r round(MCMCglmm_ess_mean["Var"], 2)`.</p>
+
+## The Model with Environment Effect
+
+$$\begin{align*}
+Y_{ij} &= \begin{cases}
+  1 & \beta_0 + \beta_1x_{ij1} + \beta_2 x_{ij2} + \epsilon_{ij} > 0 \\
+  0 & \text{otherwise}
+\end{cases} \\
+(\epsilon_{i1}, \dots, \epsilon_{i10})^\top &\sim 
+  N^{(10)}(\vec 0, \mat I_{10} + \sigma_g^2\mat C_{ig} + \sigma_e^2\mat C_{ie}) \\
+(\beta_0, \beta_1, \beta_2,\sigma_g^2,\sigma_e^2) &= (-3, 1, 2, 2, 1).
+\end{align*}$$
+
+Added $\mat C_{ie}$ for a childhood environment effect. 
+
+## The Model with Environment Effect
+
+```{r sim_env, echo = FALSE, message=FALSE}
+# the environment effect scale matrix
+C_env <- diag(1, NROW(fam))
+C_env[c(3, 5), c(3, 5)] <- 1
+C_env[c(7:8 ), c(7:8 )] <- 1
+C_env[c(9:10), c(9:10)] <- 1
+
+# simulates a data set
+# 
+# Args:
+#   n_fams: number of families.
+#   beta: the fixed effect coefficients.
+#   sig_sq: the scale parameters.
+sim_dat <- function(n_fams = 250, beta = c(-3, 1, 2), sig_sq = c(2, 1)){
+  # setup before the simulations
+  Cmat <- 2 * kinship(ped)
+  n_obs <- NROW(fam)
+  Sig <- diag(n_obs) + sig_sq[1] * Cmat + sig_sq[2] * C_env
+  Sig_chol <- chol(Sig)
+  
+  # simulate the data
+  out <- replicate(
+    n_fams, {
+      # simulate covariates
+      X <- cbind(`(Intercept)` = 1, Continuous = rnorm(n_obs), 
+                 Binary = runif(n_obs) > .5)
+      
+      # assign the linear predictor + noise
+      eta <- drop(X %*% beta) + drop(rnorm(n_obs) %*% Sig_chol)
+      
+      # return the list in the format needed for the package
+      list(y = as.numeric(eta > 0), X = X, scale_mats = list(
+        Genetic = Cmat, Environment = C_env))
+    }, simplify = FALSE)
+  
+  # add attributes with the true values and return 
+  attributes(out) <- list(beta = beta, sig_sq = sig_sq)
+  out
+}
+
+# perform the simulation study
+get_file_name <- function(s, prefix)
+  file.path("cache", "direct-genetic-env-study", paste0(prefix, "-", s, ".RDS"))
+
+res <- lapply(seeds, function(s){
+  set.seed(s)
+  f     <- get_file_name(s, "pedmod")
+  f_dat <- get_file_name(s, "data")
+  
+  # run the study if the file does not exists
+  if(!file.exists(f) || !file.exists(f_dat)){
+    # simulate the data set
+    dat <- sim_dat()  
+    saveRDS(list(dat, dat_all = concatenate_data(dat)), 
+            f_dat)
+    
+    # estimate the model
+    library(pedmod)
+    est_time <- system.time({
+      ll_terms <- pedigree_ll_terms(dat, max_threads = 4L, n_sequences = 2L)
+      
+      start <- pedmod_start(ll_terms, dat, maxvls = 1000L, n_threads = 4L, 
+                            minvls = 1000L)
+      opt_out <- pedmod_opt(
+        ptr = ll_terms, par = start$par, abs_eps = 0, use_aprx = TRUE, 
+        n_threads = 4L, 
+        maxvls = 25000L, rel_eps = 1e-4, minvls = 25000L)
+    })
+    
+    hess_time <- system.time(
+      hess <- eval_pedigree_hess(
+        ptr = ll_terms, par = opt_out$par, abs_eps = 0, use_aprx = TRUE, 
+        n_threads = 4L, maxvls = 25000L, rel_eps = 1e-4, minvls = 25000L))
+    
+    opt_out$time <- est_time + hess_time
+    opt_out$hess_time <- hess_time
+    opt_out$hess <- hess
+    saveRDS(opt_out, f)
+  }
+  
+  # load the results
+  out <- readRDS(f)
+  
+  # report and return
+  message(paste0(capture.output(out$par), collapse = "\n"))
+  message(sprintf("Time: %14.2f", out$time["elapsed"]))
+  
+  out
+})
+
+# get the bias estimates from the study with the environment effect 
+est <- sapply(res, `[[`, "par")
+est[4:5, ] <- exp(est[4:5, ])
+tis <- sapply(res, `[[`, "time")["elapsed", ]
+
+tmp <- sim_dat(1)
+err <- standardize_estimates(est, 2L) - standardize_estimates(
+  c(attr(tmp, "beta"), attr(tmp, "sig_sq")), 2L)
+
+
+rownames(err) <- c(paste0("$\\bar\\beta_", 0:2, "$"), "$h_g$", "$h_e$")
+
+bias_w_env <- comp_bias(rbind(err, Time = tis))
+
+# get the standard errors
+SEs <- mapply(function(jac, hess){
+  # apply the delta method and get the standard errors
+  vcov <- tcrossprod(jac %*% attr(hess, "vcov_org"), jac)
+  sqrt(diag(vcov))
+}, standardize_estimates_jac(est, 2L), lapply(res, `[[`, "hess"))
+
+# show the table
+tab <- with(bias_w_env, rbind(
+  Bias = bias, SE = SE, 
+  Coverage = c(rowMeans(abs(err / SEs) < qnorm(.975)), NA)))
+
+knitr::kable(tab, digits = 5)
+```
+
+<p class = "smallish">
+Similar table with the childhood environmental effect based on 
+`r length(seeds)` sampled data sets.</p>
+
+## Simplifying the Real Application
+
+Want to avoid the composite likelihood like procedure and use as much 
+information from the pedigree as possible. 
+
+<p class = "fragment">
+Use the Swedish Multi-Generation Registry [@Ekbom10] 
+like @Mahjani20 to study OCD.</p>
+
+<p class = "fragment">
+Most families are small ...</p>
+
+<div class = "fragment w-small">
+... but one is very large with 618162 members with 
+167279 members with observed outcomes.
+<p class = "smallish">
+Want to avoid 167279 dimensional integration!</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Dependencies as a Graph</h2>
+<!--/html_preserve-->
+
+```{r larger_ped, echo = FALSE}
+dat <- data.frame(
+  id = 1:48,
+  mom = c(NA, NA, 2L, 2L, 2L, NA, NA, 7L, 7L, 7L, 3L, 3L, 3L, 3L, NA, 15L, 15L, 43L, 18L, NA, NA, 21L, 21L, 9L, 9L, 9L, 9L, NA, NA, 29L, 29L, 29L, 30L, 30L, NA, NA, 36L, 36L, 36L, 38L, 38L, NA, NA, 43L, 43L, 43L, 32L, 32L),
+  dad = c(NA, NA, 1L, 1L, 1L, NA, NA, 6L, 6L, 6L, 8L, 8L, 8L, 8L, NA, 4L, 4L, 42L, 5L, NA, NA, 20L, 20L, 22L, 22L, 22L, 22L, NA, NA, 28L, 28L, 28L, 23L, 23L, NA, NA, 35L, 35L, 35L, 31L, 31L, NA, NA, 42L, 42L, 42L, 45L, 45L),
+  sex = c(1L, 2L, 2L, 1L, 1L, 1L, 2L, 1L, 2L, 2L, 2L, 1L, 1L, 1L, 2L, 2L, 2L, 2L, 1L, 1L, 2L, 1L, 1L, 2L, 1L, 1L, 2L, 1L, 2L, 2L, 1L, 2L, 2L, 2L, 1L, 2L, 1L, 2L, 1L, 2L, 1L, 1L, 2L, 2L, 1L, 1L, 2L, 2L))
+
+ped_larger <- with(dat, pedigree(id = id, dadid = dad, momid = mom, sex = sex))
+par(mar = c(1, 1, 1, 1))
+plot(ped_larger)
+```
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz" data-transition="slide-in fade-out">
+<h2>Dependencies as a Graph (continued)</h2>
+<!--/html_preserve-->
+
+```{r graph_larger_ped, echo = FALSE}
+graph_dat <- create_igraph_input(ped_larger)
+par(mar = c(1, 1, 1, 1))
+plot(graph.data.frame(graph_dat, directed = FALSE), 
+      vertex.size = 10, vertex.color = "lightgray", 
+     layout = layout_with_kk)
+```
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz" data-transition="fade-in slide-out">
+<h2>Cutting the Graph</h2>
+<!--/html_preserve-->
+
+```{r cut_graph, echo=FALSE, message=FALSE}
+library(pedmod)
+partition <- max_balanced_partition_pedigree(
+  id = dat$id, father.id = dat$dad, mother.id = dat$mom, 
+  slack = .1)
+
+# For some reason, kinship2::pedigree requires that we provide both a father 
+# and mother or none. Therefore, we create a mock object. You can skip this
+get_pedigree_mock <- function(id, dadid, momid, sex){
+  if(is.factor(sex))
+    sex <- as.integer(sex)
+  
+  # checks
+  n <- length(id)
+  stopifnot(n > 0, length(dadid) == n, length(momid) == n, length(sex) == n, 
+            all(is.finite(sex)), all(sex %in% 1:2), 
+            all(is.na(dadid) | dadid %in% id), 
+            all(is.na(momid) | momid %in% id), 
+            all(is.finite(id)))
+  
+  # create objects to return
+  findex <- match(dadid, id, nomatch = 0L)
+  mindex <- match(momid, id, nomatch = 0L)
+  
+  structure(
+    list(famid = rep(1L, n), id = id, findex = findex, mindex = mindex,
+         sex = factor(sex, levels = 1:2, labels = c("male", "famle"))), 
+    class = "pedigree")
+}
+
+# highlight the split
+show_split <- function(dat, partition_obj){
+  ped <- with(dat, get_pedigree_mock(
+    id = id, dadid = dad, momid = mom, sex = sex))
+  g_dat <- create_igraph_input(ped)
+  graph_fam <-  graph.data.frame(g_dat, directed = FALSE)
+  V(graph_fam)$color <- "white"
+  nam <- vertex_attr(graph_fam)$name
+  V(graph_fam)$color[nam %in% partition_obj$set_1] <- "lightblue" 
+  V(graph_fam)$color[nam %in% partition_obj$set_2] <- "lightgreen" 
+  par(mar = c(1, 1, 1, 1))
+  plot(graph_fam, vertex.size = 10, vertex.label.cex = .75, 
+       layout = layout_with_kk)
+}
+
+# very manual!
+partition$set_1 <- c(partition$set_1, 35L:41)
+partition$set_2 <- c(partition$set_2, 15:17)
+
+show_split(dat, partition)
+```
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Cutting the Graph (continued)</h2>
+<!--/html_preserve-->
+
+```{r cut_graph_sep, echo=FALSE}
+dat_tmp <- within(dat, {
+  dad[id == 47] <- mom[id == 48] <- dad[id == 9] <- mom[id == 9] <- NA_integer_
+})
+show_split(dat_tmp, partition)
+```
+
+## Reducing the Computational Cost
+Idea: create $p$ families each of roughly size $n_i / p$ such the number of 
+removed dependencies is minimized.
+
+<div class = "fragment w-small">
+Very similar to the $p$-way partition problem.
+<p class = "smallish">
+Many approximations exists without the connection constraint 
+[@Simon97; @Karypis98]. The partitions need not to be connected.</p>
+</div>
+
+<div class = "fragment w-small">
+The data can be simplified to at most 200 dimensional integration 
+by removing 3164 parent-child links
+<p class = "smallish">
+out of 3944737 (`r 100 * 3164 / 3944737` percent reduction)!</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<section class="center-horiz">
+<h2>Kinship Matrix</h2>
+<!--/html_preserve-->
+
+```{r kinship_ex, echo = FALSE, fig.width=10}
+# get the new data
+get_reduced_data <- function(dat, removed_edges){
+  for(i in 1:nrow(removed_edges)){
+    . <- function(child, parent){
+      idx   <- which(dat$id       == removed_edges[i, child])
+      idx_m <- which(dat$mom[idx] == removed_edges[i, parent])
+      if(length(idx_m > 0)){
+        dat[idx[idx_m], "mom"] <<- NA_integer_
+        return(TRUE)
+      }
+      idx_d <- which(dat$dad[idx] == removed_edges[i, parent])
+      if(length(idx_d > 0)){
+        dat[idx[idx_d], "dad"] <<- NA_integer_
+        return(TRUE)
+      }
+      FALSE
+    }
+    if(.(1L, 2L))
+      next
+    .(2L, 1L)
+  }
+  
+  dat
+}
+new_dat <- get_reduced_data(dat, partition$removed_edges)
+
+# For some reason, kinship2::pedigree requires that we provide both a father 
+# and mother or none. Therefore, we create a mock object. You can skip this
+get_pedigree_mock <- function(id, dadid, momid, sex){
+  if(is.factor(sex))
+    sex <- as.integer(sex)
+  
+  # checks
+  n <- length(id)
+  stopifnot(n > 0, length(dadid) == n, length(momid) == n, length(sex) == n, 
+            all(is.finite(sex)), all(sex %in% 1:2), 
+            all(is.na(dadid) | dadid %in% id), 
+            all(is.na(momid) | momid %in% id), 
+            all(is.finite(id)))
+  
+  # create objects to return
+  findex <- match(dadid, id, nomatch = 0L)
+  mindex <- match(momid, id, nomatch = 0L)
+  
+  structure(
+    list(famid = rep(1L, n), id = id, findex = findex, mindex = mindex,
+         sex = factor(sex, levels = 1:2, labels = c("male", "famle"))), 
+    class = "pedigree")
+}
+
+
+# plot the old and the new kinship matrix
+K_old <- kinship(ped_larger)
+K_new <- kinship(get_pedigree_mock(new_dat$id, new_dat$dad, new_dat$mom, 
+                                   new_dat$sex))
+K_new[K_new != K_old] <- -K_old[K_new != K_old]
+
+par(mar = c(1, 1, 3, 1), mfcol = c(1, 2))
+image_plot(K_old, main = "Original kinship matrix")
+image_plot(K_new, main = "New kinship matrix")
+```
+
+<div class = "w-small">
+The orange colored entries are equal to zero in the new kinship matrix. 
+<p class = "smallish">
+The two matrices are otherwise identical.</p>
+</div>
+
+## OCD Example
+
+```{r ocd_table, echo = FALSE}
+estimates <- matrix(
+  c("Estimates", "-3.692", "0.227", "0.147", "$0.469\\,(0.387, 0.545)$"), 1,
+  dimnames = list(NULL, c("", "$\\beta_0$", "$\\beta_{\\text{sex}}$",
+                          "$\\beta_{\\text{AOM}}$", "$h_g$")))
+  
+knitr::kable(estimates, row.names = FALSE)
+```
+
+<p class = "smallish"> 
+Estimates of a model for OCD with a data set like the one used by @Mahjani20. 
+The parenthesis shows a 95% profile likelihood-based confidence interval. 
+</p>
+
+<div class = "w-small">
+The estimation time was four hours and 58 minutes.
+<p class = "smallish">
+It took more than a month with MCMC!
+It took 12 hours and 15 
+minutes to compute the confidence interval.</p></div>
+
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="large-first center slide level2">
+<h1>Extensions</h1>
+<!--/html_preserve-->
+
+## Improvements
+<div class = "w-small">
+Get better starting values.
+<p class = "smallish">
+Make an efficient Gaussian variational approximation or Laplace 
+approximation to get starting values.</p>
+</div>
+
+## Survival Data
+$Y_{ij}^* \in (0,\infty)$ with independent right censoring time 
+$C_{ij} \in (0,\infty)$. 
+
+<p class = "fragment">
+Only observe $Y_{ij} = \min (Y_{ij}^*, C_{ij})$.
+</p>
+
+<div class = "fragment">
+Use a mixed flexible parametric survival model:
+
+$$
+\begin{align*}
+P(Y_{ij}^* > y \mid \epsilon_{ij} = e) &= \Phi(
+  -\vec g(y)^\top\vec\omega - \vec\beta^\top\vec x_{ij} - e) \\
+(\epsilon_{i1}, \dots, \epsilon_{in_i}) &\sim
+  N^{(n_i)}(\vec 0, \mat\Sigma_i(\vec\sigma))
+\end{align*}
+$$
+</div>
+
+## Survival Data
+
+A simple case is $\vec g(y) = \log y$ in which case
+
+<div class = "fragment w-small">
+
+$$
+\begin{align*}
+\omega\log Y_{ij}^* &= -\vec\beta^\top\vec x_{ij} + \epsilon_{ij} \\
+\vec\epsilon_i &\sim
+  N^{(n_i)}(\vec 0, \mat I_{n_i} + \mat\Sigma_i(\vec\sigma))
+\end{align*}
+$$
+
+<p class = "smallish">
+Used in the bivariate case by @Szulkin17.</p>
+</div>
+
+<p class = "fragment">
+Bonus: The dimension of the integrals are equal to the number of censored 
+individuals.</p>
+
+<div class = "w-small fragment">
+E.g. interested in $\sigma_g^2/(1 + \sigma_g^2+ \sigma_e^2)$
+<p class = "smallish">
+the proportion of the variance **on the log scale** explained by 
+additive genetic effects,</p>
+</div>
+
+## Survival Data (continued)
+Generally, 
+
+$$
+\begin{align*}
+\vec g(Y_{ij}^*)^\top\vec\omega &= -\vec\beta^\top\vec x_{ij} + \epsilon_{ij} \\
+\vec\epsilon_i &\sim
+  N^{(n_i)}(\vec 0, \mat I_{n_i} + \mat\Sigma_i(\vec\sigma)).
+\end{align*}
+$$
+<div class = "w-small">
+More flexible.
+<p class = "smallish"> 
+A prototype implementation is available at 
+<a href=https://github.com/boennecd/mixprobit/blob/master/examples/mixed-gsm.md>
+github.com/boennecd/mixprobit/blob/master/examples/mixed-gsm.md</a>.
+</p></div>
+
+<div class = "w-small fragment">
+An alternative is the IPCW based estimator used by @Holst16 
+<p class = "smallish">
+combined with a composite likelihood approach.
+</p></div>
+
+## Individual Specific Loadings
+
+$$
+\begin{align*}
+Y_{ij} &= \begin{cases}
+  1 & \vec x_{ij}^\top\vec\beta + \epsilon_{io} + \sum_{k = 1}^K\sigma_k(\vec z_{ij})\epsilon_{ij} > 0 \\
+  0 & \text{otherwise}
+\end{cases} \\
+\epsilon_{io} &\sim N(0,1) \\
+(\epsilon_{i1}, \dots, \epsilon_{in_i})^\top & 
+  \sim N^{(n_i)}\left(\vec 0; \mat C_{ik}
+  \right) \\
+\sigma_k(\vec z_{ij}) &= \exp(\vec\theta_k^\top\vec z_{ij}) 
+\end{align*}
+$$
+
+<div class = "fragment">
+Proportion of variance is 
+
+$$
+\frac{\sigma_k(\vec z_{ij})^2}{1 + \sum_{l = 1}^K\sigma_l(\vec z_{ij})^2}
+$$
+</div class = "fragment">
+
+## Individual Specific Loadings
+
+E.g. boys may be more dependent than females. 
+
+<p class = "fragment">
+Already implemented.</p>
+
+## Imputation Method
+<div class = "w-small">
+Improve upon the approximate EM-algorithm by @zhao19 used for imputation of 
+missing values. 
+<p class = "smallish">
+See [github.com/boennecd/mdgc](https://github.com/boennecd/mdgc).</p>
+</div>
+
+<div class = "fragment w-small">
+Can provide joint imputation for continuous, binary, ordinal, and multinomial 
+data.
+<p class="smallish">
+See @Christoffersen21.</p>
+</div>
+
+<!--html_preserve-->
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+
+<section>
+<section class="center final">
+<h1>Thank You!</h1>
+
+<div class="w-small">
+<p class="smallish">The presentation is at  
+<a href="https://rpubs.com/boennecd/KU-pedmod">rpubs.com/boennecd/KU-pedmod</a>.</p>
+<p class="smallish">The markdown is at  
+<a href="https://github.com/boennecd/Talks">github.com/boennecd/Talks</a>.</p>
+<p class="smallish">The R package is on CRAN and at
+<a href="https://github.com/boennecd/pedmod">github.com/boennecd/pedmod</a>.</p>
+<p class="smallish">References are on the next slide.</p>
+</div>
+
+</section>
+<!-- need extra end tag before next section -->
+</section>
+
+
+<section>
+<h1>References</h1>
+
+<!--/html_preserve-->

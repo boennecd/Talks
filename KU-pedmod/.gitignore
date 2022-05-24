@@ -1,0 +1,11 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+cache/*
+!cache/direct-genetic-env-study
+cache/direct-genetic-env-study/*
+!cache/direct-genetic-env-study/.placeholder
+!cache/direct-genetic-study
+cache/direct-genetic-study/*
+!cache/direct-genetic-study/.placeholder
