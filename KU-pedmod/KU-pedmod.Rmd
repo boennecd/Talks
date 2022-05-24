@@ -220,7 +220,7 @@ Left: the family. Right: the childhood environment scale matrix.
 <div class = "w-small">
 Interested in $h_g = \sigma_g^2/(1 + \sigma_g^2+ \sigma_e^2)$
 <p class = "smallish">
-the proportion of the variance explained by additive genetic effects,</p>
+the proportion of the variance explained by additive genetic effects.</p>
 </div>
 
 <div class = "fragment w-small">
