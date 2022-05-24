@@ -9,3 +9,4 @@ cache/direct-genetic-env-study/*
 !cache/direct-genetic-study
 cache/direct-genetic-study/*
 !cache/direct-genetic-study/.placeholder
+rsconnect
