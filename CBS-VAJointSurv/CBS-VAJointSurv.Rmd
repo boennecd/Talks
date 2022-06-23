@@ -118,7 +118,8 @@ Want to account for this.</p>
 ## General Problem (Cont.)
 
 <div class = "w-small">
-We are interested relation between discretely observed longitudinal variables 
+Interested in the 
+relation between discretely observed longitudinal variables 
 and the time to terminal or recurrent events.
 <p class = "smallish"> 
 E.g. default, merger, employment, etc.</p></div>
@@ -164,7 +165,7 @@ seldom leaves us with only one marker of interest.
 <div class = "fragment w-small">
 We may want to decompose a terminal event into competing events.
 <p class = "smallish">
-E.g. merger and default.</p></div>
+E.g. merger, liquidation and default.</p></div>
 
 ## Goal
 
@@ -364,8 +365,10 @@ $$
 
 and $\vec m_i$ may depended on $i$.
 
-<p class = "fragment"> 
-Allows for time-varying fixed and random effects.</p>
+<div class = "fragment w-small"> 
+Allows for time-varying fixed and random effects.
+<p class = "smallish">
+Time and covariate interactions.</p></div>
 
 ## Time-to-event Model
 
@@ -544,8 +547,10 @@ h_i(t\mid \vec U_i, \xi_i) &= \exp\left(
 \end{align*}
 $$
 
-<p class = "fragment"> 
-Allows for time-varying (non-proportional) effects.</p>
+<div class = "fragment w-small"> 
+Allows for time-varying (non-proportional) effects.
+<p class = "smallish">
+Time and covariate interactions.</p></div>
 
 ## More Markers
 
@@ -650,7 +655,7 @@ random effects.
 <div class = "fragment w-small">
 Let $\vec Y_i$ be the outcomes.
 <p class = "smallish">
-The concatenated vector of observed marker values, observations times, 
+The concatenated vector of observed marker values, observations times (possibly), 
 observed times, and events indicators.
 </p></div>
 
@@ -811,15 +816,15 @@ Given $\hat{\vec\zeta}$ and $\hat{\vec\theta}_i(\hat{\vec\zeta})$ and some
 function $v(\vec o;\hat{\vec\zeta})$, the right hand-side
 
 $$
-\int v(\vec o;\hat{\vec\zeta})p_{i,\hat{\vec\zeta}}(\vec o\mid\vec y_i)d\vec o \approx
-  \int v(\vec o;\hat{\vec\zeta})
-  q^{(i)}_{\hat{\vec\theta}_i(\hat{\vec\zeta})}(\vec o) d\vec o  
+E_{p_{i,\hat{\vec\zeta}}}\left(v(\vec O_i;\hat{\vec\zeta})\mid \vec Y_i = \vec y_i\right) 
+  \approx
+  E_{q^{(i)}_{\hat{\vec\theta}_i(\hat{\vec\zeta})}}\left(v(\vec O_i;\hat{\vec\zeta})\right)
 $$
 
 is almost always much easier to compute.
 
 <p class = "fragment"> 
-$q^{(i)}_{\hat{\vec\theta}_i(\hat{\vec\zeta})}(\vec o) \approx p_{i,\hat{\vec\zeta}}(\vec o\mid\vec y_i)$ 
+$p_{i,\hat{\vec\zeta}}(\vec o\mid\vec y_i) \approx q^{(i)}_{\hat{\vec\theta}_i(\hat{\vec\zeta})}(\vec o)$ 
 if the lower bound is tight.</p>
 
 <p class = "fragment">
@@ -868,7 +873,7 @@ quadrature based JM package [@Rizopoulos10].
 </div>
 
 <p class = "fragment">
-Simulation study to check the bias of the VA and to compare 
+Check the bias of the VA and to compare 
 the observed information matrix and the computation time.</p>
 
 <p class = "fragment">
@@ -2158,21 +2163,21 @@ confidence interval was `r round(pl_time["Mean"], 1)` seconds. </p></div>
 ## Application
 
 Interested in the relation between longitudinal observed dense and fatty tissue 
-areas in breast and breast cancer. 
+areas in the breast and breast cancer onset. 
 
 <p class = "fragment">
-Have 60081 women with 188037 longitudinal measurements.</p> 
+60081 women with 188037 longitudinal measurements.</p> 
 
 <div class = "fragment w-small">
 The women are cancer free at study entry and we look at the time to the first
 breast cancer diagnosis.
 <p class = "smallish">
-BMI is included in both marker and survival sub-models. There is delayed entry 
-due to the cancer free condition.</p></div>
+BMI is included in both the marker and survival sub-models. There is delayed 
+entry due to the cancer free condition.</p></div>
 
 ## Application
 <div class = "w-small">
-Estimate a random intercept and a random slope model
+Estimate a random intercept and a random intercept and slope model
 <p class = "smallish">
 which yields two and four random effects per woman.</p></div>
 
@@ -2181,20 +2186,36 @@ Thus, there are 300446 and 841182 parameters.</p>
 
 ## Application: Results
 
-<!-- Without slopes -->
-<!--      & 0.1316 & 0.03045 & 3.777 & & 3.795 & & -587141.9 & 1.174 \\ -->
-<!--      & (0.0128) & (0.01600) & (0.023) & & (0.023) & & & \\ -->
-<!--    % (112001.04 + 26563.173) / 3600 -->
-<!--    With slopes -->
-<!--      & 0.1436 & 0.02663 & 3.675 & 0.002327 & 3.421 & 0.002281 & -586179.6 & 38.490 \\ -->
-<!--      & (0.0133) & (0.01711) & (0.052) & (0.000161) & (0.052) & (0.000174) & & \\ -->
+```{r real_data}
+tbl_data <-
+  rbind(
+    c("0.132", "0.0305", "3.78", "", "3.80", "", "-587142.0", "1.17"), 
+    c("0.144", "0.0266", "3.68", "0.00233", "3.42" , "0.00228", "-586180.0", "38.49"),
+    c("0.013", "0.0160", "0.02", "", "0.02", "", "", ""),
+    c("0.013", "0.0171", "0.05", "0.00016", "0.05", "0.00017", "", ""))
 
-<!-- ```{r} -->
-<!-- tbl_data <-  -->
-<!--   rbind(c(0.1316, 0.03045, 3.777, )) -->
+colnames(tbl_data) <- 
+  c("$\\alpha_{11}$", "$\\alpha_{12}$", 
+    "$\\psi_1^2$", "$\\psi_2^2$", "$\\psi_3^2$", "$\\psi_4^2$", 
+    "LB", "Time")
 
-<!-- ``` -->
+tbl_data <- cbind(
+  rep(c("Estimate", "", "SE", "")),
+  Model = rep(c("W/o", "W/"), 2L), tbl_data)
 
+knitr::kable(
+  tbl_data, row.names = FALSE, align = 
+    paste0(c("ll"), paste0(rep("r", NCOL(tbl_data)), collapse = "")))
+```
+
+<div class = "w-small">
+Take away: a significant association with the dense tissue but not the 
+fatty tissue.
+<p class = "smallish">
+The "w/o" and "w/" rows are the results without and with the random slopes, 
+respectively. $\alpha_{11}$ and $\alpha_{12}$ are the current value association 
+with the dense and fatty tissue, respectively. The $\psi^2_i$s are the estimated 
+variances, LB is maximum lower bound and the computation time is in hours.</p></div>
 
 
 <!--html_preserve-->
@@ -2258,11 +2279,10 @@ The new lower bounds terms are easy to approximate [@Ormerod12].
 At worst, we have to approximate many one dimensional integrals.</p></div>
 
 <div class = "fragment w-small"> 
-We have an example of a mixed logistic regression with more than 
-20 times faster estimation times compared to the Laplace approximation in lme4
+We have an example of a mixed logistic regression with nice performance 
 <p class = "smallish"> 
-with less bias and six dimensional random effects. The example is at 
-https://github.com/boennecd/psqn-va-ex#6d-random-effects
+compared to the Laplace implementation in the lme4 package.
+The example is at https://github.com/boennecd/psqn-va-ex#6d-random-effects
 </p></div>
 
 ## Variational Approximations
@@ -2276,9 +2296,10 @@ Extension will give tighter lower bounds but may take longer to
 evaluate or be harder to optimize.</p>
 </div>
 
-<p class = "fragment">
-Some of the parameters can profiled out quite quickly. This may reduce the 
-computation time further.</p>
+<div class = "fragment w-small">
+Some of the parameters can profiled out quite quickly. 
+<p class = "smallish">
+This may reduce the computation time further.</p></div>
 
 <!--html_preserve-->
 </section>
